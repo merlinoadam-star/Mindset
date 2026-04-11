@@ -30,7 +30,7 @@ export default function PracticePage() {
   const [intensity, setIntensity] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [notes, setNotes] = useState("");
   const [selectedDrills, setSelectedDrills] = useState<string[]>([]);
-  const [drillsExpanded, setDrillsExpanded] = useState(true);
+  const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
 
   if (!state.profile) return null;
 
@@ -44,6 +44,7 @@ export default function PracticePage() {
     setIntensity(3);
     setNotes("");
     setSelectedDrills([]);
+    setExpandedCats(new Set());
     setShowForm(false);
   }
 
@@ -51,6 +52,15 @@ export default function PracticePage() {
     setSelectedDrills((prev) =>
       prev.includes(drill) ? prev.filter((d) => d !== drill) : [...prev, drill]
     );
+  }
+
+  function toggleCategory(catId: string) {
+    setExpandedCats((prev) => {
+      const next = new Set(prev);
+      if (next.has(catId)) next.delete(catId);
+      else next.add(catId);
+      return next;
+    });
   }
 
   function submit(e: React.FormEvent) {
@@ -115,12 +125,8 @@ export default function PracticePage() {
           </div>
 
           <div>
-            <button
-              type="button"
-              onClick={() => setDrillsExpanded((v) => !v)}
-              className="w-full flex items-center justify-between text-sm font-semibold text-slate-700 mb-2"
-            >
-              <span>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-slate-700">
                 Drills Worked{" "}
                 {selectedDrills.length > 0 && (
                   <span className="ml-1 inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 text-xs rounded-full bg-brand-600 text-white">
@@ -128,45 +134,76 @@ export default function PracticePage() {
                   </span>
                 )}
               </span>
-              {drillsExpanded ? (
-                <ChevronUp size={18} className="text-slate-400" />
-              ) : (
-                <ChevronDown size={18} className="text-slate-400" />
+              {selectedDrills.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedDrills([])}
+                  className="text-xs text-slate-500 hover:text-slate-800 font-medium"
+                >
+                  Clear
+                </button>
               )}
-            </button>
-            {drillsExpanded && (
-              <div className="space-y-3">
-                {drillCategories.map((cat) => (
-                  <div key={cat.id}>
-                    <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1.5">
-                      {cat.name}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {cat.drills.map((drill) => {
-                        const selected = selectedDrills.includes(drill);
-                        return (
-                          <button
-                            key={drill}
-                            type="button"
-                            onClick={() => toggleDrill(drill)}
-                            className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
-                              selected
-                                ? "bg-brand-600 text-white border-brand-600"
-                                : "bg-white text-slate-700 border-slate-200 hover:border-brand-300"
-                            }`}
-                          >
-                            {drill}
-                          </button>
-                        );
-                      })}
-                    </div>
+            </div>
+            <div className="space-y-1.5">
+              {drillCategories.map((cat) => {
+                const isOpen = expandedCats.has(cat.id);
+                const selectedInCat = cat.drills.filter((d) =>
+                  selectedDrills.includes(d)
+                ).length;
+                return (
+                  <div
+                    key={cat.id}
+                    className="rounded-xl border border-slate-200 overflow-hidden"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleCategory(cat.id)}
+                      className="w-full flex items-center justify-between px-3 py-2.5 bg-slate-50 hover:bg-slate-100 transition text-left"
+                    >
+                      <span className="text-sm font-semibold text-slate-800">
+                        {cat.name}
+                        {selectedInCat > 0 && (
+                          <span className="ml-2 inline-flex items-center justify-center min-w-[1.25rem] h-4 px-1 text-[10px] rounded-full bg-brand-600 text-white font-bold">
+                            {selectedInCat}
+                          </span>
+                        )}
+                      </span>
+                      {isOpen ? (
+                        <ChevronUp size={16} className="text-slate-400" />
+                      ) : (
+                        <ChevronDown size={16} className="text-slate-400" />
+                      )}
+                    </button>
+                    {isOpen && (
+                      <div className="p-3 border-t border-slate-200 bg-white">
+                        <div className="flex flex-wrap gap-1.5">
+                          {cat.drills.map((drill) => {
+                            const selected = selectedDrills.includes(drill);
+                            return (
+                              <button
+                                key={drill}
+                                type="button"
+                                onClick={() => toggleDrill(drill)}
+                                className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
+                                  selected
+                                    ? "bg-brand-600 text-white border-brand-600"
+                                    : "bg-white text-slate-700 border-slate-200 hover:border-brand-300"
+                                }`}
+                              >
+                                {drill}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))}
-                <p className="text-xs text-slate-500 pt-1">
-                  Tap to toggle. Optional — pick as many as you worked on.
-                </p>
-              </div>
-            )}
+                );
+              })}
+            </div>
+            <p className="text-xs text-slate-500 pt-2">
+              Tap a category to open it. Optional — pick as many as you worked on.
+            </p>
           </div>
 
           <div>
