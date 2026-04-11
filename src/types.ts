@@ -33,6 +33,7 @@ export interface PracticeEntry {
   type: string; // e.g. "drilling", "live", "serving", "scrimmage"
   intensity: 1 | 2 | 3 | 4 | 5;
   notes: string;
+  drills?: string[]; // specific skill drills worked on this session
   xpEarned: number;
 }
 

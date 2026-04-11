@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useStore } from "../lib/store";
 import { showReward } from "../components/RewardToast";
 import { todayISO } from "../lib/gamification";
-import { Dumbbell } from "lucide-react";
+import { drillsForSport } from "../lib/drills";
+import { Dumbbell, ChevronDown, ChevronUp } from "lucide-react";
 
 const WRESTLING_TYPES = [
   "Drilling",
@@ -13,12 +14,11 @@ const WRESTLING_TYPES = [
   "Tournament",
 ];
 const VOLLEYBALL_TYPES = [
-  "Serving",
-  "Passing",
-  "Hitting",
-  "Setting",
+  "Practice",
+  "Drilling",
   "Scrimmage",
   "Conditioning",
+  "Lifting",
   "Tournament",
 ];
 
@@ -29,18 +29,28 @@ export default function PracticePage() {
   const [durationMin, setDurationMin] = useState(60);
   const [intensity, setIntensity] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [notes, setNotes] = useState("");
+  const [selectedDrills, setSelectedDrills] = useState<string[]>([]);
+  const [drillsExpanded, setDrillsExpanded] = useState(true);
 
   if (!state.profile) return null;
 
   const types =
     state.profile.sport === "wrestling" ? WRESTLING_TYPES : VOLLEYBALL_TYPES;
+  const drillCategories = drillsForSport(state.profile.sport);
 
   function reset() {
     setType("");
     setDurationMin(60);
     setIntensity(3);
     setNotes("");
+    setSelectedDrills([]);
     setShowForm(false);
+  }
+
+  function toggleDrill(drill: string) {
+    setSelectedDrills((prev) =>
+      prev.includes(drill) ? prev.filter((d) => d !== drill) : [...prev, drill]
+    );
   }
 
   function submit(e: React.FormEvent) {
@@ -52,6 +62,7 @@ export default function PracticePage() {
       type,
       intensity,
       notes: notes.trim(),
+      drills: selectedDrills.length > 0 ? selectedDrills : undefined,
     });
     showReward(awardedXp, newlyUnlocked);
     reset();
@@ -80,7 +91,7 @@ export default function PracticePage() {
       </header>
 
       {showForm && (
-        <form onSubmit={submit} className="card space-y-4 animate-pop-in">
+        <form onSubmit={submit} className="card space-y-5 animate-pop-in">
           <div>
             <label className="text-sm font-semibold text-slate-700 block mb-2">
               Type of Practice
@@ -101,6 +112,61 @@ export default function PracticePage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              onClick={() => setDrillsExpanded((v) => !v)}
+              className="w-full flex items-center justify-between text-sm font-semibold text-slate-700 mb-2"
+            >
+              <span>
+                Drills Worked{" "}
+                {selectedDrills.length > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center min-w-[1.5rem] h-5 px-1.5 text-xs rounded-full bg-brand-600 text-white">
+                    {selectedDrills.length}
+                  </span>
+                )}
+              </span>
+              {drillsExpanded ? (
+                <ChevronUp size={18} className="text-slate-400" />
+              ) : (
+                <ChevronDown size={18} className="text-slate-400" />
+              )}
+            </button>
+            {drillsExpanded && (
+              <div className="space-y-3">
+                {drillCategories.map((cat) => (
+                  <div key={cat.id}>
+                    <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mb-1.5">
+                      {cat.name}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {cat.drills.map((drill) => {
+                        const selected = selectedDrills.includes(drill);
+                        return (
+                          <button
+                            key={drill}
+                            type="button"
+                            onClick={() => toggleDrill(drill)}
+                            className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition ${
+                              selected
+                                ? "bg-brand-600 text-white border-brand-600"
+                                : "bg-white text-slate-700 border-slate-200 hover:border-brand-300"
+                            }`}
+                          >
+                            {drill}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+                <p className="text-xs text-slate-500 pt-1">
+                  Tap to toggle. Optional — pick as many as you worked on.
+                </p>
+              </div>
+            )}
           </div>
 
           <div>
@@ -200,6 +266,18 @@ export default function PracticePage() {
                   +{p.xpEarned} XP
                 </span>
               </div>
+              {p.drills && p.drills.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {p.drills.map((d) => (
+                    <span
+                      key={d}
+                      className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-semibold"
+                    >
+                      {d}
+                    </span>
+                  ))}
+                </div>
+              )}
               {p.notes && (
                 <p className="text-sm text-slate-700 mt-2 border-l-2 border-slate-200 pl-3">
                   {p.notes}
