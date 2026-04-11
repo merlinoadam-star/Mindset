@@ -67,4 +67,5 @@ export interface AppState {
   checkins: MentalCheckin[];
   unlockedBadges: UnlockedBadge[];
   lastActiveDate: string | null; // YYYY-MM-DD — last day any XP was earned
+  lastQuoteClaimDate: string | null; // YYYY-MM-DD — last day the daily quote XP was claimed
 }

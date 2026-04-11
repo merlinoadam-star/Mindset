@@ -4,6 +4,7 @@ import { computeLevel, computeStreak, isStreakAlive, getBadge, todayISO } from "
 import { habitsForSport } from "../lib/habits";
 import XPBar from "../components/XPBar";
 import StreakBadge from "../components/StreakBadge";
+import QuoteOfTheDay from "../components/QuoteOfTheDay";
 import { ArrowRight, CheckSquare, Dumbbell, Brain } from "lucide-react";
 
 export default function Dashboard() {
@@ -39,6 +40,8 @@ export default function Dashboard() {
       </header>
 
       <XPBar xp={state.xp} info={info} />
+
+      <QuoteOfTheDay />
 
       <div className="grid grid-cols-2 gap-3">
         <StreakBadge streak={streak} alive={alive} />

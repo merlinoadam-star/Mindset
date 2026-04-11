@@ -10,6 +10,7 @@ export const emptyState: AppState = {
   checkins: [],
   unlockedBadges: [],
   lastActiveDate: null,
+  lastQuoteClaimDate: null,
 };
 
 export function loadState(): AppState {

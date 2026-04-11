@@ -29,6 +29,12 @@ interface StoreContextValue {
     c: Omit<MentalCheckin, "id" | "xpEarned">
   ) => { awardedXp: number; newlyUnlocked: string[] };
   hasCheckinToday: boolean;
+  hasClaimedQuoteToday: boolean;
+  claimDailyQuote: () => {
+    awardedXp: number;
+    newlyUnlocked: string[];
+    alreadyClaimed: boolean;
+  };
   resetAll: () => void;
 }
 
@@ -44,6 +50,7 @@ function xpForPractice(durationMin: number, intensity: number): number {
 }
 
 const CHECKIN_XP = 15;
+const QUOTE_XP = 10;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => loadState());
@@ -210,6 +217,46 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const claimDailyQuote = useCallback(() => {
+    const today = todayISO();
+    let newlyUnlocked: string[] = [];
+    let alreadyClaimed = false;
+
+    setState((prev) => {
+      if (prev.lastQuoteClaimDate === today) {
+        alreadyClaimed = true;
+        return prev;
+      }
+      let next: AppState = {
+        ...prev,
+        xp: prev.xp + QUOTE_XP,
+        lastActiveDate: today,
+        lastQuoteClaimDate: today,
+      };
+      const sportHabitCount = prev.profile
+        ? habitsForSport(prev.profile.sport).length
+        : 0;
+      newlyUnlocked = evaluateBadges(next, sportHabitCount);
+      if (newlyUnlocked.length > 0) {
+        const now = new Date().toISOString();
+        next = {
+          ...next,
+          unlockedBadges: [
+            ...next.unlockedBadges,
+            ...newlyUnlocked.map((id) => ({ id, unlockedAt: now })),
+          ],
+        };
+      }
+      return next;
+    });
+
+    return {
+      awardedXp: alreadyClaimed ? 0 : QUOTE_XP,
+      newlyUnlocked,
+      alreadyClaimed,
+    };
+  }, []);
+
   const resetAll = useCallback(() => {
     clearState();
     setState(emptyState);
@@ -220,6 +267,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [state.checkins]
   );
 
+  const hasClaimedQuoteToday = useMemo(
+    () => state.lastQuoteClaimDate === todayISO(),
+    [state.lastQuoteClaimDate]
+  );
+
   const value: StoreContextValue = {
     state,
     setProfile,
@@ -228,6 +280,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     addPractice,
     addCheckin,
     hasCheckinToday,
+    hasClaimedQuoteToday,
+    claimDailyQuote,
     resetAll,
   };
 
