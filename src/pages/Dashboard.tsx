@@ -122,16 +122,10 @@ export default function Dashboard() {
             color="red"
           />
           <QuickAction
-            to="/trivia"
+            to="/games"
             icon={<Gamepad2 size={18} />}
-            label="Trivia challenge — earn bonus XP"
+            label="Mini-games hub — 4 games, lots of XP"
             color="amber"
-          />
-          <QuickAction
-            to="/scenarios"
-            icon={<Brain size={18} />}
-            label="Decision drills — what would a champion do?"
-            color="purple"
           />
           <QuickAction
             to="/profile"

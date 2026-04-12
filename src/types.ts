@@ -346,4 +346,7 @@ export interface AppState {
   lastFreezeEarnedAt: string | null; // ISO timestamp of last earned freeze
   triviaRoundsPlayed: number;
   triviaXpEarned: number;
+  // Mini-game high scores (per game)
+  gameBestScores: Record<string, number>;
+  gameXpEarned: Record<string, number>;
 }

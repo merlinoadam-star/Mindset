@@ -22,6 +22,8 @@ export const emptyState: AppState = {
   lastFreezeEarnedAt: null,
   triviaRoundsPlayed: 0,
   triviaXpEarned: 0,
+  gameBestScores: {},
+  gameXpEarned: {},
 };
 
 export function loadState(): AppState {

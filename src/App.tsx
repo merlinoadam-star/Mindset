@@ -18,6 +18,9 @@ import LessonsPage from "./pages/Lessons";
 import WeeklyReviewPage from "./pages/WeeklyReview";
 import PowerPhrasesPage from "./pages/PowerPhrases";
 import ScenariosPage from "./pages/Scenarios";
+import GamesPage from "./pages/Games";
+import ReactionTapPage from "./pages/ReactionTap";
+import FocusFlashPage from "./pages/FocusFlash";
 
 function AppShell() {
   const { state } = useStore();
@@ -43,6 +46,9 @@ function AppShell() {
           <Route path="review" element={<WeeklyReviewPage />} />
           <Route path="phrases" element={<PowerPhrasesPage />} />
           <Route path="scenarios" element={<ScenariosPage />} />
+          <Route path="games" element={<GamesPage />} />
+          <Route path="games/reaction" element={<ReactionTapPage />} />
+          <Route path="games/flash" element={<FocusFlashPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

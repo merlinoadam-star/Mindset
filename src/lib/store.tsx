@@ -75,6 +75,11 @@ interface StoreContextValue {
   saveNutritionLog: (
     data: Omit<NutritionLog, "id" | "xpEarned">
   ) => { awardedXp: number; newlyUnlocked: string[] };
+  completeGameRound: (
+    gameId: string,
+    score: number,
+    xp: number
+  ) => { awardedXp: number; newlyUnlocked: string[]; isNewBest: boolean };
   resetAll: () => void;
 }
 
@@ -685,6 +690,47 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const completeGameRound = useCallback(
+    (gameId: string, score: number, xp: number) => {
+      let newlyUnlocked: string[] = [];
+      let isNewBest = false;
+      setState((prev) => {
+        const prevBest = prev.gameBestScores?.[gameId] ?? 0;
+        isNewBest = score > prevBest;
+        let next: AppState = {
+          ...prev,
+          xp: prev.xp + xp,
+          lastActiveDate: todayISO(),
+          gameBestScores: {
+            ...(prev.gameBestScores ?? {}),
+            [gameId]: Math.max(prevBest, score),
+          },
+          gameXpEarned: {
+            ...(prev.gameXpEarned ?? {}),
+            [gameId]: (prev.gameXpEarned?.[gameId] ?? 0) + xp,
+          },
+        };
+        const sportHabitCount = prev.profile
+          ? habitsForSport(prev.profile.sport).length
+          : 0;
+        newlyUnlocked = evaluateBadges(next, sportHabitCount);
+        if (newlyUnlocked.length > 0) {
+          const now = new Date().toISOString();
+          next = {
+            ...next,
+            unlockedBadges: [
+              ...next.unlockedBadges,
+              ...newlyUnlocked.map((id) => ({ id, unlockedAt: now })),
+            ],
+          };
+        }
+        return next;
+      });
+      return { awardedXp: xp, newlyUnlocked, isNewBest };
+    },
+    []
+  );
+
   const completeMentalSession = useCallback(
     (kind: MentalSession["kind"], refId: string, xp: number) => {
       let newlyUnlocked: string[] = [];
@@ -762,6 +808,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     incrementPhraseUse,
     saveRecoveryCheckin,
     saveNutritionLog,
+    completeGameRound,
     resetAll,
   };
 
