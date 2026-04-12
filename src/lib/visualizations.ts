@@ -1,0 +1,258 @@
+import type { Sport } from "../types";
+
+export interface VisualizationScript {
+  id: string;
+  title: string;
+  subtitle: string;
+  emoji: string;
+  durationMin: number;
+  xp: number;
+  sports: Sport[] | "all";
+  category: "pre-match" | "skill" | "recovery" | "confidence";
+  /** Step-by-step guided script. Shown one at a time with a timer. */
+  steps: string[];
+}
+
+export const VISUALIZATIONS: VisualizationScript[] = [
+  // ---- Universal: pre-match calm ----
+  {
+    id: "pre-match-calm",
+    title: "Pre-Match Calm",
+    subtitle: "Center yourself before competition",
+    emoji: "🌊",
+    durationMin: 3,
+    xp: 15,
+    sports: "all",
+    category: "pre-match",
+    steps: [
+      "Find a quiet spot. Close your eyes. Sit up tall with your feet flat on the floor.",
+      "Take a slow breath in through your nose for 4 counts. Feel your belly expand.",
+      "Exhale slowly through your mouth for 6 counts. Release any tension in your shoulders.",
+      "Picture yourself at the venue. See the mat/court clearly. Smell it. Hear the sounds.",
+      "See yourself warm — loose, confident, ready. Your body knows exactly what to do.",
+      "Tell yourself: 'I have prepared. I belong here. I am ready.'",
+      "Take three more deep breaths. Open your eyes when you're ready. You are set.",
+    ],
+  },
+  {
+    id: "success-imagery",
+    title: "See Your Success",
+    subtitle: "Mentally rehearse a winning performance",
+    emoji: "🏆",
+    durationMin: 4,
+    xp: 20,
+    sports: "all",
+    category: "pre-match",
+    steps: [
+      "Sit comfortably. Close your eyes. Take three slow breaths.",
+      "Picture the final moments of your best possible performance.",
+      "See the scoreboard. See your teammates reacting. Hear the crowd.",
+      "Now rewind. Watch yourself from the start of the match — every moment.",
+      "You're moving with purpose. Your technique is crisp. Your mind is quiet.",
+      "See one specific moment where you dig deep and execute under pressure.",
+      "Feel the emotions of success: gratitude, pride, peace, excitement.",
+      "Open your eyes. Carry that feeling with you.",
+    ],
+  },
+
+  // ---- Universal: confidence ----
+  {
+    id: "confidence-builder",
+    title: "Confidence Builder",
+    subtitle: "Remind yourself why you belong",
+    emoji: "💪",
+    durationMin: 3,
+    xp: 15,
+    sports: "all",
+    category: "confidence",
+    steps: [
+      "Close your eyes and breathe deeply for 30 seconds.",
+      "Think of a time you performed your absolute best. Where were you?",
+      "Replay that moment in detail. What were you feeling in your body?",
+      "What did you tell yourself in that moment? Say it out loud (or silently) now.",
+      "Remember: the athlete who showed up that day is still inside you — always.",
+      "Make a list in your mind of three strengths you bring to your sport.",
+      "Finish with: 'I am enough. I am capable. I have done the work.'",
+    ],
+  },
+  {
+    id: "overcoming-nerves",
+    title: "Overcoming Nerves",
+    subtitle: "Turn anxiety into focused energy",
+    emoji: "⚡",
+    durationMin: 3,
+    xp: 15,
+    sports: "all",
+    category: "pre-match",
+    steps: [
+      "Notice the nerves. Don't fight them. Where do you feel them — stomach, chest, hands?",
+      "Remember: nerves are energy. They mean this matters to you. That's a gift.",
+      "Breathe in for 4 counts. Hold for 2. Out for 6. Repeat three times.",
+      "Tell your body: 'Thank you for being ready. I've got this from here.'",
+      "Shift your focus from outcome to process. What's your ONE job in the next 30 seconds?",
+      "See yourself doing that one thing well. Just that. Nothing else matters.",
+      "Open your eyes. You are ready.",
+    ],
+  },
+
+  // ---- Universal: recovery ----
+  {
+    id: "mistake-recovery",
+    title: "Mistake Recovery",
+    subtitle: "Flush a bad play and reset",
+    emoji: "🔄",
+    durationMin: 2,
+    xp: 15,
+    sports: "all",
+    category: "recovery",
+    steps: [
+      "Take one deep breath. Acknowledge the mistake — don't hide from it.",
+      "Say internally: 'Next play.' Then physically do something — clap, touch the mat, snap your wrist.",
+      "Picture the mistake as a piece of paper. Crumple it and throw it away in your mind.",
+      "Breathe in again. Now picture the next play as a clean white page.",
+      "Your identity isn't this one mistake. You're the athlete who responds.",
+      "Get back to the process. Full focus on what's next.",
+    ],
+  },
+
+  // ---- Wrestling-specific ----
+  {
+    id: "wrestling-takedown",
+    title: "Perfect Takedown",
+    subtitle: "Rehearse your go-to shot",
+    emoji: "🤼",
+    durationMin: 4,
+    xp: 20,
+    sports: ["wrestling"],
+    category: "skill",
+    steps: [
+      "Close your eyes. Picture your opponent across the mat. Any size, any style.",
+      "Watch yourself in your stance — hips down, hands out, eyes up.",
+      "You start your setup. Maybe a collar tie. Maybe a snap. See it clearly.",
+      "Feel the level change. Step deep. Penetrate. Your head is up.",
+      "Finish. Drive through. Feel your body make contact with the mat — on top, in control.",
+      "Replay the takedown three times in your mind, each time a little crisper.",
+      "Open your eyes. You've just gotten 3 reps. Take them with you.",
+    ],
+  },
+  {
+    id: "wrestling-third-period",
+    title: "Third-Period Warrior",
+    subtitle: "Find another gear when it matters",
+    emoji: "🔥",
+    durationMin: 3,
+    xp: 15,
+    sports: ["wrestling"],
+    category: "confidence",
+    steps: [
+      "Close your eyes. Picture yourself in the third period, lungs burning.",
+      "Remember: you do every practice sprint for THIS moment.",
+      "See yourself lifting your chest, taking a breath, staring down your opponent.",
+      "Whisper Dan Gable's words: 'The third period is won by the kid with the biggest heart.'",
+      "Picture yourself attacking first. Getting the takedown. Riding out the buzzer.",
+      "Feel the referee raising your hand. You earned this — not with luck, but with grit.",
+    ],
+  },
+  {
+    id: "wrestling-bottom-escape",
+    title: "Bottom Escape",
+    subtitle: "Visualize getting to your feet",
+    emoji: "💥",
+    durationMin: 3,
+    xp: 15,
+    sports: ["wrestling"],
+    category: "skill",
+    steps: [
+      "Close your eyes. Feel yourself on the bottom. Opponent tight on you.",
+      "Get your base. Hand controls before anything else.",
+      "Explode up — feel the standup. Hips forward. Elbows tight.",
+      "Peel the wrists. Get your hip heist. Feel the mat under your feet.",
+      "You're free. Face your opponent. +1.",
+      "Run that rep 2 more times in your head — smoother each time.",
+    ],
+  },
+
+  // ---- Volleyball-specific ----
+  {
+    id: "volleyball-perfect-pass",
+    title: "Perfect Pass",
+    subtitle: "See yourself as a platform master",
+    emoji: "🙌",
+    durationMin: 3,
+    xp: 15,
+    sports: ["volleyball"],
+    category: "skill",
+    steps: [
+      "Close your eyes. You're in ready position. Knees bent. Eyes on the server.",
+      "You see the toss. Read the server's shoulders. Track the ball.",
+      "Shuffle to the ball. Get your platform out early.",
+      "Contact. Angle your shoulders to target. The ball arcs softly to your setter.",
+      "Setter has options. That's the gift of a great pass.",
+      "Replay 3 times — different serves each time. You handle them all.",
+    ],
+  },
+  {
+    id: "volleyball-kill",
+    title: "Terminal Kill",
+    subtitle: "Visualize a clean hit through the block",
+    emoji: "🏐",
+    durationMin: 3,
+    xp: 15,
+    sports: ["volleyball"],
+    category: "skill",
+    steps: [
+      "Close your eyes. See the pass come up. The setter delivers.",
+      "You start your approach — slow to fast. Feel the rhythm.",
+      "Plant and jump. See the block rise up.",
+      "Read it. Swing around, through, or over — whatever the ball gives you.",
+      "Watch the ball hit hardwood. Hear the crowd. Feel your teammates.",
+      "Run it again with a different set. And again. You own every set.",
+    ],
+  },
+  {
+    id: "volleyball-serve",
+    title: "Pressure Serve",
+    subtitle: "Deliver under pressure — 24-23",
+    emoji: "🎯",
+    durationMin: 3,
+    xp: 15,
+    sports: ["volleyball"],
+    category: "pre-match",
+    steps: [
+      "Close your eyes. You're at the service line. Score is 24-23.",
+      "Take a breath. Bounce the ball. Same routine as every other serve.",
+      "See your target — seam, deep corner, a weak passer.",
+      "Toss. Arm back. Contact.",
+      "The ball floats (or rips) exactly where you wanted it.",
+      "Whether it's an ace or a tough pass, you did your job. Confidence grows from routine.",
+    ],
+  },
+  {
+    id: "volleyball-block",
+    title: "The Block",
+    subtitle: "Seal the net and read the hitter",
+    emoji: "🧱",
+    durationMin: 3,
+    xp: 15,
+    sports: ["volleyball"],
+    category: "skill",
+    steps: [
+      "Close your eyes. You're at the net in block position.",
+      "Watch the setter's hands. Read the location of the set.",
+      "Footwork — step, cross, close. You're there.",
+      "Jump with the hitter. Seal the net with your hands.",
+      "The ball deflects down onto their side. Roof.",
+      "Land balanced, ready for the next play.",
+    ],
+  },
+];
+
+export function visualizationsForSport(sport: Sport): VisualizationScript[] {
+  return VISUALIZATIONS.filter(
+    (v) => v.sports === "all" || v.sports.includes(sport)
+  );
+}
+
+export function getVisualization(id: string): VisualizationScript | undefined {
+  return VISUALIZATIONS.find((v) => v.id === id);
+}

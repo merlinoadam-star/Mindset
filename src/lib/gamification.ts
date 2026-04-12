@@ -212,6 +212,41 @@ export const BADGES: BadgeDefinition[] = [
     emoji: "✨",
     requirement: "Complete all your sport's habits in a single day",
   },
+  {
+    id: "first-match",
+    name: "In the Arena",
+    description: "Logged your first match",
+    emoji: "🥊",
+    requirement: "Log 1 match",
+  },
+  {
+    id: "match-10",
+    name: "Seasoned Competitor",
+    description: "10 matches logged",
+    emoji: "🏟️",
+    requirement: "Log 10 matches",
+  },
+  {
+    id: "pre-match-5",
+    name: "Prepared Mind",
+    description: "Completed 5 pre-match mental prep sessions",
+    emoji: "🧘",
+    requirement: "Complete pre-match prep on 5 matches",
+  },
+  {
+    id: "reflective-warrior",
+    name: "Reflective Warrior",
+    description: "Completed 5 post-match reflections",
+    emoji: "📖",
+    requirement: "Complete post-match reflection on 5 matches",
+  },
+  {
+    id: "full-framework-10",
+    name: "The Full Package",
+    description: "Pre + post match reflection on 10 matches",
+    emoji: "🎯",
+    requirement: "Complete both pre and post on 10 matches",
+  },
 ];
 
 export function getBadge(id: string): BadgeDefinition | undefined {
@@ -237,6 +272,12 @@ export function evaluateBadges(
 
   const totalHabits = state.habitCompletions.length;
   const totalPractices = state.practices.length;
+  const totalMatches = state.matches.length;
+  const preMatchCount = state.matches.filter((m) => m.preMatchCompletedAt).length;
+  const postMatchCount = state.matches.filter((m) => m.postMatchCompletedAt).length;
+  const fullFrameworkCount = state.matches.filter(
+    (m) => m.preMatchCompletedAt && m.postMatchCompletedAt
+  ).length;
   const streak = computeStreak(state);
 
   if (totalHabits >= 1) unlock("first-step");
@@ -248,6 +289,12 @@ export function evaluateBadges(
   if (totalHabits >= 100) unlock("century-club");
   if (totalPractices >= 5) unlock("practice-5");
   if (totalPractices >= 25) unlock("practice-25");
+
+  if (totalMatches >= 1) unlock("first-match");
+  if (totalMatches >= 10) unlock("match-10");
+  if (preMatchCount >= 5) unlock("pre-match-5");
+  if (postMatchCount >= 5) unlock("reflective-warrior");
+  if (fullFrameworkCount >= 10) unlock("full-framework-10");
 
   if (state.profile) {
     const level = computeLevel(state.xp, state.profile.sport).level;

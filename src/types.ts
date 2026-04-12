@@ -147,6 +147,89 @@ export interface MentalCheckin {
   xpEarned: number;
 }
 
+// -----------------------------------------------------------------------------
+// Matches — pre-match + post-match framework with Well/Better/Next reflection
+// -----------------------------------------------------------------------------
+export type MatchResult = "win" | "loss" | "tie";
+
+export type WrestlingWinType =
+  | "decision"
+  | "major-decision"
+  | "tech-fall"
+  | "pin"
+  | "forfeit"
+  | "disqualification"
+  | "injury-default";
+
+export const WRESTLING_WIN_TYPE_LABELS: Record<WrestlingWinType, string> = {
+  decision: "Decision",
+  "major-decision": "Major Decision",
+  "tech-fall": "Tech Fall",
+  pin: "Pin",
+  forfeit: "Forfeit",
+  disqualification: "DQ",
+  "injury-default": "Injury Default",
+};
+
+export interface WrestlingMatchDetails {
+  winType?: WrestlingWinType;
+  myScore?: number;
+  theirScore?: number;
+  pinTimeSeconds?: number; // if won by pin
+  ridingTimeSeconds?: number;
+  weightClass?: number;
+}
+
+export interface VolleyballSetScore {
+  us: number;
+  them: number;
+}
+
+export interface VolleyballMatchDetails {
+  setScores?: VolleyballSetScore[]; // up to 5 sets
+  positionPlayed?: VolleyballPosition;
+  kills?: number;
+  digs?: number;
+  assists?: number;
+  blocks?: number;
+  aces?: number;
+  errors?: number;
+}
+
+export interface MatchEntry {
+  id: string;
+  date: string; // YYYY-MM-DD
+
+  // Basic info
+  opponent?: string;
+  event?: string; // tournament / meet / dual name
+  location?: string;
+
+  // Pre-match (the mental game)
+  focusObjective?: string; // one-line goal for the match
+  executeThis?: string; // one technique or play to nail
+  mentalStateBefore?: Mood; // 1-5
+  visualizationNote?: string;
+  preMatchCompletedAt?: string; // ISO — null until filled
+
+  // Post-match result
+  result?: MatchResult;
+  wrestling?: WrestlingMatchDetails;
+  volleyball?: VolleyballMatchDetails;
+  performanceRating?: Mood; // 1-5
+
+  // Well / Better / Next reflection
+  wentWell?: string;
+  couldBeBetter?: string;
+  nextFocus?: string;
+  gratitude?: string;
+  lessonLearned?: string;
+  postMatchCompletedAt?: string; // ISO — null until filled
+
+  xpEarned: number;
+  createdAt: string; // ISO
+}
+
 export interface BadgeDefinition {
   id: string;
   name: string;
@@ -160,12 +243,23 @@ export interface UnlockedBadge {
   unlockedAt: string;
 }
 
+export interface MentalSession {
+  id: string;
+  kind: "visualization" | "breathing" | "lesson";
+  refId: string; // id of the visualization / breathing exercise / lesson
+  date: string; // YYYY-MM-DD
+  completedAt: string; // ISO
+  xpEarned: number;
+}
+
 export interface AppState {
   profile: Profile | null;
   xp: number;
   habitCompletions: HabitCompletion[];
   practices: PracticeEntry[];
+  matches: MatchEntry[];
   checkins: MentalCheckin[];
+  mentalSessions: MentalSession[];
   unlockedBadges: UnlockedBadge[];
   lastActiveDate: string | null;
   lastQuoteClaimDate: string | null;

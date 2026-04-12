@@ -5,7 +5,7 @@ import { habitsForSport } from "../lib/habits";
 import XPBar from "../components/XPBar";
 import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
-import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User } from "lucide-react";
+import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye } from "lucide-react";
 
 export default function Dashboard() {
   const { state, hasCheckinToday } = useStore();
@@ -109,6 +109,12 @@ export default function Dashboard() {
             color="emerald"
           />
           <QuickAction
+            to="/matches"
+            icon={<Swords size={18} />}
+            label="Log a match — Pre / Post / Reflection"
+            color="red"
+          />
+          <QuickAction
             to="/trivia"
             icon={<Gamepad2 size={18} />}
             label="Trivia challenge — earn bonus XP"
@@ -121,6 +127,47 @@ export default function Dashboard() {
             done={profileFairlyComplete(state.profile)}
             color="purple"
           />
+        </div>
+      </div>
+
+      {/* Mental Tools */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bold text-slate-900">Mental Tools</h2>
+          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+            +XP each
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <Link
+            to="/visualize"
+            className="rounded-2xl p-3 text-center bg-gradient-to-b from-purple-50 to-white border border-purple-100 hover:border-purple-200 hover:shadow-card-hover transition"
+          >
+            <div className="w-10 h-10 mx-auto rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+              <Eye size={18} />
+            </div>
+            <div className="text-xs font-bold text-slate-900 mt-2">
+              Visualize
+            </div>
+          </Link>
+          <Link
+            to="/breathe"
+            className="rounded-2xl p-3 text-center bg-gradient-to-b from-sky-50 to-white border border-sky-100 hover:border-sky-200 hover:shadow-card-hover transition"
+          >
+            <div className="w-10 h-10 mx-auto rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center">
+              <Wind size={18} />
+            </div>
+            <div className="text-xs font-bold text-slate-900 mt-2">Breathe</div>
+          </Link>
+          <Link
+            to="/lessons"
+            className="rounded-2xl p-3 text-center bg-gradient-to-b from-amber-50 to-white border border-amber-100 hover:border-amber-200 hover:shadow-card-hover transition"
+          >
+            <div className="w-10 h-10 mx-auto rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+              <BookOpen size={18} />
+            </div>
+            <div className="text-xs font-bold text-slate-900 mt-2">Lessons</div>
+          </Link>
         </div>
       </div>
 
@@ -182,6 +229,7 @@ const colorMap: Record<string, { bg: string; icon: string }> = {
   purple: { bg: "bg-purple-50", icon: "text-purple-600" },
   emerald: { bg: "bg-emerald-50", icon: "text-emerald-600" },
   amber: { bg: "bg-amber-50", icon: "text-amber-600" },
+  red: { bg: "bg-red-50", icon: "text-red-600" },
 };
 
 function QuickAction({

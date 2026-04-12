@@ -9,7 +9,9 @@ import {
 } from "react";
 import type {
   AppState,
+  MatchEntry,
   MentalCheckin,
+  MentalSession,
   PracticeEntry,
   Profile,
 } from "../types";
@@ -40,6 +42,17 @@ interface StoreContextValue {
     correctCount: number,
     totalQuestions: number
   ) => { awardedXp: number; newlyUnlocked: string[] };
+  addMatch: (m: Pick<MatchEntry, "date" | "opponent" | "event" | "location">) => string;
+  updateMatch: (
+    id: string,
+    updates: Partial<MatchEntry>
+  ) => { awardedXp: number; newlyUnlocked: string[] };
+  deleteMatch: (id: string) => void;
+  completeMentalSession: (
+    kind: MentalSession["kind"],
+    refId: string,
+    xp: number
+  ) => { awardedXp: number; newlyUnlocked: string[] };
   resetAll: () => void;
 }
 
@@ -56,6 +69,10 @@ function xpForPractice(durationMin: number, intensity: number): number {
 
 const CHECKIN_XP = 15;
 const QUOTE_XP = 10;
+const PRE_MATCH_XP = 15;
+const POST_MATCH_XP = 30;
+const FULL_FRAMEWORK_BONUS = 10;
+const WIN_BONUS = 5;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => loadState());
@@ -305,6 +322,146 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const addMatch = useCallback(
+    (m: Pick<MatchEntry, "date" | "opponent" | "event" | "location">) => {
+      const id = genId();
+      const entry: MatchEntry = {
+        id,
+        date: m.date,
+        opponent: m.opponent,
+        event: m.event,
+        location: m.location,
+        xpEarned: 0,
+        createdAt: new Date().toISOString(),
+      };
+      setState((prev) => ({
+        ...prev,
+        matches: [entry, ...prev.matches],
+      }));
+      return id;
+    },
+    []
+  );
+
+  const updateMatch = useCallback(
+    (id: string, updates: Partial<MatchEntry>) => {
+      let awardedXp = 0;
+      let newlyUnlocked: string[] = [];
+
+      setState((prev) => {
+        const existing = prev.matches.find((m) => m.id === id);
+        if (!existing) return prev;
+
+        // Figure out what was just completed for XP purposes
+        const becamePreMatch =
+          !existing.preMatchCompletedAt &&
+          (updates.preMatchCompletedAt ||
+            (updates.focusObjective && !existing.focusObjective));
+        const becamePostMatch =
+          !existing.postMatchCompletedAt &&
+          (updates.postMatchCompletedAt ||
+            (updates.result && !existing.result));
+
+        let newXp = 0;
+        if (becamePreMatch) newXp += PRE_MATCH_XP;
+        if (becamePostMatch) {
+          newXp += POST_MATCH_XP;
+          // Bonus if full framework (pre + post both completed)
+          if (existing.preMatchCompletedAt || becamePreMatch) {
+            newXp += FULL_FRAMEWORK_BONUS;
+          }
+          // Small win bonus
+          if (updates.result === "win") {
+            newXp += WIN_BONUS;
+          }
+        }
+
+        const merged: MatchEntry = {
+          ...existing,
+          ...updates,
+          xpEarned: existing.xpEarned + newXp,
+        };
+
+        awardedXp = newXp;
+
+        let next: AppState = {
+          ...prev,
+          xp: prev.xp + newXp,
+          lastActiveDate: newXp > 0 ? todayISO() : prev.lastActiveDate,
+          matches: prev.matches.map((m) => (m.id === id ? merged : m)),
+        };
+
+        const sportHabitCount = prev.profile
+          ? habitsForSport(prev.profile.sport).length
+          : 0;
+        newlyUnlocked = evaluateBadges(next, sportHabitCount);
+        if (newlyUnlocked.length > 0) {
+          const now = new Date().toISOString();
+          next = {
+            ...next,
+            unlockedBadges: [
+              ...next.unlockedBadges,
+              ...newlyUnlocked.map((bid) => ({
+                id: bid,
+                unlockedAt: now,
+              })),
+            ],
+          };
+        }
+        return next;
+      });
+
+      return { awardedXp, newlyUnlocked };
+    },
+    []
+  );
+
+  const deleteMatch = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      matches: prev.matches.filter((m) => m.id !== id),
+    }));
+  }, []);
+
+  const completeMentalSession = useCallback(
+    (kind: MentalSession["kind"], refId: string, xp: number) => {
+      let newlyUnlocked: string[] = [];
+      setState((prev) => {
+        const entry: MentalSession = {
+          id: genId(),
+          kind,
+          refId,
+          date: todayISO(),
+          completedAt: new Date().toISOString(),
+          xpEarned: xp,
+        };
+        let next: AppState = {
+          ...prev,
+          xp: prev.xp + xp,
+          lastActiveDate: todayISO(),
+          mentalSessions: [entry, ...prev.mentalSessions],
+        };
+        const sportHabitCount = prev.profile
+          ? habitsForSport(prev.profile.sport).length
+          : 0;
+        newlyUnlocked = evaluateBadges(next, sportHabitCount);
+        if (newlyUnlocked.length > 0) {
+          const now = new Date().toISOString();
+          next = {
+            ...next,
+            unlockedBadges: [
+              ...next.unlockedBadges,
+              ...newlyUnlocked.map((id) => ({ id, unlockedAt: now })),
+            ],
+          };
+        }
+        return next;
+      });
+      return { awardedXp: xp, newlyUnlocked };
+    },
+    []
+  );
+
   const resetAll = useCallback(() => {
     clearState();
     setState(emptyState);
@@ -332,6 +489,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     hasClaimedQuoteToday,
     claimDailyQuote,
     completeTriviaRound,
+    addMatch,
+    updateMatch,
+    deleteMatch,
+    completeMentalSession,
     resetAll,
   };
 
