@@ -116,8 +116,10 @@ function VisualizationPlayer({
   script: VisualizationScript;
   onClose: () => void;
 }) {
-  const { completeMentalSession } = useStore();
-  const { supported: ttsSupported, speak, stop: stopSpeech } = useSpeech();
+  const { state, completeMentalSession } = useStore();
+  const { supported: ttsSupported, speak, stop: stopSpeech } = useSpeech(
+    state.voicePersonaId ?? "natural"
+  );
 
   // User chooses "Read to me" before starting. Defaults to on if supported.
   const [started, setStarted] = useState(false);
@@ -157,7 +159,12 @@ function VisualizationPlayer({
     if (!started) return;
     if (narrate && ttsSupported) {
       speak(script.steps[stepIdx], {
-        rate: 0.85, // slow, calm pace
+        // Keep the persona's voice + pitch, but force a calm, slow pace
+        // (visualizations need meditative pacing regardless of persona)
+        // and suppress intro/outro phrases so they don't repeat on
+        // every step.
+        rate: 0.85,
+        plain: true,
         onEnd: () => {
           // Short silent pause to let the athlete absorb, then advance.
           autoAdvanceRef.current = window.setTimeout(() => {
