@@ -5,7 +5,8 @@ import { habitsForSport } from "../lib/habits";
 import XPBar from "../components/XPBar";
 import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
-import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye } from "lucide-react";
+import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles } from "lucide-react";
+import { currentWeekMondayISO } from "../lib/gamification";
 
 export default function Dashboard() {
   const { state, hasCheckinToday } = useStore();
@@ -23,6 +24,12 @@ export default function Dashboard() {
   const recentBadges = [...state.unlockedBadges]
     .sort((a, b) => b.unlockedAt.localeCompare(a.unlockedAt))
     .slice(0, 3);
+
+  const thisWeek = currentWeekMondayISO();
+  const hasWeeklyReview = state.weeklyReviews.some(
+    (r) => r.weekStartDate === thisWeek
+  );
+  const pinnedPhrase = state.powerPhrases.find((p) => p.isPinned);
 
   const hour = new Date().getHours();
   const greeting =
@@ -130,6 +137,50 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Pinned Power Phrase */}
+      {pinnedPhrase && (
+        <Link
+          to="/phrases"
+          className="block relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-red-900 to-orange-900 text-white p-5 shadow-elevated hover:shadow-card-hover transition"
+        >
+          <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/5" />
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles size={12} className="text-amber-300" />
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-200">
+                Your Mantra
+              </span>
+            </div>
+            <blockquote className="text-lg font-extrabold leading-tight">
+              &ldquo;{pinnedPhrase.text}&rdquo;
+            </blockquote>
+          </div>
+        </Link>
+      )}
+
+      {/* Weekly Review prompt */}
+      {!hasWeeklyReview && (
+        <Link
+          to="/review"
+          className="block card bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200 hover:shadow-card-hover transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-400 text-white flex items-center justify-center shadow-sm">
+              <Calendar size={18} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-slate-900">
+                Weekly Review awaits
+              </div>
+              <div className="text-xs text-slate-600 mt-0.5">
+                3 wins, 1 challenge, 1 lesson, next goal · +50 XP
+              </div>
+            </div>
+            <ArrowRight size={16} className="text-slate-400" />
+          </div>
+        </Link>
+      )}
+
       {/* Mental Tools */}
       <div className="card">
         <div className="flex items-center justify-between mb-3">
@@ -138,15 +189,15 @@ export default function Dashboard() {
             +XP each
           </span>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <Link
             to="/visualize"
             className="rounded-2xl p-3 text-center bg-gradient-to-b from-purple-50 to-white border border-purple-100 hover:border-purple-200 hover:shadow-card-hover transition"
           >
-            <div className="w-10 h-10 mx-auto rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
-              <Eye size={18} />
+            <div className="w-9 h-9 mx-auto rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+              <Eye size={16} />
             </div>
-            <div className="text-xs font-bold text-slate-900 mt-2">
+            <div className="text-[11px] font-bold text-slate-900 mt-2">
               Visualize
             </div>
           </Link>
@@ -154,19 +205,28 @@ export default function Dashboard() {
             to="/breathe"
             className="rounded-2xl p-3 text-center bg-gradient-to-b from-sky-50 to-white border border-sky-100 hover:border-sky-200 hover:shadow-card-hover transition"
           >
-            <div className="w-10 h-10 mx-auto rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center">
-              <Wind size={18} />
+            <div className="w-9 h-9 mx-auto rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center">
+              <Wind size={16} />
             </div>
-            <div className="text-xs font-bold text-slate-900 mt-2">Breathe</div>
+            <div className="text-[11px] font-bold text-slate-900 mt-2">Breathe</div>
           </Link>
           <Link
             to="/lessons"
             className="rounded-2xl p-3 text-center bg-gradient-to-b from-amber-50 to-white border border-amber-100 hover:border-amber-200 hover:shadow-card-hover transition"
           >
-            <div className="w-10 h-10 mx-auto rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
-              <BookOpen size={18} />
+            <div className="w-9 h-9 mx-auto rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+              <BookOpen size={16} />
             </div>
-            <div className="text-xs font-bold text-slate-900 mt-2">Lessons</div>
+            <div className="text-[11px] font-bold text-slate-900 mt-2">Lessons</div>
+          </Link>
+          <Link
+            to="/phrases"
+            className="rounded-2xl p-3 text-center bg-gradient-to-b from-red-50 to-white border border-red-100 hover:border-red-200 hover:shadow-card-hover transition"
+          >
+            <div className="w-9 h-9 mx-auto rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+              <Sword size={16} />
+            </div>
+            <div className="text-[11px] font-bold text-slate-900 mt-2">Phrases</div>
           </Link>
         </div>
       </div>

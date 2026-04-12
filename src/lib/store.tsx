@@ -12,8 +12,11 @@ import type {
   MatchEntry,
   MentalCheckin,
   MentalSession,
+  PowerPhrase,
   PracticeEntry,
   Profile,
+  RecoveryCheckin,
+  WeeklyReview,
 } from "../types";
 import { emptyState, loadState, saveState, clearState } from "./storage";
 import { habitsForSport, getHabit } from "./habits";
@@ -53,6 +56,16 @@ interface StoreContextValue {
     refId: string,
     xp: number
   ) => { awardedXp: number; newlyUnlocked: string[] };
+  saveWeeklyReview: (
+    review: Omit<WeeklyReview, "id" | "createdAt" | "xpEarned">
+  ) => { awardedXp: number; newlyUnlocked: string[] };
+  addPowerPhrase: (text: string) => { awardedXp: number; newlyUnlocked: string[] };
+  deletePowerPhrase: (id: string) => void;
+  togglePinnedPhrase: (id: string) => void;
+  incrementPhraseUse: (id: string) => void;
+  saveRecoveryCheckin: (
+    data: Omit<RecoveryCheckin, "id" | "xpEarned">
+  ) => { awardedXp: number; newlyUnlocked: string[] };
   resetAll: () => void;
 }
 
@@ -73,6 +86,9 @@ const PRE_MATCH_XP = 15;
 const POST_MATCH_XP = 30;
 const FULL_FRAMEWORK_BONUS = 10;
 const WIN_BONUS = 5;
+const WEEKLY_REVIEW_XP = 50;
+const POWER_PHRASE_CREATE_XP = 10;
+const RECOVERY_CHECKIN_XP = 15;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => loadState());
@@ -423,6 +439,162 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const saveWeeklyReview = useCallback(
+    (review: Omit<WeeklyReview, "id" | "createdAt" | "xpEarned">) => {
+      let newlyUnlocked: string[] = [];
+      let awardedXp = 0;
+      setState((prev) => {
+        // If a review for this week already exists, replace it (no double XP)
+        const existing = prev.weeklyReviews.find(
+          (r) => r.weekStartDate === review.weekStartDate
+        );
+        awardedXp = existing ? 0 : WEEKLY_REVIEW_XP;
+        const entry: WeeklyReview = {
+          ...review,
+          id: existing?.id ?? genId(),
+          createdAt: existing?.createdAt ?? new Date().toISOString(),
+          xpEarned: existing?.xpEarned ?? WEEKLY_REVIEW_XP,
+        };
+        let next: AppState = {
+          ...prev,
+          xp: prev.xp + awardedXp,
+          lastActiveDate: todayISO(),
+          weeklyReviews: [
+            entry,
+            ...prev.weeklyReviews.filter((r) => r.id !== entry.id),
+          ],
+        };
+        const sportHabitCount = prev.profile
+          ? habitsForSport(prev.profile.sport).length
+          : 0;
+        newlyUnlocked = evaluateBadges(next, sportHabitCount);
+        if (newlyUnlocked.length > 0) {
+          const now = new Date().toISOString();
+          next = {
+            ...next,
+            unlockedBadges: [
+              ...next.unlockedBadges,
+              ...newlyUnlocked.map((id) => ({ id, unlockedAt: now })),
+            ],
+          };
+        }
+        return next;
+      });
+      return { awardedXp, newlyUnlocked };
+    },
+    []
+  );
+
+  const addPowerPhrase = useCallback((text: string) => {
+    let newlyUnlocked: string[] = [];
+    let awardedXp = 0;
+    setState((prev) => {
+      const isFirst = prev.powerPhrases.length === 0;
+      awardedXp = POWER_PHRASE_CREATE_XP;
+      const entry: PowerPhrase = {
+        id: genId(),
+        text: text.trim(),
+        createdAt: new Date().toISOString(),
+        isPinned: isFirst, // pin the first one automatically
+      };
+      let next: AppState = {
+        ...prev,
+        xp: prev.xp + awardedXp,
+        lastActiveDate: todayISO(),
+        powerPhrases: [entry, ...prev.powerPhrases],
+      };
+      const sportHabitCount = prev.profile
+        ? habitsForSport(prev.profile.sport).length
+        : 0;
+      newlyUnlocked = evaluateBadges(next, sportHabitCount);
+      if (newlyUnlocked.length > 0) {
+        const now = new Date().toISOString();
+        next = {
+          ...next,
+          unlockedBadges: [
+            ...next.unlockedBadges,
+            ...newlyUnlocked.map((id) => ({ id, unlockedAt: now })),
+          ],
+        };
+      }
+      return next;
+    });
+    return { awardedXp, newlyUnlocked };
+  }, []);
+
+  const deletePowerPhrase = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      powerPhrases: prev.powerPhrases.filter((p) => p.id !== id),
+    }));
+  }, []);
+
+  const togglePinnedPhrase = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      powerPhrases: prev.powerPhrases.map((p) =>
+        p.id === id
+          ? { ...p, isPinned: !p.isPinned }
+          : p.isPinned
+          ? { ...p, isPinned: false } // only one pinned at a time
+          : p
+      ),
+    }));
+  }, []);
+
+  const incrementPhraseUse = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      powerPhrases: prev.powerPhrases.map((p) =>
+        p.id === id ? { ...p, timesUsed: (p.timesUsed ?? 0) + 1 } : p
+      ),
+    }));
+  }, []);
+
+  const saveRecoveryCheckin = useCallback(
+    (data: Omit<RecoveryCheckin, "id" | "xpEarned">) => {
+      let newlyUnlocked: string[] = [];
+      let awardedXp = 0;
+      setState((prev) => {
+        const existing = prev.recoveryCheckins.find(
+          (r) => r.date === data.date
+        );
+        awardedXp = existing ? 0 : RECOVERY_CHECKIN_XP;
+        const entry: RecoveryCheckin = {
+          ...data,
+          id: existing?.id ?? genId(),
+          xpEarned: existing?.xpEarned ?? RECOVERY_CHECKIN_XP,
+        };
+        let next: AppState = {
+          ...prev,
+          xp: prev.xp + awardedXp,
+          lastActiveDate: todayISO(),
+          recoveryCheckins: [
+            entry,
+            ...prev.recoveryCheckins.filter((r) => r.id !== entry.id),
+          ],
+        };
+        const sportHabitCount = prev.profile
+          ? habitsForSport(prev.profile.sport).length
+          : 0;
+        newlyUnlocked = evaluateBadges(next, sportHabitCount);
+        if (newlyUnlocked.length > 0) {
+          const now = new Date().toISOString();
+          next = {
+            ...next,
+            unlockedBadges: [
+              ...next.unlockedBadges,
+              ...newlyUnlocked.map((id) => ({ id, unlockedAt: now })),
+            ],
+          };
+        }
+        return next;
+      });
+      return { awardedXp, newlyUnlocked };
+    },
+    []
+  );
+
   const completeMentalSession = useCallback(
     (kind: MentalSession["kind"], refId: string, xp: number) => {
       let newlyUnlocked: string[] = [];
@@ -493,6 +665,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     updateMatch,
     deleteMatch,
     completeMentalSession,
+    saveWeeklyReview,
+    addPowerPhrase,
+    deletePowerPhrase,
+    togglePinnedPhrase,
+    incrementPhraseUse,
+    saveRecoveryCheckin,
     resetAll,
   };
 

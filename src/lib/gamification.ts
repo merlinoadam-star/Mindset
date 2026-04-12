@@ -84,12 +84,27 @@ function yesterdayISO(): string {
   return isoDate(d);
 }
 
-/** Days with at least one habit completion, practice, or check-in. */
+/** Returns Monday of the current week as YYYY-MM-DD (locale-aware via local Date). */
+export function currentWeekMondayISO(): string {
+  const d = new Date();
+  const day = d.getDay(); // 0 = Sunday
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return isoDate(d);
+}
+
+/** Days with at least one habit completion, practice, check-in, or recovery log. */
 export function activeDatesSet(state: AppState): Set<string> {
   const dates = new Set<string>();
   state.habitCompletions.forEach((c) => dates.add(c.date));
   state.practices.forEach((p) => dates.add(p.date));
   state.checkins.forEach((c) => dates.add(c.date));
+  if (state.recoveryCheckins) {
+    state.recoveryCheckins.forEach((r) => dates.add(r.date));
+  }
+  if (state.mentalSessions) {
+    state.mentalSessions.forEach((m) => dates.add(m.date));
+  }
   return dates;
 }
 
@@ -247,6 +262,34 @@ export const BADGES: BadgeDefinition[] = [
     emoji: "🎯",
     requirement: "Complete both pre and post on 10 matches",
   },
+  {
+    id: "week-reviewer",
+    name: "Week Reviewer",
+    description: "Completed your first weekly review",
+    emoji: "📅",
+    requirement: "Complete 1 weekly review",
+  },
+  {
+    id: "review-streak-4",
+    name: "Month of Growth",
+    description: "4 weekly reviews in a row",
+    emoji: "🌿",
+    requirement: "Complete 4 consecutive weekly reviews",
+  },
+  {
+    id: "phrase-collector",
+    name: "Phrase Collector",
+    description: "Built a library of 5 power phrases",
+    emoji: "⚔️",
+    requirement: "Create 5 power phrases",
+  },
+  {
+    id: "rest-champion",
+    name: "Rest Champion",
+    description: "Logged recovery 7 days in a row",
+    emoji: "💤",
+    requirement: "Log recovery 7 consecutive days",
+  },
 ];
 
 export function getBadge(id: string): BadgeDefinition | undefined {
@@ -295,6 +338,57 @@ export function evaluateBadges(
   if (preMatchCount >= 5) unlock("pre-match-5");
   if (postMatchCount >= 5) unlock("reflective-warrior");
   if (fullFrameworkCount >= 10) unlock("full-framework-10");
+
+  // Weekly reviews
+  if (state.weeklyReviews.length >= 1) unlock("week-reviewer");
+  if (state.weeklyReviews.length >= 4) {
+    // Check for 4 consecutive weeks
+    const sorted = [...state.weeklyReviews]
+      .map((r) => r.weekStartDate)
+      .sort();
+    let best = 1;
+    let run = 1;
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = new Date(sorted[i - 1] + "T00:00:00");
+      const curr = new Date(sorted[i] + "T00:00:00");
+      const diff = Math.round(
+        (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (diff === 7) {
+        run++;
+        best = Math.max(best, run);
+      } else if (diff > 7) {
+        run = 1;
+      }
+    }
+    if (best >= 4) unlock("review-streak-4");
+  }
+
+  // Power phrases
+  if (state.powerPhrases.length >= 5) unlock("phrase-collector");
+
+  // Recovery check-ins — 7 consecutive days
+  if (state.recoveryCheckins.length >= 7) {
+    const sortedR = [...state.recoveryCheckins]
+      .map((r) => r.date)
+      .sort();
+    let best = 1;
+    let run = 1;
+    for (let i = 1; i < sortedR.length; i++) {
+      const prev = new Date(sortedR[i - 1] + "T00:00:00");
+      const curr = new Date(sortedR[i] + "T00:00:00");
+      const diff = Math.round(
+        (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (diff === 1) {
+        run++;
+        best = Math.max(best, run);
+      } else if (diff > 1) {
+        run = 1;
+      }
+    }
+    if (best >= 7) unlock("rest-champion");
+  }
 
   if (state.profile) {
     const level = computeLevel(state.xp, state.profile.sport).level;

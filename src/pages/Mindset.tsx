@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useStore } from "../lib/store";
 import { todayISO } from "../lib/gamification";
 import { showReward } from "../components/RewardToast";
+import RecoveryCard from "../components/RecoveryCard";
 import type { Mood } from "../types";
 import { Brain } from "lucide-react";
 
@@ -40,11 +41,13 @@ export default function MindsetPage() {
   return (
     <div className="space-y-4">
       <header className="pt-4">
-        <h1 className="text-2xl font-extrabold">Mindset Check-In</h1>
+        <h1 className="text-2xl font-extrabold">Daily Check-Ins</h1>
         <p className="text-sm text-slate-600 mt-1">
-          Strong mind, strong athlete. Take 60 seconds.
+          Strong mind, strong body. Take 60 seconds.
         </p>
       </header>
+
+      <RecoveryCard />
 
       <form onSubmit={submit} className="card space-y-5">
         <div>

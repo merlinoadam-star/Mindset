@@ -252,6 +252,45 @@ export interface MentalSession {
   xpEarned: number;
 }
 
+// -----------------------------------------------------------------------------
+// Weekly Review — Sunday-night style reflection
+// -----------------------------------------------------------------------------
+export interface WeeklyReview {
+  id: string;
+  weekStartDate: string; // YYYY-MM-DD of Monday
+  wins: [string, string, string];
+  challenge: string;
+  learned: string;
+  nextWeekGoal: string;
+  createdAt: string;
+  xpEarned: number;
+}
+
+// -----------------------------------------------------------------------------
+// Power Phrases — athlete-authored mantras / self-talk
+// -----------------------------------------------------------------------------
+export interface PowerPhrase {
+  id: string;
+  text: string;
+  createdAt: string;
+  isPinned?: boolean;
+  timesUsed?: number;
+}
+
+// -----------------------------------------------------------------------------
+// Recovery Check-In — physical state tracking
+// -----------------------------------------------------------------------------
+export interface RecoveryCheckin {
+  id: string;
+  date: string; // YYYY-MM-DD
+  sleepHours?: number;
+  sleepQuality?: Mood; // 1 = terrible, 5 = excellent
+  soreness?: Mood; // 1 = fresh, 5 = very sore
+  energy?: Mood; // 1 = drained, 5 = charged
+  notes?: string;
+  xpEarned: number;
+}
+
 export interface AppState {
   profile: Profile | null;
   xp: number;
@@ -260,6 +299,9 @@ export interface AppState {
   matches: MatchEntry[];
   checkins: MentalCheckin[];
   mentalSessions: MentalSession[];
+  weeklyReviews: WeeklyReview[];
+  powerPhrases: PowerPhrase[];
+  recoveryCheckins: RecoveryCheckin[];
   unlockedBadges: UnlockedBadge[];
   lastActiveDate: string | null;
   lastQuoteClaimDate: string | null;

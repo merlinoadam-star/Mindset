@@ -15,7 +15,8 @@ import {
   VOLLEYBALL_POSITION_LABELS,
   VOLLEYBALL_POSITION_ORDER,
 } from "../lib/profileOptions";
-import { ArrowLeft, Brain, Target, Trophy, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, Brain, Target, Trophy, Sparkles, Trash2, Sword } from "lucide-react";
+import SpeakButton from "./SpeakButton";
 
 interface Props {
   match: MatchEntry;
@@ -222,6 +223,9 @@ function PreMatchForm({
   onBack: () => void;
   onSave: (updates: Partial<MatchEntry>) => void;
 }) {
+  const { state, incrementPhraseUse } = useStore();
+  const pinnedPhrase = state.powerPhrases.find((p) => p.isPinned);
+
   const [focusObjective, setFocus] = useState(match.focusObjective ?? "");
   const [executeThis, setExecute] = useState(match.executeThis ?? "");
   const [mentalState, setMentalState] = useState<Mood | undefined>(
@@ -250,6 +254,30 @@ function PreMatchForm({
           <ArrowLeft size={14} /> Back
         </button>
       </div>
+
+      {pinnedPhrase && (
+        <button
+          type="button"
+          onClick={() => incrementPhraseUse(pinnedPhrase.id)}
+          className="w-full relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-red-900 to-orange-900 text-white p-4 text-left shadow-elevated"
+        >
+          <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/5" />
+          <div className="relative flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+              <Sword size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-200 mb-1">
+                Your Mantra
+              </div>
+              <blockquote className="text-sm font-extrabold leading-tight">
+                &ldquo;{pinnedPhrase.text}&rdquo;
+              </blockquote>
+            </div>
+            <SpeakButton text={pinnedPhrase.text} size="sm" rate={0.9} />
+          </div>
+        </button>
+      )}
 
       <div className="card bg-gradient-to-br from-purple-50 to-white border-purple-100">
         <div className="flex items-center gap-2 mb-1">
