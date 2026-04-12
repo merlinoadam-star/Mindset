@@ -21,6 +21,7 @@ import ScenariosPage from "./pages/Scenarios";
 import GamesPage from "./pages/Games";
 import ReactionTapPage from "./pages/ReactionTap";
 import FocusFlashPage from "./pages/FocusFlash";
+import VideoLibraryPage from "./pages/VideoLibrary";
 
 function AppShell() {
   const { state } = useStore();
@@ -49,6 +50,7 @@ function AppShell() {
           <Route path="games" element={<GamesPage />} />
           <Route path="games/reaction" element={<ReactionTapPage />} />
           <Route path="games/flash" element={<FocusFlashPage />} />
+          <Route path="videos" element={<VideoLibraryPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

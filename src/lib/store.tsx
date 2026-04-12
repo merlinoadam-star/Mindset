@@ -17,8 +17,15 @@ import type {
   PracticeEntry,
   Profile,
   RecoveryCheckin,
+  VideoEntry,
   WeeklyReview,
 } from "../types";
+import {
+  deleteVideoBlob,
+  extractThumbnail,
+  getVideoDuration,
+  saveVideoBlob,
+} from "./videoStorage";
 import { emptyState, loadState, saveState, clearState } from "./storage";
 import { habitsForSport, getHabit } from "./habits";
 import {
@@ -88,6 +95,15 @@ interface StoreContextValue {
     score: number,
     xp: number
   ) => { awardedXp: number; newlyUnlocked: string[]; isNewBest: boolean };
+  addVideo: (
+    blob: Blob,
+    metadata: Omit<
+      VideoEntry,
+      "id" | "createdAt" | "blobKey" | "mimeType" | "sizeBytes" | "durationSec" | "thumbnailDataUrl"
+    >
+  ) => Promise<{ awardedXp: number; newlyUnlocked: string[]; videoId: string }>;
+  updateVideo: (id: string, updates: Partial<VideoEntry>) => void;
+  deleteVideo: (id: string) => Promise<void>;
   resetAll: () => void;
 }
 
@@ -115,6 +131,7 @@ const POWER_PHRASE_CREATE_XP = 10;
 const RECOVERY_CHECKIN_XP = 15;
 const NUTRITION_LOG_XP = 15;
 const NUTRITION_BONUS_XP = 5; // bonus when 3+ quality items logged
+const VIDEO_UPLOAD_XP = 10;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => {
@@ -849,6 +866,102 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const addVideo = useCallback(
+    async (
+      blob: Blob,
+      metadata: Omit<
+        VideoEntry,
+        | "id"
+        | "createdAt"
+        | "blobKey"
+        | "mimeType"
+        | "sizeBytes"
+        | "durationSec"
+        | "thumbnailDataUrl"
+      >
+    ) => {
+      const id = genId();
+      const blobKey = `vid_${id}`;
+      // Persist the binary first — if this fails, metadata never appears
+      await saveVideoBlob(blobKey, blob);
+      // Generate thumbnail + duration (best-effort — okay to fail)
+      const [thumbnailDataUrl, durationSec] = await Promise.all([
+        extractThumbnail(blob).catch(() => undefined),
+        getVideoDuration(blob).catch(() => undefined),
+      ]);
+
+      const entry: VideoEntry = {
+        id,
+        createdAt: new Date().toISOString(),
+        blobKey,
+        mimeType: blob.type || "video/mp4",
+        sizeBytes: blob.size,
+        durationSec,
+        thumbnailDataUrl,
+        author: metadata.author ?? "athlete",
+        audience: metadata.audience ?? "self",
+        ...metadata,
+      };
+
+      let newlyUnlocked: string[] = [];
+      setState((prev) => {
+        let next: AppState = {
+          ...prev,
+          xp: prev.xp + VIDEO_UPLOAD_XP,
+          lastActiveDate: todayISO(),
+          videos: [entry, ...prev.videos],
+        };
+        const sportHabitCount = prev.profile
+          ? habitsForSport(prev.profile.sport).length
+          : 0;
+        newlyUnlocked = evaluateBadges(next, sportHabitCount);
+        if (newlyUnlocked.length > 0) {
+          const now = new Date().toISOString();
+          next = {
+            ...next,
+            unlockedBadges: [
+              ...next.unlockedBadges,
+              ...newlyUnlocked.map((bid) => ({ id: bid, unlockedAt: now })),
+            ],
+          };
+        }
+        return next;
+      });
+
+      return { awardedXp: VIDEO_UPLOAD_XP, newlyUnlocked, videoId: id };
+    },
+    []
+  );
+
+  const updateVideo = useCallback((id: string, updates: Partial<VideoEntry>) => {
+    setState((prev) => ({
+      ...prev,
+      videos: prev.videos.map((v) =>
+        v.id === id ? { ...v, ...updates, id: v.id, blobKey: v.blobKey } : v
+      ),
+    }));
+  }, []);
+
+  const deleteVideo = useCallback(async (id: string) => {
+    // Find blob key first so we can clean up IndexedDB
+    let blobKey: string | undefined;
+    setState((prev) => {
+      const target = prev.videos.find((v) => v.id === id);
+      blobKey = target?.blobKey;
+      return {
+        ...prev,
+        videos: prev.videos.filter((v) => v.id !== id),
+      };
+    });
+    if (blobKey) {
+      try {
+        await deleteVideoBlob(blobKey);
+      } catch (e) {
+        console.error("Failed to delete video blob", e);
+      }
+    }
+  }, []);
+
   const completeMentalSession = useCallback(
     (kind: MentalSession["kind"], refId: string, xp: number) => {
       let newlyUnlocked: string[] = [];
@@ -929,6 +1042,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveRecoveryCheckin,
     saveNutritionLog,
     completeGameRound,
+    addVideo,
+    updateVideo,
+    deleteVideo,
     resetAll,
   };
 

@@ -302,8 +302,65 @@ export interface PowerPhrase {
 }
 
 // -----------------------------------------------------------------------------
-// Recovery Check-In — physical state tracking
+// Video Library
 // -----------------------------------------------------------------------------
+export type VideoTag =
+  | "technique"
+  | "match"
+  | "drill"
+  | "form-check"
+  | "highlight"
+  | "other";
+
+export const VIDEO_TAG_LABELS: Record<VideoTag, string> = {
+  technique: "Technique",
+  match: "Match",
+  drill: "Drill",
+  "form-check": "Form Check",
+  highlight: "Highlight",
+  other: "Other",
+};
+
+export const VIDEO_TAG_EMOJIS: Record<VideoTag, string> = {
+  technique: "🎯",
+  match: "🏆",
+  drill: "🔁",
+  "form-check": "🔍",
+  highlight: "⭐",
+  other: "🎥",
+};
+
+/** Who is intended to review this video. */
+export type VideoAudience = "self" | "coach" | "parent";
+
+/** Source role that uploaded — prepared for Phase 2 sharing. */
+export type VideoAuthor = "athlete" | "coach" | "parent";
+
+export interface VideoEntry {
+  id: string;
+  title: string;
+  description?: string;
+  createdAt: string; // ISO
+  tag: VideoTag;
+  durationSec?: number;
+  thumbnailDataUrl?: string; // small jpeg frame, captured at ~0.1s
+  blobKey: string; // key into IndexedDB where the video blob lives
+  mimeType: string;
+  sizeBytes: number;
+
+  // Author & audience (Phase 1 is always athlete→self; Phase 2 unlocks coach/parent)
+  author?: VideoAuthor; // defaults to "athlete"
+  audience?: VideoAudience; // defaults to "self"
+
+  // Self notes (always available)
+  selfNotes?: string;
+
+  // Review loop (Phase 2 — fields are stored locally for now)
+  markedForReview?: boolean;
+  reviewedAt?: string; // ISO
+  reviewerNotes?: string;
+  sharedWith?: string[]; // ids / codes of people this was shared with (Phase 2)
+}
 export interface RecoveryCheckin {
   id: string;
   date: string; // YYYY-MM-DD
@@ -354,6 +411,7 @@ export interface AppState {
   powerPhrases: PowerPhrase[];
   recoveryCheckins: RecoveryCheckin[];
   nutritionLogs: NutritionLog[];
+  videos: VideoEntry[];
   unlockedBadges: UnlockedBadge[];
   lastActiveDate: string | null;
   lastQuoteClaimDate: string | null;

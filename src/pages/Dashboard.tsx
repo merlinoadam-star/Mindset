@@ -6,7 +6,7 @@ import XPBar from "../components/XPBar";
 import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
 import DailyGoalCard from "../components/DailyGoalCard";
-import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles } from "lucide-react";
+import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles, Video as VideoIcon } from "lucide-react";
 import { currentWeekMondayISO } from "../lib/gamification";
 
 export default function Dashboard() {
@@ -130,6 +130,12 @@ export default function Dashboard() {
             icon={<Gamepad2 size={18} />}
             label="Mini-games hub — 4 games, lots of XP"
             color="amber"
+          />
+          <QuickAction
+            to="/videos"
+            icon={<VideoIcon size={18} />}
+            label="Video library — review your technique"
+            color="red"
           />
           <QuickAction
             to="/profile"
