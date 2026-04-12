@@ -172,6 +172,26 @@ export interface MentalCheckin {
 }
 
 // -----------------------------------------------------------------------------
+// Opponent Tracker
+// -----------------------------------------------------------------------------
+export interface OpponentEntry {
+  id: string;
+  firstName?: string;
+  lastName: string;
+  teamName?: string;
+  state?: string;
+  coachName?: string;
+  weightClass?: string; // wrestling
+  position?: string; // volleyball
+  grade?: string;
+  jerseyNumber?: string;
+  strategyNotes?: string; // "Watch for X, weak on Y"
+  generalNotes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// -----------------------------------------------------------------------------
 // Matches — pre-match + post-match framework with Well/Better/Next reflection
 // -----------------------------------------------------------------------------
 export type MatchResult = "win" | "loss" | "tie";
@@ -225,7 +245,8 @@ export interface MatchEntry {
   date: string; // YYYY-MM-DD
 
   // Basic info
-  opponent?: string;
+  opponent?: string; // free-text display name (kept in sync with linked opponent when set)
+  opponentId?: string; // link to OpponentEntry when tracked
   event?: string; // tournament / meet / dual name
   location?: string;
 
@@ -405,6 +426,7 @@ export interface AppState {
   habitCompletions: HabitCompletion[];
   practices: PracticeEntry[];
   matches: MatchEntry[];
+  opponents: OpponentEntry[];
   checkins: MentalCheckin[];
   mentalSessions: MentalSession[];
   weeklyReviews: WeeklyReview[];

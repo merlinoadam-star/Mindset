@@ -13,6 +13,7 @@ import type {
   MentalCheckin,
   MentalSession,
   NutritionLog,
+  OpponentEntry,
   PowerPhrase,
   PracticeEntry,
   Profile,
@@ -66,7 +67,11 @@ interface StoreContextValue {
     correctCount: number,
     totalQuestions: number
   ) => { awardedXp: number; newlyUnlocked: string[] };
-  addMatch: (m: Pick<MatchEntry, "date" | "opponent" | "event" | "location">) => string;
+  addMatch: (
+    m: Pick<MatchEntry, "date" | "opponent" | "event" | "location"> & {
+      opponentId?: string;
+    }
+  ) => string;
   updateMatch: (
     id: string,
     updates: Partial<MatchEntry>
@@ -95,6 +100,11 @@ interface StoreContextValue {
     score: number,
     xp: number
   ) => { awardedXp: number; newlyUnlocked: string[]; isNewBest: boolean };
+  addOpponent: (
+    data: Omit<OpponentEntry, "id" | "createdAt" | "updatedAt">
+  ) => string;
+  updateOpponent: (id: string, updates: Partial<OpponentEntry>) => void;
+  deleteOpponent: (id: string) => void;
   addVideo: (
     blob: Blob,
     metadata: Omit<
@@ -518,12 +528,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 
   const addMatch = useCallback(
-    (m: Pick<MatchEntry, "date" | "opponent" | "event" | "location">) => {
+    (
+      m: Pick<MatchEntry, "date" | "opponent" | "event" | "location"> & {
+        opponentId?: string;
+      }
+    ) => {
       const id = genId();
       const entry: MatchEntry = {
         id,
         date: m.date,
         opponent: m.opponent,
+        opponentId: m.opponentId,
         event: m.event,
         location: m.location,
         xpEarned: 0,
@@ -866,6 +881,64 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const addOpponent = useCallback(
+    (data: Omit<OpponentEntry, "id" | "createdAt" | "updatedAt">) => {
+      const id = genId();
+      const entry: OpponentEntry = {
+        id,
+        createdAt: new Date().toISOString(),
+        ...data,
+      };
+      setState((prev) => ({
+        ...prev,
+        opponents: [entry, ...prev.opponents],
+      }));
+      return id;
+    },
+    []
+  );
+
+  const updateOpponent = useCallback(
+    (id: string, updates: Partial<OpponentEntry>) => {
+      setState((prev) => {
+        const target = prev.opponents.find((o) => o.id === id);
+        if (!target) return prev;
+        const updated: OpponentEntry = {
+          ...target,
+          ...updates,
+          id: target.id,
+          updatedAt: new Date().toISOString(),
+        };
+        // Also update any linked matches so the display name stays in sync
+        const displayName = [updated.firstName, updated.lastName]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        return {
+          ...prev,
+          opponents: prev.opponents.map((o) => (o.id === id ? updated : o)),
+          matches: prev.matches.map((m) =>
+            m.opponentId === id
+              ? { ...m, opponent: displayName || m.opponent }
+              : m
+          ),
+        };
+      });
+    },
+    []
+  );
+
+  const deleteOpponent = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      opponents: prev.opponents.filter((o) => o.id !== id),
+      // Keep the matches, just remove the link (leaves the free-text name)
+      matches: prev.matches.map((m) =>
+        m.opponentId === id ? { ...m, opponentId: undefined } : m
+      ),
+    }));
+  }, []);
+
   const addVideo = useCallback(
     async (
       blob: Blob,
@@ -1042,6 +1115,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveRecoveryCheckin,
     saveNutritionLog,
     completeGameRound,
+    addOpponent,
+    updateOpponent,
+    deleteOpponent,
     addVideo,
     updateVideo,
     deleteVideo,

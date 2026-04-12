@@ -6,7 +6,7 @@ import XPBar from "../components/XPBar";
 import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
 import DailyGoalCard from "../components/DailyGoalCard";
-import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles, Video as VideoIcon } from "lucide-react";
+import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles, Video as VideoIcon, Users } from "lucide-react";
 import { currentWeekMondayISO } from "../lib/gamification";
 
 export default function Dashboard() {
@@ -136,6 +136,12 @@ export default function Dashboard() {
             icon={<VideoIcon size={18} />}
             label="Video library — review your technique"
             color="red"
+          />
+          <QuickAction
+            to="/opponents"
+            icon={<Users size={18} />}
+            label="Opponent tracker — head-to-head & scouting notes"
+            color="brand"
           />
           <QuickAction
             to="/profile"

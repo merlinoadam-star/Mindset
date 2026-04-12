@@ -8,6 +8,7 @@ export const emptyState: AppState = {
   habitCompletions: [],
   practices: [],
   matches: [],
+  opponents: [],
   checkins: [],
   mentalSessions: [],
   weeklyReviews: [],

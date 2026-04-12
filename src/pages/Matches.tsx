@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { useStore } from "../lib/store";
 import { todayISO } from "../lib/gamification";
+import { opponentDisplayName } from "../lib/opponentStats";
 import type { MatchEntry } from "../types";
-import { Swords, Plus, ChevronRight, Check, Clock } from "lucide-react";
+import { Swords, Plus, ChevronRight, Check, Clock, Users } from "lucide-react";
 import MatchDetail from "../components/MatchDetail";
 
 export default function MatchesPage() {
@@ -114,14 +115,37 @@ export default function MatchesPage() {
   }) {
     const [date, setDate] = useState(todayISO());
     const [opponent, setOpponent] = useState("");
+    const [opponentId, setOpponentId] = useState<string | undefined>();
     const [event, setEvent] = useState("");
     const [location, setLocation] = useState("");
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    const opponentSuggestions = useMemo(() => {
+      const q = opponent.trim().toLowerCase();
+      if (!q) return state.opponents.slice(0, 6);
+      return state.opponents
+        .filter((o) => {
+          const name = opponentDisplayName(o).toLowerCase();
+          const team = (o.teamName ?? "").toLowerCase();
+          return name.includes(q) || team.includes(q);
+        })
+        .slice(0, 8);
+    }, [state.opponents, opponent]);
+
+    function pickOpponent(id: string) {
+      const opp = state.opponents.find((o) => o.id === id);
+      if (!opp) return;
+      setOpponentId(id);
+      setOpponent(opponentDisplayName(opp));
+      setShowSuggestions(false);
+    }
 
     function submit(e: React.FormEvent) {
       e.preventDefault();
       const id = addMatch({
         date,
         opponent: opponent.trim() || undefined,
+        opponentId,
         event: event.trim() || undefined,
         location: location.trim() || undefined,
       });
@@ -146,12 +170,53 @@ export default function MatchesPage() {
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
             Opponent
           </label>
-          <input
-            value={opponent}
-            onChange={(e) => setOpponent(e.target.value)}
-            placeholder="e.g. John Smith / Lincoln HS"
-            className="w-full rounded-xl border-2 border-slate-200 px-3 py-2.5 text-sm focus:border-brand-500 outline-none"
-          />
+          <div className="relative">
+            <input
+              value={opponent}
+              onChange={(e) => {
+                setOpponent(e.target.value);
+                setOpponentId(undefined); // breaks link if user types
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              placeholder="e.g. John Smith / Lincoln HS"
+              autoComplete="off"
+              className="w-full rounded-xl border-2 border-slate-200 px-3 py-2.5 text-sm focus:border-brand-500 outline-none"
+            />
+            {opponentId && (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                <Users size={10} /> Linked
+              </div>
+            )}
+          </div>
+          {showSuggestions && opponentSuggestions.length > 0 && (
+            <div className="mt-2 p-2 rounded-xl bg-white border border-slate-200 shadow-card max-h-48 overflow-y-auto">
+              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold px-1 pb-1">
+                Tracked opponents
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {opponentSuggestions.map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => pickOpponent(o.id)}
+                    className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 flex items-center gap-1"
+                  >
+                    <Users size={10} />
+                    {opponentDisplayName(o)}
+                    {o.teamName && (
+                      <span className="text-slate-400">· {o.teamName}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-400 mt-2 px-1">
+                Or just type a name — you can track them later.
+              </p>
+            </div>
+          )}
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
