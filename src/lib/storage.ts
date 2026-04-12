@@ -16,6 +16,9 @@ export const emptyState: AppState = {
   unlockedBadges: [],
   lastActiveDate: null,
   lastQuoteClaimDate: null,
+  streakFreezes: 0,
+  usedFreezeDates: [],
+  lastFreezeEarnedAt: null,
   triviaRoundsPlayed: 0,
   triviaXpEarned: 0,
 };

@@ -20,7 +20,12 @@ import type {
 } from "../types";
 import { emptyState, loadState, saveState, clearState } from "./storage";
 import { habitsForSport, getHabit } from "./habits";
-import { evaluateBadges, todayISO } from "./gamification";
+import {
+  applyAutoFreezes,
+  evaluateBadges,
+  shouldEarnNewFreeze,
+  todayISO,
+} from "./gamification";
 
 interface StoreContextValue {
   state: AppState;
@@ -91,11 +96,39 @@ const POWER_PHRASE_CREATE_XP = 10;
 const RECOVERY_CHECKIN_XP = 15;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AppState>(() => loadState());
+  const [state, setState] = useState<AppState>(() => {
+    const loaded = loadState();
+    // Auto-apply streak freezes on app load to protect past streaks
+    const result = applyAutoFreezes(loaded);
+    return {
+      ...loaded,
+      streakFreezes: result.streakFreezes,
+      usedFreezeDates: result.usedFreezeDates,
+    };
+  });
 
   useEffect(() => {
     saveState(state);
   }, [state]);
+
+  // After any XP-earning activity, check if the athlete has earned a new freeze
+  useEffect(() => {
+    if (shouldEarnNewFreeze(state)) {
+      setState((prev) => ({
+        ...prev,
+        streakFreezes: Math.min(2, (prev.streakFreezes ?? 0) + 1),
+        lastFreezeEarnedAt: new Date().toISOString(),
+      }));
+    }
+    // Re-check whenever active data changes (habits, practices, matches, etc.)
+  }, [
+    state.habitCompletions.length,
+    state.practices.length,
+    state.matches.length,
+    state.checkins.length,
+    state.mentalSessions?.length,
+    state.recoveryCheckins?.length,
+  ]);
 
   const setProfile = useCallback((profile: Profile) => {
     setState((prev) => ({ ...prev, profile }));

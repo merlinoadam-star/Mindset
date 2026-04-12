@@ -1153,9 +1153,19 @@ function GoalsModal({ onClose }: { onClose: () => void }) {
   const { state, updateProfile } = useStore();
   const p = state.profile!;
   const g: GoalsBlock = p.goals ?? {};
-  const [shortTerm, setShortTerm] = useState(g.shortTerm ?? "");
-  const [season, setSeason] = useState(g.season ?? "");
-  const [career, setCareer] = useState(g.career ?? "");
+
+  // Gracefully migrate legacy fields on first open so the athlete doesn't
+  // lose what they've already written.
+  const [processWeek, setProcessWeek] = useState(
+    g.processWeek ?? g.shortTerm ?? ""
+  );
+  const [processSeason, setProcessSeason] = useState(g.processSeason ?? "");
+  const [outcomeSeason, setOutcomeSeason] = useState(
+    g.outcomeSeason ?? g.season ?? ""
+  );
+  const [outcomeCareer, setOutcomeCareer] = useState(
+    g.outcomeCareer ?? g.career ?? ""
+  );
   const [strengths, setStrengths] = useState(g.strengths ?? "");
   const [workingOn, setWorkingOn] = useState(g.workingOn ?? "");
 
@@ -1168,56 +1178,99 @@ function GoalsModal({ onClose }: { onClose: () => void }) {
       onSave={() =>
         updateProfile({
           goals: {
-            shortTerm: shortTerm.trim() || undefined,
-            season: season.trim() || undefined,
-            career: career.trim() || undefined,
+            processWeek: processWeek.trim() || undefined,
+            processSeason: processSeason.trim() || undefined,
+            outcomeSeason: outcomeSeason.trim() || undefined,
+            outcomeCareer: outcomeCareer.trim() || undefined,
             strengths: strengths.trim() || undefined,
             workingOn: workingOn.trim() || undefined,
+            // Clear legacy fields — their content has been migrated above
+            shortTerm: undefined,
+            season: undefined,
+            career: undefined,
           },
         })
       }
     >
-      <div className="space-y-4">
-        <Field label="Short-Term Goal (this week / month)">
-          <textarea
-            className={textareaCls}
-            value={shortTerm}
-            onChange={(e) => setShortTerm(e.target.value)}
-            placeholder="Drill my single leg 100 times before next meet"
-          />
-        </Field>
-        <Field label="Season Goal">
-          <textarea
-            className={textareaCls}
-            value={season}
-            onChange={(e) => setSeason(e.target.value)}
-            placeholder="Qualify for state, 25+ wins"
-          />
-        </Field>
-        <Field label="Career Goal">
-          <textarea
-            className={textareaCls}
-            value={career}
-            onChange={(e) => setCareer(e.target.value)}
-            placeholder="Earn a college scholarship, compete at nationals"
-          />
-        </Field>
-        <Field label="My Strengths">
-          <textarea
-            className={textareaCls}
-            value={strengths}
-            onChange={(e) => setStrengths(e.target.value)}
-            placeholder="Explosive first shot, strong top position"
-          />
-        </Field>
-        <Field label="What I'm Working On">
-          <textarea
-            className={textareaCls}
-            value={workingOn}
-            onChange={(e) => setWorkingOn(e.target.value)}
-            placeholder="Scrambling, finishing on the edge, conditioning"
-          />
-        </Field>
+      <div className="space-y-5">
+        {/* Process goals */}
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 p-4 space-y-3">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-emerald-700">
+              Process Goals
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              What you&apos;ll <strong>do</strong>. You control these every day.
+            </p>
+          </div>
+          <Field label="This week">
+            <textarea
+              className={textareaCls}
+              value={processWeek}
+              onChange={(e) => setProcessWeek(e.target.value)}
+              placeholder="Drill my single leg 100 times. Sleep 8+ hours every night."
+            />
+          </Field>
+          <Field label="This season">
+            <textarea
+              className={textareaCls}
+              value={processSeason}
+              onChange={(e) => setProcessSeason(e.target.value)}
+              placeholder="Show up 15 min early. No half reps. Watch film every Sunday."
+            />
+          </Field>
+        </div>
+
+        {/* Outcome goals */}
+        <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-white border border-amber-100 p-4 space-y-3">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-amber-700">
+              Outcome Goals
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              What you want to <strong>achieve</strong>. Results follow process.
+            </p>
+          </div>
+          <Field label="This season">
+            <textarea
+              className={textareaCls}
+              value={outcomeSeason}
+              onChange={(e) => setOutcomeSeason(e.target.value)}
+              placeholder="Qualify for state, 25+ wins"
+            />
+          </Field>
+          <Field label="Career">
+            <textarea
+              className={textareaCls}
+              value={outcomeCareer}
+              onChange={(e) => setOutcomeCareer(e.target.value)}
+              placeholder="Earn a college scholarship, compete at nationals"
+            />
+          </Field>
+        </div>
+
+        {/* Self-reflection */}
+        <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 space-y-3">
+          <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-slate-500">
+            Self-Reflection
+          </div>
+          <Field label="My Strengths">
+            <textarea
+              className={textareaCls}
+              value={strengths}
+              onChange={(e) => setStrengths(e.target.value)}
+              placeholder="Explosive first shot, strong top position"
+            />
+          </Field>
+          <Field label="What I'm Working On">
+            <textarea
+              className={textareaCls}
+              value={workingOn}
+              onChange={(e) => setWorkingOn(e.target.value)}
+              placeholder="Scrambling, finishing on the edge, conditioning"
+            />
+          </Field>
+        </div>
       </div>
     </Modal>
   );

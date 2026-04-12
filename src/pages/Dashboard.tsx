@@ -66,7 +66,7 @@ export default function Dashboard() {
 
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-3">
-        <StreakBadge streak={streak} alive={alive} />
+        <StreakBadge streak={streak} alive={alive} freezes={state.streakFreezes ?? 0} />
         <div className="card">
           <div className="text-2xl font-extrabold tabular-nums leading-none text-slate-900">
             {doneToday}
@@ -126,6 +126,12 @@ export default function Dashboard() {
             icon={<Gamepad2 size={18} />}
             label="Trivia challenge — earn bonus XP"
             color="amber"
+          />
+          <QuickAction
+            to="/scenarios"
+            icon={<Brain size={18} />}
+            label="Decision drills — what would a champion do?"
+            color="purple"
           />
           <QuickAction
             to="/profile"

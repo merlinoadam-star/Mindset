@@ -111,15 +111,16 @@ export function activeDatesSet(state: AppState): Set<string> {
 export function computeStreak(state: AppState): number {
   const active = activeDatesSet(state);
   if (active.size === 0) return 0;
+  const frozen = new Set(state.usedFreezeDates ?? []);
 
   let streak = 0;
   const d = new Date();
   // If today has no activity yet, start counting from yesterday so the streak
   // doesn't reset until midnight of a missed day.
-  if (!active.has(isoDate(d))) {
+  if (!active.has(isoDate(d)) && !frozen.has(isoDate(d))) {
     d.setDate(d.getDate() - 1);
   }
-  while (active.has(isoDate(d))) {
+  while (active.has(isoDate(d)) || frozen.has(isoDate(d))) {
     streak++;
     d.setDate(d.getDate() - 1);
   }
@@ -128,7 +129,76 @@ export function computeStreak(state: AppState): number {
 
 export function isStreakAlive(state: AppState): boolean {
   const active = activeDatesSet(state);
-  return active.has(todayISO()) || active.has(yesterdayISO());
+  const frozen = new Set(state.usedFreezeDates ?? []);
+  const today = todayISO();
+  const yesterday = yesterdayISO();
+  return (
+    active.has(today) ||
+    active.has(yesterday) ||
+    frozen.has(today) ||
+    frozen.has(yesterday)
+  );
+}
+
+/**
+ * Auto-applies streak freezes on any missed day that would otherwise break
+ * the streak. Returns updated freeze count and freshly-frozen dates. Should
+ * be run on app load (after state is loaded) to keep streaks alive.
+ *
+ * Policy: up to 2 freezes can be in the bank at any time. We apply freezes
+ * conservatively — only if the streak would actually break.
+ */
+export function applyAutoFreezes(state: AppState): {
+  streakFreezes: number;
+  usedFreezeDates: string[];
+  frozenToday?: string;
+} {
+  const active = activeDatesSet(state);
+  let freezes = state.streakFreezes ?? 0;
+  let used = [...(state.usedFreezeDates ?? [])];
+  if (active.size === 0) return { streakFreezes: freezes, usedFreezeDates: used };
+
+  const usedSet = new Set(used);
+  // Walk back from yesterday looking for single-day gaps inside an otherwise
+  // active streak. We only freeze a day if both the day before and the day
+  // after are active (a true "missed day") and we have freezes available.
+  const today = new Date();
+  let frozenToday: string | undefined;
+  for (let i = 1; i <= 14; i++) {
+    if (freezes <= 0) break;
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dIso = isoDate(d);
+    if (active.has(dIso) || usedSet.has(dIso)) continue;
+
+    const next = new Date(d);
+    next.setDate(d.getDate() + 1);
+    const prev = new Date(d);
+    prev.setDate(d.getDate() - 1);
+    const nextActive = active.has(isoDate(next)) || usedSet.has(isoDate(next));
+    const prevActive = active.has(isoDate(prev)) || usedSet.has(isoDate(prev));
+    if (nextActive && prevActive) {
+      freezes -= 1;
+      used.push(dIso);
+      usedSet.add(dIso);
+      frozenToday = dIso;
+    }
+  }
+
+  return { streakFreezes: freezes, usedFreezeDates: used, frozenToday };
+}
+
+/** Returns how many total freezes have been earned over the athlete's journey. */
+export function shouldEarnNewFreeze(state: AppState): boolean {
+  // Earn one freeze every 7 consecutive active days, capped at 2 in bank.
+  const streak = computeStreak(state);
+  if (streak === 0) return false;
+  if ((state.streakFreezes ?? 0) >= 2) return false;
+  // Earn at multiples of 7 and only if we haven't earned one today already.
+  const today = todayISO();
+  const lastAt = state.lastFreezeEarnedAt ?? "";
+  if (lastAt.startsWith(today)) return false;
+  return streak > 0 && streak % 7 === 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -290,6 +360,13 @@ export const BADGES: BadgeDefinition[] = [
     emoji: "💤",
     requirement: "Log recovery 7 consecutive days",
   },
+  {
+    id: "ice-in-bank",
+    name: "Ice in the Bank",
+    description: "Earned your first streak freeze",
+    emoji: "❄️",
+    requirement: "Maintain a 7-day streak",
+  },
 ];
 
 export function getBadge(id: string): BadgeDefinition | undefined {
@@ -366,6 +443,14 @@ export function evaluateBadges(
 
   // Power phrases
   if (state.powerPhrases.length >= 5) unlock("phrase-collector");
+
+  // Streak freezes
+  if (
+    (state.streakFreezes ?? 0) >= 1 ||
+    (state.usedFreezeDates ?? []).length >= 1
+  ) {
+    unlock("ice-in-bank");
+  }
 
   // Recovery check-ins — 7 consecutive days
   if (state.recoveryCheckins.length >= 7) {

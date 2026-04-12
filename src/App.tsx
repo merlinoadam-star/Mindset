@@ -17,6 +17,7 @@ import BreathePage from "./pages/Breathe";
 import LessonsPage from "./pages/Lessons";
 import WeeklyReviewPage from "./pages/WeeklyReview";
 import PowerPhrasesPage from "./pages/PowerPhrases";
+import ScenariosPage from "./pages/Scenarios";
 
 function AppShell() {
   const { state } = useStore();
@@ -41,6 +42,7 @@ function AppShell() {
           <Route path="lessons" element={<LessonsPage />} />
           <Route path="review" element={<WeeklyReviewPage />} />
           <Route path="phrases" element={<PowerPhrasesPage />} />
+          <Route path="scenarios" element={<ScenariosPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

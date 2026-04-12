@@ -60,11 +60,19 @@ export interface VolleyballStats {
 // Goals & self-reflection
 // ---------------------------------------------------------------------------
 export interface GoalsBlock {
+  // Process goals — what you'll DO (controllable, daily actions)
+  processWeek?: string;
+  processSeason?: string;
+  // Outcome goals — what you want to ACHIEVE
+  outcomeSeason?: string;
+  outcomeCareer?: string;
+  // Self-reflection
+  strengths?: string;
+  workingOn?: string;
+  // Legacy fields — kept so existing data isn't lost
   shortTerm?: string;
   season?: string;
   career?: string;
-  strengths?: string;
-  workingOn?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -305,6 +313,9 @@ export interface AppState {
   unlockedBadges: UnlockedBadge[];
   lastActiveDate: string | null;
   lastQuoteClaimDate: string | null;
+  streakFreezes: number; // unused freezes in the bank
+  usedFreezeDates: string[]; // YYYY-MM-DD dates where a freeze saved the streak
+  lastFreezeEarnedAt: string | null; // ISO timestamp of last earned freeze
   triviaRoundsPlayed: number;
   triviaXpEarned: number;
 }
