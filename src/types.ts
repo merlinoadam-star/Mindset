@@ -19,11 +19,23 @@ export type WrestlingStyle = "folkstyle" | "freestyle" | "greco-roman";
 // ---------------------------------------------------------------------------
 // Tournament & award entries
 // ---------------------------------------------------------------------------
+/** Type of competition — tournaments, duals, individual matches, camps, etc. */
+export type CompetitionType =
+  | "tournament"
+  | "dual"
+  | "match"
+  | "scrimmage"
+  | "showcase"
+  | "camp"
+  | "other";
+
 export interface TournamentEntry {
   id: string;
   name: string;
   year: number;
   result: string; // e.g. "1st", "2nd place", "Qualified", "All-Tournament Team"
+  type?: CompetitionType; // defaults to "tournament" for backward compat
+  date?: string; // optional YYYY-MM-DD for more specific dating
 }
 
 export interface AwardEntry {

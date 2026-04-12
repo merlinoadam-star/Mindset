@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
 import {
+  COMPETITION_TYPE_EMOJIS,
+  COMPETITION_TYPE_LABELS,
+  COMPETITION_TYPE_ORDER,
   VOLLEYBALL_POSITION_LABELS,
   VOLLEYBALL_POSITION_ORDER,
   WRESTLING_STYLE_LABELS,
@@ -14,6 +17,7 @@ import {
 } from "../lib/profileOptions";
 import type {
   AwardEntry,
+  CompetitionType,
   Gender,
   GoalsBlock,
   Hand,
@@ -48,6 +52,20 @@ type Section =
 
 function genId(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function competitionSummary(list: TournamentEntry[]): string {
+  if (!list.length) return "None yet";
+  // Count by type, show top-level breakdown
+  const counts: Partial<Record<CompetitionType, number>> = {};
+  list.forEach((t) => {
+    const key = (t.type ?? "tournament") as CompetitionType;
+    counts[key] = (counts[key] ?? 0) + 1;
+  });
+  const parts = (Object.keys(counts) as CompetitionType[])
+    .map((k) => `${counts[k]} ${COMPETITION_TYPE_LABELS[k].toLowerCase()}`)
+    .slice(0, 3);
+  return `${list.length} logged · ${parts.join(", ")}`;
 }
 
 function formatGrade(grade: string): string {
@@ -130,11 +148,11 @@ export default function ProfilePage() {
 
       <SectionRow
         icon={<Trophy size={18} />}
-        label="Tournaments"
+        label="Competitions & Events"
         summary={
           p.tournaments?.length
-            ? `${p.tournaments.length} logged`
-            : "None yet — log your tournament results"
+            ? competitionSummary(p.tournaments)
+            : "None yet — log tournaments, duals, matches, and more"
         }
         onEdit={() => setEditing("tournaments")}
       />
@@ -942,8 +960,15 @@ function TournamentsModal({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [result, setResult] = useState("");
+  const [type, setType] = useState<CompetitionType>("tournament");
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const suggestions = tournamentsForSport(p.sport);
+  const filteredSuggestions = name.trim()
+    ? suggestions.filter((s) =>
+        s.toLowerCase().includes(name.trim().toLowerCase())
+      )
+    : suggestions;
 
   function add() {
     if (!name.trim()) return;
@@ -954,63 +979,150 @@ function TournamentsModal({ onClose }: { onClose: () => void }) {
         name: name.trim(),
         year: parseInt(year, 10) || new Date().getFullYear(),
         result: result.trim() || "Competed",
+        type,
       },
     ]);
     setName("");
     setResult("");
+    setType("tournament");
   }
 
   function remove(id: string) {
     setList((prev) => prev.filter((t) => t.id !== id));
   }
 
+  // Sort list: newest year first, then by name
+  const sortedList = [...list].sort((a, b) => {
+    if (a.year !== b.year) return b.year - a.year;
+    return a.name.localeCompare(b.name);
+  });
+
   return (
     <Modal
-      title="Tournaments"
+      title="Competitions & Events"
       onClose={onClose}
       onSave={() => updateProfile({ tournaments: list })}
     >
-      {list.length > 0 && (
+      {sortedList.length > 0 && (
         <div className="space-y-2 mb-4">
-          {list.map((t) => (
-            <div
-              key={t.id}
-              className="flex items-center gap-2 rounded-xl border border-slate-200 p-3"
-            >
-              <Trophy size={16} className="text-amber-500 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm text-slate-900 truncate">
-                  {t.name}
-                </div>
-                <div className="text-xs text-slate-500">
-                  {t.year} · {t.result}
-                </div>
-              </div>
-              <button
-                onClick={() => remove(t.id)}
-                className="w-7 h-7 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center"
+          {sortedList.map((t) => {
+            const entryType = (t.type ?? "tournament") as CompetitionType;
+            return (
+              <div
+                key={t.id}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 p-3"
               >
-                <X size={14} />
-              </button>
-            </div>
-          ))}
+                <span className="text-xl flex-shrink-0">
+                  {COMPETITION_TYPE_EMOJIS[entryType]}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm text-slate-900 truncate">
+                    {t.name}
+                  </div>
+                  <div className="text-xs text-slate-500 flex items-center gap-1 flex-wrap">
+                    <span className="inline-block bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full font-semibold text-[10px] uppercase tracking-wider">
+                      {COMPETITION_TYPE_LABELS[entryType]}
+                    </span>
+                    <span>·</span>
+                    <span>{t.year}</span>
+                    {t.result && t.result !== "Competed" && (
+                      <>
+                        <span>·</span>
+                        <span className="font-semibold text-slate-700">
+                          {t.result}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => remove(t.id)}
+                  className="w-7 h-7 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 
       <div className="rounded-2xl bg-slate-50 p-3 space-y-3">
-        <Field label="Tournament Name">
+        <Field label="Type of event">
+          <div className="flex flex-wrap gap-1.5">
+            {COMPETITION_TYPE_ORDER.map((ct) => (
+              <button
+                key={ct}
+                type="button"
+                onClick={() => setType(ct)}
+                className={`px-2.5 py-1.5 rounded-full text-xs font-bold border-2 transition flex items-center gap-1 ${
+                  type === ct
+                    ? "bg-brand-600 text-white border-brand-600"
+                    : "bg-white text-slate-700 border-slate-200"
+                }`}
+              >
+                <span>{COMPETITION_TYPE_EMOJIS[ct]}</span>
+                <span>{COMPETITION_TYPE_LABELS[ct]}</span>
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        <Field label="Name">
           <input
             className={inputCls}
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. State Tournament"
-            list="tournament-suggestions"
+            onChange={(e) => {
+              setName(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            placeholder={
+              type === "tournament"
+                ? "e.g. State Tournament, Little Guy Open..."
+                : type === "dual"
+                ? "e.g. vs Roosevelt HS, Iron Duals..."
+                : type === "match"
+                ? "e.g. vs Lincoln HS, League Match..."
+                : type === "scrimmage"
+                ? "e.g. Summer Scrimmage, Practice Match..."
+                : type === "showcase"
+                ? "e.g. Parents Day Showcase..."
+                : type === "camp"
+                ? "e.g. Coach Smith's Summer Camp..."
+                : "Name this event"
+            }
           />
-          <datalist id="tournament-suggestions">
-            {suggestions.map((s) => (
-              <option key={s} value={s} />
-            ))}
-          </datalist>
+          <p className="text-[11px] text-slate-500 mt-1">
+            Any event counts — local duals, team matches, practice tournaments,
+            and big stage events.
+          </p>
+          {showSuggestions &&
+            type === "tournament" &&
+            filteredSuggestions.length > 0 && (
+              <div className="mt-2 p-2 rounded-xl bg-white border border-slate-200 max-h-48 overflow-y-auto">
+                <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold px-1 pb-1">
+                  Well-known tournaments
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {filteredSuggestions.slice(0, 15).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setName(s);
+                        setShowSuggestions(false);
+                      }}
+                      className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Year">
@@ -1026,7 +1138,13 @@ function TournamentsModal({ onClose }: { onClose: () => void }) {
               className={inputCls}
               value={result}
               onChange={(e) => setResult(e.target.value)}
-              placeholder="1st / Qualified / Top 8"
+              placeholder={
+                type === "dual" || type === "match"
+                  ? "W / L / Pin / 6-2..."
+                  : type === "camp"
+                  ? "Attended / Learned..."
+                  : "1st / Qualified / Top 8"
+              }
             />
           </Field>
         </div>

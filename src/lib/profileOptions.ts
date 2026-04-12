@@ -1,8 +1,42 @@
 import type {
+  CompetitionType,
   Sport,
   VolleyballPosition,
   WrestlingStyle,
 } from "../types";
+
+// -----------------------------------------------------------------------------
+// Competition types — for categorizing Tournaments & Events
+// -----------------------------------------------------------------------------
+export const COMPETITION_TYPE_LABELS: Record<CompetitionType, string> = {
+  tournament: "Tournament",
+  dual: "Dual Meet",
+  match: "Match",
+  scrimmage: "Scrimmage",
+  showcase: "Showcase",
+  camp: "Camp / Clinic",
+  other: "Other",
+};
+
+export const COMPETITION_TYPE_EMOJIS: Record<CompetitionType, string> = {
+  tournament: "🏆",
+  dual: "⚔️",
+  match: "🥇",
+  scrimmage: "🤼",
+  showcase: "⭐",
+  camp: "📚",
+  other: "📝",
+};
+
+export const COMPETITION_TYPE_ORDER: CompetitionType[] = [
+  "tournament",
+  "dual",
+  "match",
+  "scrimmage",
+  "showcase",
+  "camp",
+  "other",
+];
 
 // -----------------------------------------------------------------------------
 // Wrestling
