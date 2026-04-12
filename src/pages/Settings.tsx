@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useStore } from "../lib/store";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Mic2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, Mic2, FileDown } from "lucide-react";
 import { getPersona } from "../lib/speechPersonas";
 
 export default function SettingsPage() {
@@ -21,6 +21,22 @@ export default function SettingsPage() {
         </Link>
         <h1 className="text-2xl font-extrabold">Settings</h1>
       </header>
+
+      <Link
+        to="/export"
+        className="card-interactive flex items-center gap-3"
+      >
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center flex-shrink-0">
+          <FileDown size={18} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-slate-900">Export Report</div>
+          <div className="text-xs text-slate-500 mt-0.5">
+            Save your season summary as a PDF or print
+          </div>
+        </div>
+        <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+      </Link>
 
       <Link
         to="/voice"

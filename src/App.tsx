@@ -24,6 +24,7 @@ import FocusFlashPage from "./pages/FocusFlash";
 import VideoLibraryPage from "./pages/VideoLibrary";
 import OpponentsPage from "./pages/Opponents";
 import VoicePersonasPage from "./pages/VoicePersonas";
+import ExportReportPage from "./pages/ExportReport";
 
 function AppShell() {
   const { state } = useStore();
@@ -55,6 +56,7 @@ function AppShell() {
           <Route path="videos" element={<VideoLibraryPage />} />
           <Route path="opponents" element={<OpponentsPage />} />
           <Route path="voice" element={<VoicePersonasPage />} />
+          <Route path="export" element={<ExportReportPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

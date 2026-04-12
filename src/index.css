@@ -45,3 +45,71 @@
     @apply bg-white/80 backdrop-blur-lg;
   }
 }
+
+/* =========================================================================
+   Print styles — used by the Export / Save as PDF flow
+   When the document has the `.printing` class on <body>, only `.print-root`
+   and its children are shown. Gradients, shadows, and rounded corners are
+   toned down for clean paper output.
+   ========================================================================= */
+@media print {
+  @page {
+    size: letter;
+    margin: 0.5in;
+  }
+
+  body {
+    background: white !important;
+    color: #111 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide the app chrome when printing; show only the print container. */
+  body.printing * {
+    visibility: hidden;
+  }
+  body.printing .print-root,
+  body.printing .print-root * {
+    visibility: visible;
+  }
+  body.printing .print-root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  body.printing .hide-in-print,
+  body.printing nav,
+  body.printing .fixed {
+    display: none !important;
+  }
+
+  /* Pagination hints */
+  .page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Clean up UI chrome for paper */
+  .card,
+  .print-card {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    padding: 12px !important;
+    background: white !important;
+  }
+  a,
+  button {
+    color: inherit !important;
+  }
+}
+
