@@ -1,7 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { StoreProvider, useStore } from "./lib/store";
+import { AuthProvider } from "./lib/authContext";
 import Layout from "./components/Layout";
 import RewardToast from "./components/RewardToast";
+import AuthPage from "./pages/Auth";
+import ConnectionsPage from "./pages/Connections";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import HabitsPage from "./pages/Habits";
@@ -36,6 +39,7 @@ function AppShell() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="auth" element={<AuthPage />} />
         <Route element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="habits" element={<HabitsPage />} />
@@ -57,6 +61,7 @@ function AppShell() {
           <Route path="opponents" element={<OpponentsPage />} />
           <Route path="voice" element={<VoicePersonasPage />} />
           <Route path="export" element={<ExportReportPage />} />
+          <Route path="connections" element={<ConnectionsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -68,9 +73,11 @@ function AppShell() {
 
 export default function App() {
   return (
-    <StoreProvider>
-      <AppShell />
-      <RewardToast />
-    </StoreProvider>
+    <AuthProvider>
+      <StoreProvider>
+        <AppShell />
+        <RewardToast />
+      </StoreProvider>
+    </AuthProvider>
   );
 }

@@ -1,11 +1,22 @@
 import { useState } from "react";
 import { useStore } from "../lib/store";
+import { useAuth } from "../lib/authContext";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Mic2, FileDown } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronRight,
+  Mic2,
+  FileDown,
+  Users,
+  LogOut,
+  LogIn,
+} from "lucide-react";
 import { getPersona } from "../lib/speechPersonas";
+import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
 
 export default function SettingsPage() {
   const { state, resetAll } = useStore();
+  const { configured, account, signOut } = useAuth();
   const [confirming, setConfirming] = useState(false);
 
   if (!state.profile) return null;
@@ -21,6 +32,60 @@ export default function SettingsPage() {
         </Link>
         <h1 className="text-2xl font-extrabold">Settings</h1>
       </header>
+
+      {/* Account / Sync */}
+      {configured && account ? (
+        <div className="card bg-gradient-to-br from-brand-50 to-white border-brand-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[10px] uppercase tracking-wider font-bold text-brand-700">
+                Signed in
+              </div>
+              <div className="font-bold text-slate-900 mt-0.5">
+                {ACCOUNT_ROLE_EMOJIS[account.role]} {account.displayName}
+                <span className="text-xs text-slate-500 font-normal ml-1">
+                  ({ACCOUNT_ROLE_LABELS[account.role]})
+                </span>
+              </div>
+              <div className="text-xs text-slate-500 truncate">
+                {account.email}
+              </div>
+            </div>
+            <button
+              onClick={signOut}
+              className="text-xs text-slate-500 hover:text-red-600 font-semibold flex items-center gap-1"
+            >
+              <LogOut size={12} /> Sign out
+            </button>
+          </div>
+          <Link
+            to="/connections"
+            className="mt-3 flex items-center gap-2 py-2.5 px-3 rounded-xl bg-white border border-slate-200 hover:border-brand-300 transition"
+          >
+            <Users size={16} className="text-brand-600" />
+            <span className="text-sm font-bold text-slate-900 flex-1">
+              Connections
+            </span>
+            <ChevronRight size={14} className="text-slate-300" />
+          </Link>
+        </div>
+      ) : configured ? (
+        <Link
+          to="/auth"
+          className="card-interactive flex items-center gap-3 bg-gradient-to-br from-brand-50 to-white border-brand-100"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
+            <LogIn size={18} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-slate-900">Sign in to sync</div>
+            <div className="text-xs text-slate-500 mt-0.5">
+              Connect with your coach and parent
+            </div>
+          </div>
+          <ChevronRight size={16} className="text-slate-300" />
+        </Link>
+      ) : null}
 
       <Link
         to="/export"

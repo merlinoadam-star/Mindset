@@ -1,3 +1,54 @@
+// -----------------------------------------------------------------------------
+// Accounts, Roles, and Connections (Phase 2)
+// -----------------------------------------------------------------------------
+export type AccountRole = "athlete" | "coach" | "parent";
+
+export const ACCOUNT_ROLE_LABELS: Record<AccountRole, string> = {
+  athlete: "Athlete",
+  coach: "Coach",
+  parent: "Parent",
+};
+
+export const ACCOUNT_ROLE_EMOJIS: Record<AccountRole, string> = {
+  athlete: "🤼",
+  coach: "🎯",
+  parent: "👨‍👩‍👧",
+};
+
+/** The signed-in user's own account record (mirrors the auth user). */
+export interface Account {
+  id: string; // Supabase auth user id (UUID)
+  email: string;
+  displayName: string;
+  role: AccountRole;
+  createdAt: string;
+  avatarEmoji?: string;
+}
+
+/** A connection between an account and an athlete profile. */
+export type ConnectionStatus = "pending" | "accepted" | "declined" | "revoked";
+
+export interface ConnectionRequest {
+  id: string;
+  athleteAccountId: string; // the athlete's account id
+  otherAccountId: string; // the coach or parent's account id
+  /** Who sent the invite — matters for the accept-direction UI. */
+  initiatedBy: AccountRole;
+  /** The role being granted: "coach" or "parent" (athletes are always athletes). */
+  connectedRole: AccountRole;
+  status: ConnectionStatus;
+  createdAt: string;
+  respondedAt?: string;
+  /** Friendly labels captured at invite time (so you see names before the invite is accepted). */
+  athleteName?: string;
+  athleteEmail?: string;
+  otherName?: string;
+  otherEmail?: string;
+  note?: string; // optional message from sender
+}
+
+// -----------------------------------------------------------------------------
+
 export type Sport = "wrestling" | "volleyball";
 
 export type Mood = 1 | 2 | 3 | 4 | 5;
