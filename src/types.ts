@@ -68,4 +68,6 @@ export interface AppState {
   unlockedBadges: UnlockedBadge[];
   lastActiveDate: string | null; // YYYY-MM-DD — last day any XP was earned
   lastQuoteClaimDate: string | null; // YYYY-MM-DD — last day the daily quote XP was claimed
+  triviaRoundsPlayed: number; // total rounds completed (used to seed next round)
+  triviaXpEarned: number; // lifetime trivia XP
 }

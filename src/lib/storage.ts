@@ -11,6 +11,8 @@ export const emptyState: AppState = {
   unlockedBadges: [],
   lastActiveDate: null,
   lastQuoteClaimDate: null,
+  triviaRoundsPlayed: 0,
+  triviaXpEarned: 0,
 };
 
 export function loadState(): AppState {

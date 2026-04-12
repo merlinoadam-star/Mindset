@@ -9,6 +9,7 @@ import PracticePage from "./pages/Practice";
 import MindsetPage from "./pages/Mindset";
 import BadgesPage from "./pages/Badges";
 import SettingsPage from "./pages/Settings";
+import TriviaPage from "./pages/Trivia";
 
 function AppShell() {
   const { state } = useStore();
@@ -26,6 +27,7 @@ function AppShell() {
           <Route path="practice" element={<PracticePage />} />
           <Route path="mindset" element={<MindsetPage />} />
           <Route path="badges" element={<BadgesPage />} />
+          <Route path="trivia" element={<TriviaPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

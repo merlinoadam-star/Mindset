@@ -35,6 +35,10 @@ interface StoreContextValue {
     newlyUnlocked: string[];
     alreadyClaimed: boolean;
   };
+  completeTriviaRound: (
+    correctCount: number,
+    totalQuestions: number
+  ) => { awardedXp: number; newlyUnlocked: string[] };
   resetAll: () => void;
 }
 
@@ -257,6 +261,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const completeTriviaRound = useCallback(
+    (correctCount: number, totalQuestions: number) => {
+      const isPerfect = correctCount === totalQuestions;
+      const xpEarned = correctCount * 10 + (isPerfect ? 15 : 0);
+      let newlyUnlocked: string[] = [];
+
+      setState((prev) => {
+        let next: AppState = {
+          ...prev,
+          xp: prev.xp + xpEarned,
+          lastActiveDate: todayISO(),
+          triviaRoundsPlayed: prev.triviaRoundsPlayed + 1,
+          triviaXpEarned: prev.triviaXpEarned + xpEarned,
+        };
+        const sportHabitCount = prev.profile
+          ? habitsForSport(prev.profile.sport).length
+          : 0;
+        newlyUnlocked = evaluateBadges(next, sportHabitCount);
+        if (newlyUnlocked.length > 0) {
+          const now = new Date().toISOString();
+          next = {
+            ...next,
+            unlockedBadges: [
+              ...next.unlockedBadges,
+              ...newlyUnlocked.map((id) => ({ id, unlockedAt: now })),
+            ],
+          };
+        }
+        return next;
+      });
+
+      return { awardedXp: xpEarned, newlyUnlocked };
+    },
+    []
+  );
+
   const resetAll = useCallback(() => {
     clearState();
     setState(emptyState);
@@ -282,6 +322,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     hasCheckinToday,
     hasClaimedQuoteToday,
     claimDailyQuote,
+    completeTriviaRound,
     resetAll,
   };
 

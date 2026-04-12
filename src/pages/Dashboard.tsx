@@ -5,7 +5,7 @@ import { habitsForSport } from "../lib/habits";
 import XPBar from "../components/XPBar";
 import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
-import { ArrowRight, CheckSquare, Dumbbell, Brain } from "lucide-react";
+import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2 } from "lucide-react";
 
 export default function Dashboard() {
   const { state, hasCheckinToday } = useStore();
@@ -81,6 +81,11 @@ export default function Dashboard() {
             to="/practice"
             icon={<Dumbbell size={20} />}
             label="Log a practice"
+          />
+          <QuickAction
+            to="/trivia"
+            icon={<Gamepad2 size={20} />}
+            label="Trivia challenge — earn bonus XP"
           />
         </div>
       </div>
