@@ -35,6 +35,14 @@ export default function Dashboard() {
   const greeting =
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
+  // End-of-day prompt: today's goal is set but hasn't been reviewed and it's evening
+  const todaysCheckin = state.checkins.find((c) => c.date === today);
+  const showGoalReviewPrompt =
+    todaysCheckin &&
+    todaysCheckin.goal &&
+    todaysCheckin.goalMet === undefined &&
+    hour >= 17;
+
   return (
     <div className="space-y-4 animate-slide-up">
       {/* Header */}
@@ -154,6 +162,33 @@ export default function Dashboard() {
             <blockquote className="text-lg font-extrabold leading-tight">
               &ldquo;{pinnedPhrase.text}&rdquo;
             </blockquote>
+          </div>
+        </Link>
+      )}
+
+      {/* End-of-day goal review prompt */}
+      {showGoalReviewPrompt && (
+        <Link
+          to="/mindset"
+          className="block relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-900 to-purple-900 text-white p-4 shadow-elevated hover:shadow-card-hover transition"
+        >
+          <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-white/5" />
+          <div className="relative flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-400 text-white flex items-center justify-center shadow-sm">
+              🎯
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-amber-200">
+                End-of-day review
+              </div>
+              <div className="font-bold text-white mt-0.5">
+                Did you hit today&apos;s goal?
+              </div>
+              <div className="text-xs text-white/70 mt-0.5 truncate">
+                &ldquo;{todaysCheckin?.goal}&rdquo;
+              </div>
+            </div>
+            <ArrowRight size={16} className="text-white/50" />
           </div>
         </Link>
       )}

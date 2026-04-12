@@ -152,6 +152,10 @@ export interface MentalCheckin {
   mood: Mood;
   gratitude: string;
   goal: string;
+  /** End-of-day goal review — undefined = not reviewed yet */
+  goalMet?: boolean;
+  goalReviewNote?: string;
+  goalReviewedAt?: string; // ISO timestamp
   xpEarned: number;
 }
 

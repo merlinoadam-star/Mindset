@@ -4,8 +4,9 @@ import { todayISO } from "../lib/gamification";
 import { showReward } from "../components/RewardToast";
 import RecoveryCard from "../components/RecoveryCard";
 import NutritionCard from "../components/NutritionCard";
+import GoalReviewCard from "../components/GoalReviewCard";
 import type { Mood } from "../types";
-import { Brain } from "lucide-react";
+import { Brain, Check, X } from "lucide-react";
 
 const MOODS: { value: Mood; emoji: string; label: string }[] = [
   { value: 1, emoji: "😩", label: "Rough" },
@@ -50,6 +51,44 @@ export default function MindsetPage() {
 
       <RecoveryCard />
       <NutritionCard />
+
+      {todaysCheckin &&
+        todaysCheckin.goal &&
+        todaysCheckin.goalMet === undefined && (
+          <GoalReviewCard checkin={todaysCheckin} />
+        )}
+
+      {todaysCheckin && todaysCheckin.goalMet !== undefined && (
+        <div
+          className={`card !p-4 flex items-center gap-3 ${
+            todaysCheckin.goalMet
+              ? "bg-gradient-to-br from-emerald-50 to-white border-emerald-200"
+              : "bg-gradient-to-br from-slate-50 to-white border-slate-200"
+          }`}
+        >
+          <div
+            className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              todaysCheckin.goalMet
+                ? "bg-emerald-500 text-white"
+                : "bg-slate-300 text-white"
+            }`}
+          >
+            {todaysCheckin.goalMet ? (
+              <Check size={18} strokeWidth={3} />
+            ) : (
+              <X size={18} strokeWidth={3} />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-slate-500 font-semibold">
+              Today&apos;s goal — {todaysCheckin.goalMet ? "hit!" : "not quite"}
+            </div>
+            <div className="text-sm font-bold text-slate-900 truncate">
+              {todaysCheckin.goal}
+            </div>
+          </div>
+        </div>
+      )}
 
       <form onSubmit={submit} className="card space-y-5">
         <div>
@@ -130,13 +169,38 @@ export default function MindsetPage() {
                     </div>
                   </div>
                   {c.goal && (
-                    <div className="mt-2 text-sm">
-                      <span className="text-slate-500">🎯 </span>
-                      {c.goal}
+                    <div className="mt-2 text-sm flex items-start gap-2">
+                      <span className="text-slate-500">🎯</span>
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className={
+                            c.goalMet === false
+                              ? "text-slate-500 line-through"
+                              : "text-slate-800"
+                          }
+                        >
+                          {c.goal}
+                        </div>
+                        {c.goalMet === true && (
+                          <div className="text-[11px] font-bold text-emerald-700 mt-0.5 inline-flex items-center gap-0.5">
+                            <Check size={10} strokeWidth={3} /> Hit it
+                          </div>
+                        )}
+                        {c.goalMet === false && (
+                          <div className="text-[11px] font-bold text-slate-500 mt-0.5 inline-flex items-center gap-0.5">
+                            <X size={10} strokeWidth={3} /> Not quite
+                          </div>
+                        )}
+                        {c.goalReviewNote && (
+                          <div className="text-[11px] text-slate-500 italic mt-0.5">
+                            {c.goalReviewNote}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                   {c.gratitude && (
-                    <div className="text-sm text-slate-700">
+                    <div className="text-sm text-slate-700 mt-1">
                       <span className="text-slate-500">🙏 </span>
                       {c.gratitude}
                     </div>
