@@ -50,6 +50,15 @@ function genId(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
+function formatGrade(grade: string): string {
+  if (grade === "K" || grade.toLowerCase() === "k") return "Kindergarten";
+  const n = parseInt(grade, 10);
+  if (isNaN(n)) return `Grade ${grade}`;
+  const suffix =
+    n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th";
+  return `${n}${suffix} grade`;
+}
+
 export default function ProfilePage() {
   const { state } = useStore();
   const [editing, setEditing] = useState<Section>(null);
@@ -84,7 +93,7 @@ export default function ProfilePage() {
               {p.name} {p.lastName ?? ""}
             </div>
             <div className="text-sm text-white/80 mt-0.5 capitalize">
-              {p.sport} · Grade {p.grade} · Age {p.age}
+              {p.sport} · {formatGrade(p.grade)} · Age {p.age}
             </div>
             {p.teamName && (
               <div className="text-xs text-white/70 mt-0.5">

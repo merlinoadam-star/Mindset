@@ -2,15 +2,15 @@ import { useState } from "react";
 import { useStore } from "../lib/store";
 import type { Sport } from "../types";
 
-const GRADES = ["5", "6", "7", "8", "9", "10", "11", "12"];
+const GRADES = ["K", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
 export default function Onboarding() {
   const { setProfile } = useStore();
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [sport, setSport] = useState<Sport | null>(null);
-  const [age, setAge] = useState(12);
-  const [grade, setGrade] = useState("7");
+  const [age, setAge] = useState(10);
+  const [grade, setGrade] = useState("5");
 
   function finish() {
     if (!name.trim() || !sport) return;
@@ -121,7 +121,7 @@ export default function Onboarding() {
               </label>
               <input
                 type="number"
-                min={8}
+                min={5}
                 max={19}
                 value={age}
                 onChange={(e) => setAge(parseInt(e.target.value) || 0)}
@@ -131,7 +131,7 @@ export default function Onboarding() {
               <label className="block text-sm font-bold text-slate-700 mb-2 mt-5">
                 What grade are you in?
               </label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-5 gap-2">
                 {GRADES.map((g) => (
                   <button
                     key={g}
@@ -146,6 +146,9 @@ export default function Onboarding() {
                   </button>
                 ))}
               </div>
+              <p className="text-xs text-slate-500 mt-2">
+                K = Kindergarten
+              </p>
 
               <div className="mt-auto pt-6 flex gap-3">
                 <button onClick={() => setStep(1)} className="btn-secondary">
