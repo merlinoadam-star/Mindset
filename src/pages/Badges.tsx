@@ -7,15 +7,15 @@ export default function BadgesPage() {
   const unlockedCount = unlockedIds.size;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-slide-up">
       <header className="pt-4">
-        <h1 className="text-2xl font-extrabold">Badges</h1>
-        <p className="text-sm text-slate-600 mt-1">
+        <h1 className="page-title">Badges</h1>
+        <p className="page-subtitle">
           {unlockedCount} of {BADGES.length} unlocked
         </p>
-        <div className="mt-3 h-2 bg-slate-200 rounded-full overflow-hidden">
+        <div className="mt-3 h-2.5 bg-slate-100 rounded-full overflow-hidden">
           <div
-            className="h-full bg-brand-500 transition-all"
+            className="h-full bg-gradient-to-r from-brand-600 to-brand-400 rounded-full transition-all"
             style={{ width: `${(unlockedCount / BADGES.length) * 100}%` }}
           />
         </div>
@@ -27,27 +27,29 @@ export default function BadgesPage() {
           return (
             <div
               key={b.id}
-              className={`rounded-2xl p-4 border text-center transition ${
+              className={`rounded-3xl p-5 border text-center transition-all duration-200 ${
                 unlocked
-                  ? "bg-white border-brand-200 shadow-sm"
-                  : "bg-slate-100 border-slate-200"
+                  ? "bg-gradient-to-b from-white to-slate-50 border-brand-200 shadow-card"
+                  : "bg-slate-50 border-slate-100"
               }`}
             >
               <div
-                className={`text-5xl ${unlocked ? "" : "grayscale opacity-30"}`}
+                className={`text-5xl transition-all duration-300 ${
+                  unlocked ? "drop-shadow-md" : "grayscale opacity-25"
+                }`}
               >
                 {b.emoji}
               </div>
               <div
-                className={`font-bold mt-2 text-sm ${
-                  unlocked ? "text-slate-900" : "text-slate-500"
+                className={`font-bold mt-3 text-sm ${
+                  unlocked ? "text-slate-900" : "text-slate-400"
                 }`}
               >
                 {b.name}
               </div>
               <div
                 className={`text-xs mt-1 leading-tight ${
-                  unlocked ? "text-slate-600" : "text-slate-400"
+                  unlocked ? "text-slate-500" : "text-slate-400"
                 }`}
               >
                 {unlocked ? b.description : b.requirement}

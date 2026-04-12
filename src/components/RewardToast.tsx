@@ -35,16 +35,22 @@ export default function RewardToast() {
       {items.map((r) => (
         <div
           key={r.id}
-          className="animate-pop-in bg-slate-900 text-white rounded-xl shadow-lg px-4 py-2 text-sm font-semibold"
+          className="animate-pop-in bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl shadow-elevated px-5 py-3 text-sm font-bold flex items-center gap-2"
         >
-          {r.xp > 0 && <span className="mr-1">+{r.xp} XP</span>}
-          {r.xp < 0 && <span className="mr-1">{r.xp} XP</span>}
+          {r.xp > 0 && (
+            <span className="text-emerald-400">+{r.xp} XP</span>
+          )}
+          {r.xp < 0 && (
+            <span className="text-red-400">{r.xp} XP</span>
+          )}
           {r.badges.length > 0 && (
-            <span className="ml-1">
-              {r.badges.map((id) => {
-                const b = getBadge(id);
-                return b ? `${b.emoji} ${b.name}` : "";
-              }).join(" · ")}
+            <span className="text-amber-300">
+              {r.badges
+                .map((id) => {
+                  const b = getBadge(id);
+                  return b ? `${b.emoji} ${b.name}` : "";
+                })
+                .join(" · ")}
             </span>
           )}
         </div>

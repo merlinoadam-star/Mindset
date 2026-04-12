@@ -5,7 +5,7 @@ import { habitsForSport } from "../lib/habits";
 import XPBar from "../components/XPBar";
 import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
-import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2 } from "lucide-react";
+import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings } from "lucide-react";
 
 export default function Dashboard() {
   const { state, hasCheckinToday } = useStore();
@@ -29,36 +29,54 @@ export default function Dashboard() {
     hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="space-y-4">
-      <header className="pt-4 pb-1">
-        <div className="text-sm text-slate-500">
-          {greeting},
+    <div className="space-y-4 animate-slide-up">
+      {/* Header */}
+      <header className="pt-4 pb-1 flex items-center justify-between">
+        <div>
+          <div className="text-sm text-slate-400 font-medium">
+            {greeting},
+          </div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+            {state.profile.name} 👋
+          </h1>
         </div>
-        <h1 className="text-2xl font-extrabold text-slate-900">
-          {state.profile.name} 👋
-        </h1>
+        <Link
+          to="/settings"
+          className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-card flex items-center justify-center text-slate-400 hover:text-slate-600 transition"
+        >
+          <Settings size={18} />
+        </Link>
       </header>
 
       <XPBar xp={state.xp} info={info} />
 
       <QuoteOfTheDay />
 
+      {/* Stats row */}
       <div className="grid grid-cols-2 gap-3">
         <StreakBadge streak={streak} alive={alive} />
         <div className="card">
-          <div className="text-2xl font-extrabold tabular-nums leading-none">
+          <div className="text-2xl font-extrabold tabular-nums leading-none text-slate-900">
             {doneToday}
-            <span className="text-slate-400">/{totalHabitsToday}</span>
+            <span className="text-slate-300">/{totalHabitsToday}</span>
           </div>
-          <div className="text-xs text-slate-600 mt-2">Habits Today</div>
+          <div className="text-xs text-slate-500 mt-2 font-medium">
+            Habits Today
+          </div>
+          {doneToday === totalHabitsToday && totalHabitsToday > 0 && (
+            <div className="mt-2 text-xs font-bold text-green-600">
+              All done!
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Today's Focus */}
       <div className="card">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-bold text-slate-900">Today&apos;s Focus</h2>
           {!alive && streak === 0 && (
-            <span className="chip bg-orange-100 text-orange-700">
+            <span className="chip bg-orange-100 text-orange-700 !text-xs">
               Start a streak!
             </span>
           )}
@@ -66,30 +84,35 @@ export default function Dashboard() {
         <div className="space-y-2">
           <QuickAction
             to="/habits"
-            icon={<CheckSquare size={20} />}
+            icon={<CheckSquare size={18} />}
             label="Check off your daily habits"
             done={doneToday === totalHabitsToday && totalHabitsToday > 0}
             progress={`${doneToday}/${totalHabitsToday}`}
+            color="brand"
           />
           <QuickAction
             to="/mindset"
-            icon={<Brain size={20} />}
+            icon={<Brain size={18} />}
             label="Daily mental check-in"
             done={hasCheckinToday}
+            color="purple"
           />
           <QuickAction
             to="/practice"
-            icon={<Dumbbell size={20} />}
+            icon={<Dumbbell size={18} />}
             label="Log a practice"
+            color="emerald"
           />
           <QuickAction
             to="/trivia"
-            icon={<Gamepad2 size={20} />}
+            icon={<Gamepad2 size={18} />}
             label="Trivia challenge — earn bonus XP"
+            color="amber"
           />
         </div>
       </div>
 
+      {/* Recent Badges */}
       <div className="card">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-bold text-slate-900">Recent Badges</h2>
@@ -101,7 +124,7 @@ export default function Dashboard() {
           </Link>
         </div>
         {recentBadges.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-400">
             No badges yet. Complete a habit to earn your first!
           </p>
         ) : (
@@ -112,10 +135,10 @@ export default function Dashboard() {
               return (
                 <div
                   key={ub.id}
-                  className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-center"
+                  className="rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 p-3 text-center shadow-sm"
                 >
                   <div className="text-3xl">{b.emoji}</div>
-                  <div className="text-xs font-semibold mt-1 leading-tight">
+                  <div className="text-[11px] font-bold mt-1.5 leading-tight text-slate-700">
                     {b.name}
                   </div>
                 </div>
@@ -125,17 +148,17 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div className="text-center pt-2">
-        <Link
-          to="/settings"
-          className="text-xs text-slate-400 hover:text-slate-600"
-        >
-          Settings
-        </Link>
-      </div>
+      <div className="h-2" />
     </div>
   );
 }
+
+const colorMap: Record<string, { bg: string; icon: string }> = {
+  brand: { bg: "bg-brand-50", icon: "text-brand-600" },
+  purple: { bg: "bg-purple-50", icon: "text-purple-600" },
+  emerald: { bg: "bg-emerald-50", icon: "text-emerald-600" },
+  amber: { bg: "bg-amber-50", icon: "text-amber-600" },
+};
 
 function QuickAction({
   to,
@@ -143,36 +166,41 @@ function QuickAction({
   label,
   done,
   progress,
+  color = "brand",
 }: {
   to: string;
   icon: React.ReactNode;
   label: string;
   done?: boolean;
   progress?: string;
+  color?: string;
 }) {
+  const c = colorMap[color] ?? colorMap.brand;
   return (
     <Link
       to={to}
-      className={`flex items-center gap-3 p-3 rounded-xl border transition ${
+      className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-200 ${
         done
-          ? "bg-green-50 border-green-200"
-          : "bg-slate-50 border-slate-200 hover:border-brand-300"
+          ? "bg-green-50/80 border-green-200 shadow-glow-green"
+          : "bg-white border-slate-100 hover:border-brand-200 hover:shadow-card-hover"
       }`}
     >
       <div
-        className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-          done ? "bg-green-500 text-white" : "bg-white text-brand-600 border border-slate-200"
+        className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+          done
+            ? "bg-gradient-to-br from-green-500 to-emerald-400 text-white shadow-sm"
+            : `${c.bg} ${c.icon}`
         }`}
       >
         {done ? "✓" : icon}
       </div>
-      <div className="flex-1 font-medium text-slate-800 text-sm">{label}</div>
+      <div className="flex-1 font-semibold text-slate-700 text-sm">{label}</div>
       {progress && (
-        <span className="text-xs font-semibold text-slate-500 tabular-nums">
+        <span className="text-xs font-bold text-slate-400 tabular-nums">
           {progress}
         </span>
       )}
-      <ArrowRight size={18} className="text-slate-400" />
+      <ArrowRight size={16} className="text-slate-300" />
     </Link>
   );
 }
