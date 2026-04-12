@@ -93,7 +93,7 @@ export function currentWeekMondayISO(): string {
   return isoDate(d);
 }
 
-/** Days with at least one habit completion, practice, check-in, or recovery log. */
+/** Days with at least one logged activity across any tracking surface. */
 export function activeDatesSet(state: AppState): Set<string> {
   const dates = new Set<string>();
   state.habitCompletions.forEach((c) => dates.add(c.date));
@@ -104,6 +104,9 @@ export function activeDatesSet(state: AppState): Set<string> {
   }
   if (state.mentalSessions) {
     state.mentalSessions.forEach((m) => dates.add(m.date));
+  }
+  if (state.nutritionLogs) {
+    state.nutritionLogs.forEach((n) => dates.add(n.date));
   }
   return dates;
 }
@@ -367,6 +370,27 @@ export const BADGES: BadgeDefinition[] = [
     emoji: "❄️",
     requirement: "Maintain a 7-day streak",
   },
+  {
+    id: "fueled-up",
+    name: "Fueled Up",
+    description: "Logged a balanced nutrition day",
+    emoji: "🥗",
+    requirement: "Log a nutrition day with 3+ food quality items",
+  },
+  {
+    id: "kitchen-consistent",
+    name: "Kitchen Consistent",
+    description: "7 consecutive days of nutrition logging",
+    emoji: "🍽️",
+    requirement: "Log nutrition 7 days in a row",
+  },
+  {
+    id: "hydration-hero",
+    name: "Hydration Hero",
+    description: "8+ glasses of water on 10 days",
+    emoji: "💧",
+    requirement: "Hit 8+ glasses of water on 10 different days",
+  },
 ];
 
 export function getBadge(id: string): BadgeDefinition | undefined {
@@ -450,6 +474,43 @@ export function evaluateBadges(
     (state.usedFreezeDates ?? []).length >= 1
   ) {
     unlock("ice-in-bank");
+  }
+
+  // Nutrition
+  const nLogs = state.nutritionLogs ?? [];
+  if (
+    nLogs.some((n) => {
+      const q = [n.hadProtein, n.hadFruitVeg, n.hadWholeGrains, n.hadHealthyFats].filter(
+        Boolean
+      ).length;
+      return q >= 3;
+    })
+  ) {
+    unlock("fueled-up");
+  }
+
+  if (nLogs.filter((n) => (n.waterGlasses ?? 0) >= 8).length >= 10) {
+    unlock("hydration-hero");
+  }
+
+  if (nLogs.length >= 7) {
+    const sortedN = nLogs.map((n) => n.date).sort();
+    let best = 1;
+    let run = 1;
+    for (let i = 1; i < sortedN.length; i++) {
+      const prev = new Date(sortedN[i - 1] + "T00:00:00");
+      const curr = new Date(sortedN[i] + "T00:00:00");
+      const diff = Math.round(
+        (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      if (diff === 1) {
+        run++;
+        best = Math.max(best, run);
+      } else if (diff > 1) {
+        run = 1;
+      }
+    }
+    if (best >= 7) unlock("kitchen-consistent");
   }
 
   // Recovery check-ins — 7 consecutive days

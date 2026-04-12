@@ -13,6 +13,7 @@ export const emptyState: AppState = {
   weeklyReviews: [],
   powerPhrases: [],
   recoveryCheckins: [],
+  nutritionLogs: [],
   unlockedBadges: [],
   lastActiveDate: null,
   lastQuoteClaimDate: null,

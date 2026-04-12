@@ -299,6 +299,33 @@ export interface RecoveryCheckin {
   xpEarned: number;
 }
 
+// -----------------------------------------------------------------------------
+// Nutrition Log — positive fueling tracker (no calorie counting)
+// -----------------------------------------------------------------------------
+export interface NutritionLog {
+  id: string;
+  date: string; // YYYY-MM-DD
+  // Did you eat these meals today?
+  ateBreakfast?: boolean;
+  ateLunch?: boolean;
+  ateDinner?: boolean;
+  ateSnacks?: boolean;
+  // Food quality — tap to toggle
+  hadProtein?: boolean;
+  hadFruitVeg?: boolean;
+  hadWholeGrains?: boolean;
+  hadHealthyFats?: boolean;
+  // Workout fueling
+  preWorkoutFuel?: boolean;
+  postWorkoutFuel?: boolean;
+  // Hydration
+  waterGlasses?: number; // 0-12+
+  // Reflection
+  proudOf?: string;
+  notes?: string;
+  xpEarned: number;
+}
+
 export interface AppState {
   profile: Profile | null;
   xp: number;
@@ -310,6 +337,7 @@ export interface AppState {
   weeklyReviews: WeeklyReview[];
   powerPhrases: PowerPhrase[];
   recoveryCheckins: RecoveryCheckin[];
+  nutritionLogs: NutritionLog[];
   unlockedBadges: UnlockedBadge[];
   lastActiveDate: string | null;
   lastQuoteClaimDate: string | null;

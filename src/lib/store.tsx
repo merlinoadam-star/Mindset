@@ -12,6 +12,7 @@ import type {
   MatchEntry,
   MentalCheckin,
   MentalSession,
+  NutritionLog,
   PowerPhrase,
   PracticeEntry,
   Profile,
@@ -71,6 +72,9 @@ interface StoreContextValue {
   saveRecoveryCheckin: (
     data: Omit<RecoveryCheckin, "id" | "xpEarned">
   ) => { awardedXp: number; newlyUnlocked: string[] };
+  saveNutritionLog: (
+    data: Omit<NutritionLog, "id" | "xpEarned">
+  ) => { awardedXp: number; newlyUnlocked: string[] };
   resetAll: () => void;
 }
 
@@ -94,6 +98,8 @@ const WIN_BONUS = 5;
 const WEEKLY_REVIEW_XP = 50;
 const POWER_PHRASE_CREATE_XP = 10;
 const RECOVERY_CHECKIN_XP = 15;
+const NUTRITION_LOG_XP = 15;
+const NUTRITION_BONUS_XP = 5; // bonus when 3+ quality items logged
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(() => {
@@ -584,6 +590,57 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const saveNutritionLog = useCallback(
+    (data: Omit<NutritionLog, "id" | "xpEarned">) => {
+      let newlyUnlocked: string[] = [];
+      let awardedXp = 0;
+      setState((prev) => {
+        const existing = prev.nutritionLogs.find((n) => n.date === data.date);
+        // Count quality items to compute bonus XP
+        const qualityCount = [
+          data.hadProtein,
+          data.hadFruitVeg,
+          data.hadWholeGrains,
+          data.hadHealthyFats,
+        ].filter(Boolean).length;
+        const bonus = qualityCount >= 3 ? NUTRITION_BONUS_XP : 0;
+
+        awardedXp = existing ? 0 : NUTRITION_LOG_XP + bonus;
+        const entry: NutritionLog = {
+          ...data,
+          id: existing?.id ?? genId(),
+          xpEarned: existing?.xpEarned ?? NUTRITION_LOG_XP + bonus,
+        };
+        let next: AppState = {
+          ...prev,
+          xp: prev.xp + awardedXp,
+          lastActiveDate: todayISO(),
+          nutritionLogs: [
+            entry,
+            ...prev.nutritionLogs.filter((n) => n.id !== entry.id),
+          ],
+        };
+        const sportHabitCount = prev.profile
+          ? habitsForSport(prev.profile.sport).length
+          : 0;
+        newlyUnlocked = evaluateBadges(next, sportHabitCount);
+        if (newlyUnlocked.length > 0) {
+          const now = new Date().toISOString();
+          next = {
+            ...next,
+            unlockedBadges: [
+              ...next.unlockedBadges,
+              ...newlyUnlocked.map((id) => ({ id, unlockedAt: now })),
+            ],
+          };
+        }
+        return next;
+      });
+      return { awardedXp, newlyUnlocked };
+    },
+    []
+  );
+
   const saveRecoveryCheckin = useCallback(
     (data: Omit<RecoveryCheckin, "id" | "xpEarned">) => {
       let newlyUnlocked: string[] = [];
@@ -704,6 +761,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     togglePinnedPhrase,
     incrementPhraseUse,
     saveRecoveryCheckin,
+    saveNutritionLog,
     resetAll,
   };
 

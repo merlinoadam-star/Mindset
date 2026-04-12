@@ -3,6 +3,7 @@ import { useStore } from "../lib/store";
 import { todayISO } from "../lib/gamification";
 import { showReward } from "../components/RewardToast";
 import RecoveryCard from "../components/RecoveryCard";
+import NutritionCard from "../components/NutritionCard";
 import type { Mood } from "../types";
 import { Brain } from "lucide-react";
 
@@ -48,6 +49,7 @@ export default function MindsetPage() {
       </header>
 
       <RecoveryCard />
+      <NutritionCard />
 
       <form onSubmit={submit} className="card space-y-5">
         <div>
