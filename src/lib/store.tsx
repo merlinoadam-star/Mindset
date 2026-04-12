@@ -45,6 +45,9 @@ interface StoreContextValue {
     met: boolean,
     note?: string
   ) => { awardedXp: number; newlyUnlocked: string[] };
+  setDailyGoal: (
+    goal: string
+  ) => { awardedXp: number; newlyUnlocked: string[]; checkinId: string };
   hasCheckinToday: boolean;
   hasClaimedQuoteToday: boolean;
   claimDailyQuote: () => {
@@ -101,6 +104,7 @@ function xpForPractice(durationMin: number, intensity: number): number {
 
 const CHECKIN_XP = 15;
 const GOAL_REVIEW_XP = 10;
+const GOAL_SET_XP = 5;
 const QUOTE_XP = 10;
 const PRE_MATCH_XP = 15;
 const POST_MATCH_XP = 30;
@@ -317,6 +321,63 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     },
     []
   );
+
+  const setDailyGoal = useCallback((goal: string) => {
+    let newlyUnlocked: string[] = [];
+    let awardedXp = 0;
+    let checkinId = "";
+    const trimmed = goal.trim();
+    setState((prev) => {
+      const today = todayISO();
+      const existing = prev.checkins.find((c) => c.date === today);
+      // If goal changed, clear the review so they evaluate the new goal
+      const goalChanged = existing && existing.goal !== trimmed;
+      // Only award XP on first time a goal is set for the day
+      const isFirstGoalToday = !existing || !existing.goal;
+      awardedXp = isFirstGoalToday ? GOAL_SET_XP : 0;
+
+      const entry: MentalCheckin = existing
+        ? {
+            ...existing,
+            goal: trimmed,
+            goalMet: goalChanged ? undefined : existing.goalMet,
+            goalReviewNote: goalChanged ? undefined : existing.goalReviewNote,
+            goalReviewedAt: goalChanged ? undefined : existing.goalReviewedAt,
+          }
+        : {
+            id: genId(),
+            date: today,
+            mood: 3,
+            gratitude: "",
+            goal: trimmed,
+            xpEarned: awardedXp,
+          };
+      checkinId = entry.id;
+
+      let next: AppState = {
+        ...prev,
+        xp: prev.xp + awardedXp,
+        lastActiveDate: today,
+        checkins: [entry, ...prev.checkins.filter((c) => c.id !== entry.id)],
+      };
+      const sportHabitCount = prev.profile
+        ? habitsForSport(prev.profile.sport).length
+        : 0;
+      newlyUnlocked = evaluateBadges(next, sportHabitCount);
+      if (newlyUnlocked.length > 0) {
+        const now = new Date().toISOString();
+        next = {
+          ...next,
+          unlockedBadges: [
+            ...next.unlockedBadges,
+            ...newlyUnlocked.map((id) => ({ id, unlockedAt: now })),
+          ],
+        };
+      }
+      return next;
+    });
+    return { awardedXp, newlyUnlocked, checkinId };
+  }, []);
 
   const reviewGoal = useCallback(
     (checkinId: string, met: boolean, note?: string) => {
@@ -851,6 +912,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     addPractice,
     addCheckin,
     reviewGoal,
+    setDailyGoal,
     hasCheckinToday,
     hasClaimedQuoteToday,
     claimDailyQuote,
