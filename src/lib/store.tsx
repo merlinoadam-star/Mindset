@@ -20,6 +20,7 @@ import { evaluateBadges, todayISO } from "./gamification";
 interface StoreContextValue {
   state: AppState;
   setProfile: (profile: Profile) => void;
+  updateProfile: (updates: Partial<Profile>) => void;
   toggleHabit: (habitId: string) => { awardedXp: number; newlyUnlocked: string[] };
   isHabitDoneToday: (habitId: string) => boolean;
   addPractice: (
@@ -65,6 +66,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const setProfile = useCallback((profile: Profile) => {
     setState((prev) => ({ ...prev, profile }));
+  }, []);
+
+  const updateProfile = useCallback((updates: Partial<Profile>) => {
+    setState((prev) => {
+      if (!prev.profile) return prev;
+      return { ...prev, profile: { ...prev.profile, ...updates } };
+    });
   }, []);
 
   const isHabitDoneToday = useCallback(
@@ -315,6 +323,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const value: StoreContextValue = {
     state,
     setProfile,
+    updateProfile,
     toggleHabit,
     isHabitDoneToday,
     addPractice,

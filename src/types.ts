@@ -2,14 +2,115 @@ export type Sport = "wrestling" | "volleyball";
 
 export type Mood = 1 | 2 | 3 | 4 | 5;
 
+export type Gender = "male" | "female" | "other" | "prefer-not-to-say";
+
+export type Hand = "right" | "left" | "ambidextrous";
+
+export type VolleyballPosition =
+  | "setter"
+  | "libero"
+  | "middle-blocker"
+  | "outside-hitter"
+  | "opposite"
+  | "defensive-specialist";
+
+export type WrestlingStyle = "folkstyle" | "freestyle" | "greco-roman";
+
+// ---------------------------------------------------------------------------
+// Tournament & award entries
+// ---------------------------------------------------------------------------
+export interface TournamentEntry {
+  id: string;
+  name: string;
+  year: number;
+  result: string; // e.g. "1st", "2nd place", "Qualified", "All-Tournament Team"
+}
+
+export interface AwardEntry {
+  id: string;
+  name: string;
+  year: number;
+  note?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Sport-specific season stats
+// ---------------------------------------------------------------------------
+export interface WrestlingStats {
+  season?: string; // e.g. "2024-25"
+  wins?: number;
+  losses?: number;
+  pins?: number;
+  techFalls?: number;
+  majorDecisions?: number;
+}
+
+export interface VolleyballStats {
+  season?: string; // e.g. "2024-25"
+  matchesPlayed?: number;
+  kills?: number;
+  digs?: number;
+  assists?: number;
+  blocks?: number;
+  aces?: number;
+  hittingPct?: number; // e.g. 0.312
+}
+
+// ---------------------------------------------------------------------------
+// Goals & self-reflection
+// ---------------------------------------------------------------------------
+export interface GoalsBlock {
+  shortTerm?: string;
+  season?: string;
+  career?: string;
+  strengths?: string;
+  workingOn?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Profile
+// ---------------------------------------------------------------------------
 export interface Profile {
+  // Core identity (set during onboarding)
   name: string;
   sport: Sport;
   age: number;
   grade: string;
-  createdAt: string; // ISO date
+  createdAt: string;
+
+  // Extended (all optional — filled in from Profile page)
+  lastName?: string;
+  gender?: Gender;
+  heightInches?: number; // total height in inches
+  weightLbs?: number;
+  yearsPlaying?: number;
+  teamName?: string;
+  coachName?: string;
+  jerseyNumber?: string;
+  hometown?: string;
+
+  // Wrestling-specific
+  weightClass?: number; // e.g. 120, 132, 145
+  wrestlingStyles?: WrestlingStyle[];
+
+  // Volleyball-specific
+  primaryPosition?: VolleyballPosition;
+  secondaryPosition?: VolleyballPosition;
+  dominantHand?: Hand;
+  verticalJumpInches?: number;
+  approachJumpInches?: number;
+
+  // Stats & history
+  wrestlingStats?: WrestlingStats;
+  volleyballStats?: VolleyballStats;
+  tournaments?: TournamentEntry[];
+  awards?: AwardEntry[];
+  goals?: GoalsBlock;
 }
 
+// ---------------------------------------------------------------------------
+// The rest (unchanged)
+// ---------------------------------------------------------------------------
 export interface HabitDefinition {
   id: string;
   label: string;
@@ -22,24 +123,24 @@ export interface HabitDefinition {
 
 export interface HabitCompletion {
   habitId: string;
-  date: string; // YYYY-MM-DD
-  completedAt: string; // ISO timestamp
+  date: string;
+  completedAt: string;
 }
 
 export interface PracticeEntry {
   id: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   durationMin: number;
-  type: string; // e.g. "drilling", "live", "serving", "scrimmage"
+  type: string;
   intensity: 1 | 2 | 3 | 4 | 5;
   notes: string;
-  drills?: string[]; // specific skill drills worked on this session
+  drills?: string[];
   xpEarned: number;
 }
 
 export interface MentalCheckin {
   id: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   mood: Mood;
   gratitude: string;
   goal: string;
@@ -56,7 +157,7 @@ export interface BadgeDefinition {
 
 export interface UnlockedBadge {
   id: string;
-  unlockedAt: string; // ISO timestamp
+  unlockedAt: string;
 }
 
 export interface AppState {
@@ -66,8 +167,8 @@ export interface AppState {
   practices: PracticeEntry[];
   checkins: MentalCheckin[];
   unlockedBadges: UnlockedBadge[];
-  lastActiveDate: string | null; // YYYY-MM-DD — last day any XP was earned
-  lastQuoteClaimDate: string | null; // YYYY-MM-DD — last day the daily quote XP was claimed
-  triviaRoundsPlayed: number; // total rounds completed (used to seed next round)
-  triviaXpEarned: number; // lifetime trivia XP
+  lastActiveDate: string | null;
+  lastQuoteClaimDate: string | null;
+  triviaRoundsPlayed: number;
+  triviaXpEarned: number;
 }

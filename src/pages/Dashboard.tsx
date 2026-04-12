@@ -5,7 +5,7 @@ import { habitsForSport } from "../lib/habits";
 import XPBar from "../components/XPBar";
 import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
-import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings } from "lucide-react";
+import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User } from "lucide-react";
 
 export default function Dashboard() {
   const { state, hasCheckinToday } = useStore();
@@ -32,14 +32,19 @@ export default function Dashboard() {
     <div className="space-y-4 animate-slide-up">
       {/* Header */}
       <header className="pt-4 pb-1 flex items-center justify-between">
-        <div>
-          <div className="text-sm text-slate-400 font-medium">
-            {greeting},
+        <Link to="/profile" className="flex items-center gap-3 group">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center text-lg font-extrabold shadow-card group-hover:shadow-card-hover transition">
+            {state.profile.name.charAt(0).toUpperCase()}
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
-            {state.profile.name} 👋
-          </h1>
-        </div>
+          <div>
+            <div className="text-xs text-slate-400 font-medium">
+              {greeting},
+            </div>
+            <div className="text-xl font-extrabold tracking-tight text-slate-900 leading-tight">
+              {state.profile.name}
+            </div>
+          </div>
+        </Link>
         <Link
           to="/settings"
           className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-card flex items-center justify-center text-slate-400 hover:text-slate-600 transition"
@@ -109,6 +114,13 @@ export default function Dashboard() {
             label="Trivia challenge — earn bonus XP"
             color="amber"
           />
+          <QuickAction
+            to="/profile"
+            icon={<User size={18} />}
+            label="Build out your athlete profile"
+            done={profileFairlyComplete(state.profile)}
+            color="purple"
+          />
         </div>
       </div>
 
@@ -151,6 +163,18 @@ export default function Dashboard() {
       <div className="h-2" />
     </div>
   );
+}
+
+function profileFairlyComplete(p: NonNullable<ReturnType<typeof useStore>["state"]["profile"]>): boolean {
+  // Consider "fairly complete" if they've filled at least 4 of the extended sections.
+  let filled = 0;
+  if (p.heightInches || p.weightLbs || p.teamName) filled++;
+  if (p.weightClass || p.primaryPosition) filled++;
+  if (p.wrestlingStats || p.volleyballStats) filled++;
+  if (p.tournaments && p.tournaments.length) filled++;
+  if (p.awards && p.awards.length) filled++;
+  if (p.goals && (p.goals.shortTerm || p.goals.season || p.goals.career)) filled++;
+  return filled >= 4;
 }
 
 const colorMap: Record<string, { bg: string; icon: string }> = {
