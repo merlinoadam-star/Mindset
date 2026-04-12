@@ -112,6 +112,7 @@ export default function NutritionCard() {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!proudOf.trim()) return; // required
     const { awardedXp, newlyUnlocked } = saveNutritionLog({
       date: today,
       ateBreakfast,
@@ -125,7 +126,7 @@ export default function NutritionCard() {
       preWorkoutFuel,
       postWorkoutFuel,
       waterGlasses: waterGlasses || undefined,
-      proudOf: proudOf.trim() || undefined,
+      proudOf: proudOf.trim(),
       notes: notes.trim() || undefined,
     });
     if (awardedXp > 0 || newlyUnlocked.length) {
@@ -325,13 +326,19 @@ export default function NutritionCard() {
 
           {/* What I'm proud of */}
           <div>
-            <Label>Proud of (optional)</Label>
+            <Label>
+              Proud of <span className="text-red-500 normal-case">*</span>
+            </Label>
             <input
+              required
               value={proudOf}
               onChange={(e) => setProudOf(e.target.value)}
               placeholder="Swapped soda for water · Homemade meal"
               className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm focus:border-lime-500 outline-none"
             />
+            <p className="text-[11px] text-slate-500 mt-1">
+              Noticing what you did well builds a strong athlete mindset.
+            </p>
           </div>
 
           {/* Notes */}
@@ -348,7 +355,8 @@ export default function NutritionCard() {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-2xl bg-gradient-to-r from-lime-600 to-green-500 text-white font-bold text-sm transition active:scale-[0.97] shadow-md"
+            disabled={!proudOf.trim()}
+            className="w-full py-3 rounded-2xl bg-gradient-to-r from-lime-600 to-green-500 text-white font-bold text-sm transition active:scale-[0.97] shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {done
               ? "Update Fuel Log"
