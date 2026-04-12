@@ -2,6 +2,7 @@ import { useStore } from "../lib/store";
 import { getQuoteForDate } from "../lib/quotes";
 import { todayISO } from "../lib/gamification";
 import { showReward } from "./RewardToast";
+import SpeakButton from "./SpeakButton";
 import { Quote as QuoteIcon, BookOpen, Check, Sparkles } from "lucide-react";
 
 export default function QuoteOfTheDay() {
@@ -24,11 +25,22 @@ export default function QuoteOfTheDay() {
       <div className="absolute bottom-6 right-8 w-8 h-8 rounded-full bg-orange-200/20" />
 
       <div className="relative">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles size={14} className="text-amber-600" />
-          <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-amber-700">
-            Daily Wisdom
-          </span>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Sparkles size={14} className="text-amber-600" />
+            <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-amber-700">
+              Daily Wisdom
+            </span>
+          </div>
+          <SpeakButton
+            text={
+              `Quote of the day. ${quote.text}` +
+              (quote.author ? `. By ${quote.author}.` : ".") +
+              ` Verse of the day. ${quote.verse.text} From ${quote.verse.reference}.`
+            }
+            size="sm"
+            rate={0.95}
+          />
         </div>
 
         {/* Quote */}

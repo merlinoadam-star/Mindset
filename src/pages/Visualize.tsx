@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
+import { useSpeech } from "../lib/useSpeech";
 import {
   visualizationsForSport,
   type VisualizationScript,
 } from "../lib/visualizations";
 import { showReward } from "../components/RewardToast";
-import { ArrowLeft, Eye, Play, Check } from "lucide-react";
+import { ArrowLeft, Eye, Play, Check, Volume2, VolumeX } from "lucide-react";
 
 export default function VisualizePage() {
   const { state } = useStore();
@@ -106,7 +107,7 @@ export default function VisualizePage() {
 }
 
 // -----------------------------------------------------------------------------
-// Player
+// Player — supports auto-narration ("close your eyes" mode)
 // -----------------------------------------------------------------------------
 function VisualizationPlayer({
   script,
@@ -116,48 +117,188 @@ function VisualizationPlayer({
   onClose: () => void;
 }) {
   const { completeMentalSession } = useStore();
+  const { supported: ttsSupported, speak, stop: stopSpeech } = useSpeech();
+
+  // User chooses "Read to me" before starting. Defaults to on if supported.
+  const [started, setStarted] = useState(false);
+  const [narrate, setNarrate] = useState(ttsSupported);
+
   const [stepIdx, setStepIdx] = useState(0);
   const [stepElapsed, setStepElapsed] = useState(0);
   const timerRef = useRef<number | null>(null);
+  const autoAdvanceRef = useRef<number | null>(null);
 
   const secondsPerStep = Math.max(
-    15,
+    12,
     Math.round((script.durationMin * 60) / script.steps.length)
   );
   const isLast = stepIdx === script.steps.length - 1;
 
+  // Overall progress timer
   useEffect(() => {
+    if (!started) return;
     timerRef.current = window.setInterval(() => {
       setStepElapsed((e) => e + 1);
     }, 1000);
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
     };
-  }, []);
+  }, [started]);
 
+  // Reset elapsed on step change
   useEffect(() => {
     setStepElapsed(0);
   }, [stepIdx]);
 
-  function next() {
+  // Narration: when in narrate mode, speak the current step, and on finish
+  // auto-advance after a short pause. If narration unsupported, auto-advance
+  // on the per-step timer instead.
+  useEffect(() => {
+    if (!started) return;
+    if (narrate && ttsSupported) {
+      speak(script.steps[stepIdx], {
+        rate: 0.85, // slow, calm pace
+        onEnd: () => {
+          // Short silent pause to let the athlete absorb, then advance.
+          autoAdvanceRef.current = window.setTimeout(() => {
+            advance();
+          }, 2200);
+        },
+      });
+      return () => {
+        stopSpeech();
+        if (autoAdvanceRef.current) {
+          window.clearTimeout(autoAdvanceRef.current);
+          autoAdvanceRef.current = null;
+        }
+      };
+    } else {
+      // No narration: auto-advance based on time budget per step
+      autoAdvanceRef.current = window.setTimeout(() => {
+        advance();
+      }, secondsPerStep * 1000);
+      return () => {
+        if (autoAdvanceRef.current) {
+          window.clearTimeout(autoAdvanceRef.current);
+          autoAdvanceRef.current = null;
+        }
+      };
+    }
+    // Intentionally omitting advance/speak/stopSpeech deps — we only want to
+    // re-run this when the step, narrate mode, or started flag changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIdx, narrate, started]);
+
+  function advance() {
     if (isLast) {
-      const { awardedXp, newlyUnlocked } = completeMentalSession(
-        "visualization",
-        script.id,
-        script.xp
-      );
-      showReward(awardedXp, newlyUnlocked);
-      onClose();
+      finish();
+    } else {
+      setStepIdx((i) => i + 1);
+    }
+  }
+
+  function finish() {
+    stopSpeech();
+    if (autoAdvanceRef.current) window.clearTimeout(autoAdvanceRef.current);
+    const { awardedXp, newlyUnlocked } = completeMentalSession(
+      "visualization",
+      script.id,
+      script.xp
+    );
+    showReward(awardedXp, newlyUnlocked);
+    onClose();
+  }
+
+  function next() {
+    stopSpeech();
+    if (autoAdvanceRef.current) window.clearTimeout(autoAdvanceRef.current);
+    if (isLast) {
+      finish();
     } else {
       setStepIdx((i) => i + 1);
     }
   }
 
   function back() {
+    stopSpeech();
+    if (autoAdvanceRef.current) window.clearTimeout(autoAdvanceRef.current);
     if (stepIdx > 0) setStepIdx((i) => i - 1);
   }
 
-  const progress = ((stepIdx + stepElapsed / secondsPerStep) / script.steps.length) * 100;
+  const progress =
+    ((stepIdx + stepElapsed / secondsPerStep) / script.steps.length) * 100;
+
+  // Intro screen — choose narration mode
+  if (!started) {
+    return (
+      <div className="fixed inset-0 z-[70] bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 text-white flex flex-col">
+        <div className="flex items-center justify-between px-4 pt-4">
+          <button
+            onClick={onClose}
+            className="text-sm text-white/70 hover:text-white"
+          >
+            Exit
+          </button>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+          <div className="text-7xl mb-6">{script.emoji}</div>
+          <h1 className="text-2xl font-extrabold">{script.title}</h1>
+          <p className="text-white/70 mt-2 text-sm max-w-xs">
+            {script.subtitle}
+          </p>
+          <p className="text-white/50 mt-2 text-xs">
+            {script.durationMin} min · {script.steps.length} steps
+          </p>
+
+          {ttsSupported && (
+            <div className="mt-8 w-full max-w-sm">
+              <div className="text-xs uppercase tracking-[0.2em] text-white/60 font-bold mb-3">
+                How do you want to experience this?
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setNarrate(true)}
+                  className={`rounded-2xl p-4 border-2 text-left transition ${
+                    narrate
+                      ? "border-white bg-white/10"
+                      : "border-white/20"
+                  }`}
+                >
+                  <Volume2 size={20} />
+                  <div className="font-bold mt-2 text-sm">Read to me</div>
+                  <div className="text-[11px] text-white/60 mt-0.5">
+                    Close your eyes — I&apos;ll narrate
+                  </div>
+                </button>
+                <button
+                  onClick={() => setNarrate(false)}
+                  className={`rounded-2xl p-4 border-2 text-left transition ${
+                    !narrate
+                      ? "border-white bg-white/10"
+                      : "border-white/20"
+                  }`}
+                >
+                  <VolumeX size={20} />
+                  <div className="font-bold mt-2 text-sm">Silent</div>
+                  <div className="text-[11px] text-white/60 mt-0.5">
+                    Read it yourself at your pace
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="p-5">
+          <button
+            onClick={() => setStarted(true)}
+            className="w-full py-3.5 rounded-2xl bg-white text-purple-900 font-bold"
+          >
+            Begin
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[70] bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-800 text-white flex flex-col">
@@ -176,8 +317,26 @@ function VisualizationPlayer({
         >
           Exit
         </button>
-        <div className="text-xs font-bold uppercase tracking-wider text-white/60">
-          {stepIdx + 1} / {script.steps.length}
+        <div className="flex items-center gap-3">
+          {ttsSupported && (
+            <button
+              onClick={() => {
+                stopSpeech();
+                if (autoAdvanceRef.current) {
+                  window.clearTimeout(autoAdvanceRef.current);
+                  autoAdvanceRef.current = null;
+                }
+                setNarrate((n) => !n);
+              }}
+              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"
+              aria-label={narrate ? "Mute narration" : "Enable narration"}
+            >
+              {narrate ? <Volume2 size={14} /> : <VolumeX size={14} />}
+            </button>
+          )}
+          <div className="text-xs font-bold uppercase tracking-wider text-white/60">
+            {stepIdx + 1} / {script.steps.length}
+          </div>
         </div>
       </div>
 
@@ -189,6 +348,11 @@ function VisualizationPlayer({
         <p className="text-lg leading-relaxed font-medium max-w-md">
           {script.steps[stepIdx]}
         </p>
+        {narrate && ttsSupported && (
+          <div className="mt-6 text-xs text-white/50 italic">
+            Close your eyes — I&apos;ll guide you through
+          </div>
+        )}
       </div>
 
       <div className="p-5 flex gap-3">

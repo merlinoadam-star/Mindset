@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { LESSONS, type MentalLesson } from "../lib/lessons";
 import { showReward } from "../components/RewardToast";
+import SpeakButton from "../components/SpeakButton";
 import { ArrowLeft, BookOpen, ChevronRight, Check } from "lucide-react";
 
 export default function LessonsPage() {
@@ -138,17 +139,39 @@ function LessonReader({
         >
           <ArrowLeft size={16} /> All Lessons
         </button>
-        <div className="text-5xl mb-2">{lesson.emoji}</div>
-        <h1 className="page-title">{lesson.title}</h1>
-        <p className="page-subtitle">{lesson.subtitle}</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="text-5xl mb-2">{lesson.emoji}</div>
+            <h1 className="page-title">{lesson.title}</h1>
+            <p className="page-subtitle">{lesson.subtitle}</p>
+          </div>
+          <SpeakButton
+            text={
+              `${lesson.title}. ${lesson.subtitle}. ` +
+              lesson.sections
+                .map((s) => `${s.heading}. ${s.body}`)
+                .join(" ") +
+              ` Reflection. ${lesson.reflectionPrompt}`
+            }
+            label="Listen"
+            rate={0.95}
+          />
+        </div>
       </header>
 
       <div className="card space-y-5">
         {lesson.sections.map((s, i) => (
           <div key={i}>
-            <h2 className="font-bold text-slate-900 text-base mb-1.5">
-              {s.heading}
-            </h2>
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="font-bold text-slate-900 text-base mb-1.5">
+                {s.heading}
+              </h2>
+              <SpeakButton
+                text={`${s.heading}. ${s.body}`}
+                size="sm"
+                rate={0.95}
+              />
+            </div>
             <p className="text-sm text-slate-700 leading-relaxed">{s.body}</p>
           </div>
         ))}
