@@ -39,6 +39,7 @@ import {
   Plus,
   X,
   Check,
+  ChevronDown,
 } from "lucide-react";
 
 type Section =
@@ -1069,39 +1070,63 @@ function TournamentsModal({ onClose }: { onClose: () => void }) {
         </Field>
 
         <Field label="Name">
-          <input
-            className={inputCls}
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              setShowSuggestions(true);
-            }}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-            placeholder={
-              type === "tournament"
-                ? "e.g. State Tournament, Little Guy Open..."
-                : type === "dual"
-                ? "e.g. vs Roosevelt HS, Iron Duals..."
-                : type === "match"
-                ? "e.g. vs Lincoln HS, League Match..."
-                : type === "scrimmage"
-                ? "e.g. Summer Scrimmage, Practice Match..."
-                : type === "showcase"
-                ? "e.g. Parents Day Showcase..."
-                : type === "camp"
-                ? "e.g. Coach Smith's Summer Camp..."
-                : "Name this event"
-            }
-          />
+          <div className="relative">
+            <input
+              className={inputCls + " pr-11"}
+              value={name}
+              autoComplete="off"
+              onChange={(e) => {
+                setName(e.target.value);
+                if (type === "tournament") setShowSuggestions(true);
+              }}
+              onFocus={() => {
+                if (type === "tournament") setShowSuggestions(true);
+              }}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              placeholder={
+                type === "tournament"
+                  ? "e.g. State Tournament, Little Guy Open..."
+                  : type === "dual"
+                  ? "e.g. vs Roosevelt HS, Iron Duals..."
+                  : type === "match"
+                  ? "e.g. vs Lincoln HS, League Match..."
+                  : type === "scrimmage"
+                  ? "e.g. Summer Scrimmage, Practice Match..."
+                  : type === "showcase"
+                  ? "e.g. Parents Day Showcase..."
+                  : type === "camp"
+                  ? "e.g. Coach Smith's Summer Camp..."
+                  : "Name this event"
+              }
+            />
+            {type === "tournament" && (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setShowSuggestions((s) => !s);
+                }}
+                aria-label="Toggle suggestions"
+                className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 flex items-center justify-center"
+              >
+                <ChevronDown
+                  size={18}
+                  className={`transition-transform ${
+                    showSuggestions ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+            )}
+          </div>
           <p className="text-[11px] text-slate-500 mt-1">
-            Any event counts — local duals, team matches, practice tournaments,
-            and big stage events.
+            {type === "tournament"
+              ? "Tap the ▾ for well-known tournaments, or type your own."
+              : "Any event counts — local duals, team matches, practice tournaments, and big stage events."}
           </p>
           {showSuggestions &&
             type === "tournament" &&
             filteredSuggestions.length > 0 && (
-              <div className="mt-2 p-2 rounded-xl bg-white border border-slate-200 max-h-48 overflow-y-auto">
+              <div className="mt-2 p-2 rounded-xl bg-white border border-slate-200 max-h-48 overflow-y-auto shadow-card">
                 <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold px-1 pb-1">
                   Well-known tournaments
                 </div>
@@ -1171,8 +1196,14 @@ function AwardsModal({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [note, setNote] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const suggestions = awardsForSport(p.sport);
+  const filteredSuggestions = name.trim()
+    ? suggestions.filter((s) =>
+        s.toLowerCase().includes(name.trim().toLowerCase())
+      )
+    : suggestions;
 
   function add() {
     if (!name.trim()) return;
@@ -1229,18 +1260,62 @@ function AwardsModal({ onClose }: { onClose: () => void }) {
 
       <div className="rounded-2xl bg-slate-50 p-3 space-y-3">
         <Field label="Award / Accolade">
-          <input
-            className={inputCls}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. All-Conference"
-            list="award-suggestions"
-          />
-          <datalist id="award-suggestions">
-            {suggestions.map((s) => (
-              <option key={s} value={s} />
-            ))}
-          </datalist>
+          <div className="relative">
+            <input
+              className={inputCls + " pr-11"}
+              value={name}
+              autoComplete="off"
+              onChange={(e) => {
+                setName(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              placeholder="e.g. All-Conference"
+            />
+            <button
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setShowSuggestions((s) => !s);
+              }}
+              aria-label="Toggle suggestions"
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 flex items-center justify-center"
+            >
+              <ChevronDown
+                size={18}
+                className={`transition-transform ${
+                  showSuggestions ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1">
+            Tap the ▾ for common awards, or type your own.
+          </p>
+          {showSuggestions && filteredSuggestions.length > 0 && (
+            <div className="mt-2 p-2 rounded-xl bg-white border border-slate-200 max-h-48 overflow-y-auto shadow-card">
+              <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold px-1 pb-1">
+                Common awards
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {filteredSuggestions.slice(0, 15).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      setName(s);
+                      setShowSuggestions(false);
+                    }}
+                    className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Year">
