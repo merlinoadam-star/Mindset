@@ -1,17 +1,21 @@
 import { Volume2, VolumeX, Pause } from "lucide-react";
 import { useSpeech } from "../lib/useSpeech";
+import { useStore } from "../lib/store";
 
 interface Props {
   text: string;
-  rate?: number; // speech rate (0.1–10, default ~0.95)
+  rate?: number; // speech rate override (0.1–10)
   label?: string; // optional text label next to icon
   className?: string;
   size?: "sm" | "md" | "lg";
+  /** Override the global persona for this specific button. */
+  personaId?: string;
 }
 
 /**
- * Tap to read a block of text aloud. Tap again to stop.
- * Silently hides itself when the browser doesn't support speech synthesis.
+ * Tap to read a block of text aloud using the athlete's selected voice
+ * persona. Tap again to pause / stop. Hides itself automatically when
+ * the browser doesn't support speech synthesis.
  */
 export default function SpeakButton({
   text,
@@ -19,9 +23,13 @@ export default function SpeakButton({
   label,
   className = "",
   size = "md",
+  personaId,
 }: Props) {
+  const { state } = useStore();
+  const activePersonaId =
+    personaId ?? state.voicePersonaId ?? "natural";
   const { supported, speaking, paused, speak, pause, resume, stop } =
-    useSpeech();
+    useSpeech(activePersonaId);
 
   if (!supported) return null;
 
@@ -60,13 +68,10 @@ export default function SpeakButton({
     >
       {isPlaying ? (
         <Pause size={iconSize} strokeWidth={2.5} />
-      ) : speaking && paused ? (
-        <Volume2 size={iconSize} strokeWidth={2.5} />
       ) : (
         <Volume2 size={iconSize} strokeWidth={2.5} />
       )}
       {label && <span className="text-xs">{isPlaying ? "Pause" : label}</span>}
-      {/* Optional stop affordance when playing — hidden when no label */}
       {isPlaying && label && (
         <span
           onClick={(e) => {

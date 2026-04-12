@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useStore } from "../lib/store";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronRight, Mic2 } from "lucide-react";
+import { getPersona } from "../lib/speechPersonas";
 
 export default function SettingsPage() {
   const { state, resetAll } = useStore();
@@ -20,6 +21,25 @@ export default function SettingsPage() {
         </Link>
         <h1 className="text-2xl font-extrabold">Settings</h1>
       </header>
+
+      <Link
+        to="/voice"
+        className="card-interactive flex items-center gap-3"
+      >
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
+          <Mic2 size={18} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-slate-900">Voice Persona</div>
+          <div className="text-xs text-slate-500 mt-0.5">
+            {(() => {
+              const p = getPersona(state.voicePersonaId ?? "natural");
+              return `${p.emoji} ${p.name} — ${p.description}`;
+            })()}
+          </div>
+        </div>
+        <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+      </Link>
 
       <div className="card">
         <h2 className="font-bold mb-3">Profile</h2>

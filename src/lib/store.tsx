@@ -114,6 +114,7 @@ interface StoreContextValue {
   ) => Promise<{ awardedXp: number; newlyUnlocked: string[]; videoId: string }>;
   updateVideo: (id: string, updates: Partial<VideoEntry>) => void;
   deleteVideo: (id: string) => Promise<void>;
+  setVoicePersona: (id: string) => void;
   resetAll: () => void;
 }
 
@@ -1015,6 +1016,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const setVoicePersona = useCallback((id: string) => {
+    setState((prev) => ({ ...prev, voicePersonaId: id }));
+  }, []);
+
   const deleteVideo = useCallback(async (id: string) => {
     // Find blob key first so we can clean up IndexedDB
     let blobKey: string | undefined;
@@ -1121,6 +1126,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     addVideo,
     updateVideo,
     deleteVideo,
+    setVoicePersona,
     resetAll,
   };
 

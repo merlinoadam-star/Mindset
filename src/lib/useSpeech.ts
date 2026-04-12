@@ -1,10 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  buildSpokenText,
+  getPersona,
+  pickVoiceForPersona,
+  type SpeechPersona,
+} from "./speechPersonas";
 
 interface SpeakOptions {
-  rate?: number; // 0.1–10 (default 1)
+  rate?: number; // 0.1–10 (default ~0.95)
   pitch?: number; // 0–2 (default 1)
   volume?: number; // 0–1
   voiceURI?: string;
+  /** If provided, overrides the built-in persona selection for this call. */
+  persona?: SpeechPersona | string;
+  /** Turn off persona intro/outro phrases even when a persona is active. */
+  plain?: boolean;
   onEnd?: () => void;
   onError?: () => void;
 }
@@ -18,15 +28,17 @@ interface UseSpeechResult {
   pause: () => void;
   resume: () => void;
   stop: () => void;
+  /** Current active persona, or undefined if plain speech is being used. */
+  activePersona?: SpeechPersona;
 }
 
 /**
- * Wraps the Web Speech API. Returns `supported: false` when the browser
- * doesn't expose speech synthesis (older Safari, some Android browsers
- * without the feature). All callers should check `supported` before
- * rendering controls.
+ * Wraps the Web Speech API with optional character personas that adjust
+ * voice, rate, pitch, and add themed intro/outro phrases. Pass
+ * `persona` as a string id, a persona object, or omit to use the
+ * caller's default (which usually comes from the store).
  */
-export function useSpeech(): UseSpeechResult {
+export function useSpeech(defaultPersonaId?: string): UseSpeechResult {
   const supported =
     typeof window !== "undefined" && "speechSynthesis" in window;
 
@@ -34,13 +46,13 @@ export function useSpeech(): UseSpeechResult {
   const [paused, setPaused] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [activePersona, setActivePersona] = useState<SpeechPersona | undefined>(
+    defaultPersonaId ? getPersona(defaultPersonaId) : undefined
+  );
 
-  // Load voices (browsers often populate them asynchronously)
   useEffect(() => {
     if (!supported) return;
-    const loadVoices = () => {
-      setVoices(window.speechSynthesis.getVoices());
-    };
+    const loadVoices = () => setVoices(window.speechSynthesis.getVoices());
     loadVoices();
     window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
     return () => {
@@ -48,7 +60,6 @@ export function useSpeech(): UseSpeechResult {
     };
   }, [supported]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (supported) window.speechSynthesis.cancel();
@@ -61,22 +72,37 @@ export function useSpeech(): UseSpeechResult {
         options.onError?.();
         return;
       }
-      // Cancel any ongoing speech first
       window.speechSynthesis.cancel();
 
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = options.rate ?? 0.95;
-      utterance.pitch = options.pitch ?? 1;
+      // Resolve persona: explicit option > default > natural
+      let persona: SpeechPersona | undefined;
+      if (options.persona) {
+        persona =
+          typeof options.persona === "string"
+            ? getPersona(options.persona)
+            : options.persona;
+      } else if (defaultPersonaId) {
+        persona = getPersona(defaultPersonaId);
+      }
+      setActivePersona(persona);
+
+      const finalText =
+        persona && !options.plain ? buildSpokenText(persona, text) : text;
+
+      const utterance = new SpeechSynthesisUtterance(finalText);
+      utterance.rate = options.rate ?? persona?.rate ?? 0.95;
+      utterance.pitch = options.pitch ?? persona?.pitch ?? 1;
       utterance.volume = options.volume ?? 1;
 
-      // Try to pick a nice default English voice
       const allVoices = window.speechSynthesis.getVoices();
       let chosen: SpeechSynthesisVoice | undefined;
       if (options.voiceURI) {
         chosen = allVoices.find((v) => v.voiceURI === options.voiceURI);
       }
+      if (!chosen && persona) {
+        chosen = pickVoiceForPersona(persona, allVoices);
+      }
       if (!chosen) {
-        // Prefer high-quality named voices if available
         chosen =
           allVoices.find((v) =>
             /samantha|karen|moira|daniel|google us english|aaron|nicky/i.test(
@@ -110,7 +136,7 @@ export function useSpeech(): UseSpeechResult {
       utteranceRef.current = utterance;
       window.speechSynthesis.speak(utterance);
     },
-    [supported]
+    [supported, defaultPersonaId]
   );
 
   const pause = useCallback(() => {
@@ -132,5 +158,15 @@ export function useSpeech(): UseSpeechResult {
     setPaused(false);
   }, [supported]);
 
-  return { supported, speaking, paused, voices, speak, pause, resume, stop };
+  return {
+    supported,
+    speaking,
+    paused,
+    voices,
+    speak,
+    pause,
+    resume,
+    stop,
+    activePersona,
+  };
 }

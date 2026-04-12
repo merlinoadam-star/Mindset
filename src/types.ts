@@ -434,6 +434,7 @@ export interface AppState {
   recoveryCheckins: RecoveryCheckin[];
   nutritionLogs: NutritionLog[];
   videos: VideoEntry[];
+  voicePersonaId?: string; // selected TTS persona ("natural", "champ", etc.)
   unlockedBadges: UnlockedBadge[];
   lastActiveDate: string | null;
   lastQuoteClaimDate: string | null;

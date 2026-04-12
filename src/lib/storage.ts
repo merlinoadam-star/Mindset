@@ -16,6 +16,7 @@ export const emptyState: AppState = {
   recoveryCheckins: [],
   nutritionLogs: [],
   videos: [],
+  voicePersonaId: "natural",
   unlockedBadges: [],
   lastActiveDate: null,
   lastQuoteClaimDate: null,
