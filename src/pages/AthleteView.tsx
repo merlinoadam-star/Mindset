@@ -6,13 +6,19 @@ import {
   rowToProfile,
   type DbAthleteRow,
 } from "../lib/athleteSync";
+import { fetchMatchesForAthlete, rowToMatch } from "../lib/matchSync";
 import { computeLevel } from "../lib/gamification";
 import {
   VOLLEYBALL_POSITION_LABELS,
   WRESTLING_STYLE_LABELS,
   formatHeight,
 } from "../lib/profileOptions";
-import type { VolleyballPosition, WrestlingStyle } from "../types";
+import {
+  WRESTLING_WIN_TYPE_LABELS,
+  type MatchEntry,
+  type VolleyballPosition,
+  type WrestlingStyle,
+} from "../types";
 import {
   ArrowLeft,
   User,
@@ -36,6 +42,7 @@ export default function AthleteViewPage() {
   const navigate = useNavigate();
   const [row, setRow] = useState<DbAthleteRow | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [matches, setMatches] = useState<MatchEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,7 +52,10 @@ export default function AthleteViewPage() {
       setLoading(true);
       setError(null);
       try {
-        const athleteRow = await fetchAthleteProfile(id);
+        const [athleteRow, matchRows] = await Promise.all([
+          fetchAthleteProfile(id),
+          fetchMatchesForAthlete(id),
+        ]);
         if (!athleteRow) {
           setError(
             "Couldn't find this athlete's profile. They may not have finished setup yet."
@@ -54,6 +64,7 @@ export default function AthleteViewPage() {
           return;
         }
         setRow(athleteRow);
+        setMatches(matchRows.map(rowToMatch));
         // Also fetch the account email for display
         if (supabase) {
           const { data: acct } = await supabase
@@ -378,16 +389,155 @@ export default function AthleteViewPage() {
           </Section>
         )}
 
-      {/* Placeholder for Phase 2B.4+ */}
+      {/* Match Log — Phase 2B.4 */}
+      {matches.length > 0 ? (
+        <Section icon={<Trophy size={14} />} title={`Match Log (${matches.length})`}>
+          {/* Quick summary */}
+          <div className="grid grid-cols-4 gap-2 mb-3">
+            <StatTile
+              label="W"
+              value={`${matches.filter((m) => m.result === "win").length}`}
+              accent="text-green-600"
+            />
+            <StatTile
+              label="L"
+              value={`${matches.filter((m) => m.result === "loss").length}`}
+              accent="text-red-500"
+            />
+            <StatTile
+              label="T"
+              value={`${matches.filter((m) => m.result === "tie").length}`}
+            />
+            <StatTile
+              label="Pins"
+              value={`${matches.filter((m) => m.result === "win" && m.wrestling?.winType === "pin").length}`}
+              accent="text-amber-600"
+            />
+          </div>
+
+          <div className="space-y-2">
+            {matches.slice(0, 15).map((m) => (
+              <MatchRow key={m.id} match={m} />
+            ))}
+          </div>
+          {matches.length > 15 && (
+            <p className="text-[11px] text-slate-500 italic mt-2 text-center">
+              Showing 15 of {matches.length} matches.
+            </p>
+          )}
+        </Section>
+      ) : (
+        <div className="card bg-slate-50 border-slate-200 text-sm text-slate-600 text-center py-6">
+          <Trophy size={24} className="mx-auto text-slate-300 mb-2" />
+          No matches logged yet.
+        </div>
+      )}
+
       <div className="card bg-slate-50 border-slate-200 text-xs text-slate-500 leading-relaxed">
         <div className="flex items-center gap-1.5 mb-1 font-bold text-slate-600">
-          <Zap size={12} /> <Flame size={12} /> <Trophy size={12} />
-          Coming in the next update
+          <Zap size={12} /> <Flame size={12} />
+          Coming next
         </div>
-        Full match log, habit streak, practice history, and the ability to
-        leave coach feedback on videos and matches. For now you can see{" "}
-        {profile.name}&apos;s profile, stats, and goals.
+        Habit streak, practice history, recovery trends, and the ability to
+        leave coach feedback on videos and matches.
       </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Match row for the match log section
+// -----------------------------------------------------------------------------
+function MatchRow({ match }: { match: MatchEntry }) {
+  const prepared = !!match.preMatchCompletedAt;
+  const reflected = !!match.postMatchCompletedAt;
+  return (
+    <div className="rounded-xl border border-slate-200 p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            {match.result === "win" && (
+              <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold">
+                W
+              </span>
+            )}
+            {match.result === "loss" && (
+              <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold">
+                L
+              </span>
+            )}
+            {match.result === "tie" && (
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                T
+              </span>
+            )}
+            {!match.result && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold">
+                Upcoming
+              </span>
+            )}
+            <span className="font-bold text-sm text-slate-900 truncate">
+              {match.opponent ?? "Opponent"}
+            </span>
+          </div>
+          <div className="text-[11px] text-slate-500 mt-0.5">
+            {new Date(match.date + "T00:00:00").toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+            {match.event ? ` · ${match.event}` : ""}
+          </div>
+          {match.wrestling?.myScore != null &&
+            match.wrestling?.theirScore != null && (
+              <div className="text-xs text-slate-700 mt-1 tabular-nums">
+                Score: {match.wrestling.myScore}-{match.wrestling.theirScore}
+                {match.wrestling.winType && (
+                  <span className="text-slate-500">
+                    {" "}
+                    · {WRESTLING_WIN_TYPE_LABELS[match.wrestling.winType]}
+                  </span>
+                )}
+              </div>
+            )}
+        </div>
+        <div className="flex flex-col gap-1 flex-shrink-0 items-end">
+          {prepared && (
+            <span className="text-[9px] font-bold text-purple-700 bg-purple-100 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+              Prep ✓
+            </span>
+          )}
+          {reflected && (
+            <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+              Review ✓
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Mini reflection: Well / Better / Next when present */}
+      {(match.wentWell || match.couldBeBetter || match.nextFocus) && (
+        <div className="mt-2 pt-2 border-t border-slate-100 space-y-1 text-xs">
+          {match.wentWell && (
+            <div>
+              <span className="font-bold text-emerald-700">✓ Well: </span>
+              <span className="text-slate-700">{match.wentWell}</span>
+            </div>
+          )}
+          {match.couldBeBetter && (
+            <div>
+              <span className="font-bold text-amber-700">🔧 Better: </span>
+              <span className="text-slate-700">{match.couldBeBetter}</span>
+            </div>
+          )}
+          {match.nextFocus && (
+            <div>
+              <span className="font-bold text-brand-700">➡️ Next: </span>
+              <span className="text-slate-700">{match.nextFocus}</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

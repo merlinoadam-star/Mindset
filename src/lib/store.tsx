@@ -37,6 +37,7 @@ import {
 } from "./gamification";
 import { useAuth } from "./authContext";
 import { upsertAthleteProfile } from "./athleteSync";
+import { syncAllMatches } from "./matchSync";
 
 interface StoreContextValue {
   state: AppState;
@@ -123,7 +124,19 @@ interface StoreContextValue {
 const StoreContext = createContext<StoreContextValue | null>(null);
 
 function genId(): string {
+  // Prefer real UUIDs so records sync cleanly to Supabase's UUID columns.
+  // Falls back to a pseudo-random string on very old browsers.
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+/** True if the given id looks like a UUID (cloud-syncable). */
+export function isUuid(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    id
+  );
 }
 
 function xpForPractice(durationMin: number, intensity: number): number {
@@ -189,6 +202,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     state.xp,
     state.voicePersonaId,
   ]);
+
+  // Phase 2B.4 — Auto-sync match log to Supabase when signed in.
+  // Upserts every match and deletes cloud rows that no longer exist locally.
+  // Debounced. Old non-UUID records are skipped (they stay local-only).
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncAllMatches(account.id, state.matches);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.matches]);
 
   // After any XP-earning activity, check if the athlete has earned a new freeze
   useEffect(() => {
