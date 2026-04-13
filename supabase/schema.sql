@@ -294,15 +294,45 @@ alter table public.tournaments enable row level security;
 alter table public.awards enable row level security;
 alter table public.unlocked_badges enable row level security;
 
--- accounts: everyone reads their own. Other accounts are visible only if
--- they're connected to you or you're searching by exact email (for invites).
+-- accounts: everyone reads their own PLUS the accounts of anyone they share
+-- a connection with (pending or accepted) — needed so the Connections page
+-- can show names/emails of the other party in each invite/connection.
 drop policy if exists "own account read" on public.accounts;
-create policy "own account read" on public.accounts
-  for select using (auth.uid() = id);
+drop policy if exists "accounts read" on public.accounts;
+create policy "accounts read" on public.accounts
+  for select using (
+    auth.uid() = id
+    or exists (
+      select 1 from public.connections c
+      where (
+        (c.athlete_account_id = auth.uid() and c.other_account_id = accounts.id)
+        or (c.other_account_id = auth.uid() and c.athlete_account_id = accounts.id)
+      )
+    )
+  );
 
 drop policy if exists "own account write" on public.accounts;
 create policy "own account write" on public.accounts
   for all using (auth.uid() = id) with check (auth.uid() = id);
+
+-- RPC function: look up an account by email for the purpose of sending a
+-- connection invite. Security-definer bypasses RLS but returns only the
+-- minimum needed (id + role). Email lookups are case-insensitive.
+create or replace function public.find_account_by_email(lookup_email text)
+returns table (id uuid, role text)
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select a.id, a.role
+  from public.accounts a
+  where lower(a.email) = lower(trim(lookup_email))
+  limit 1;
+$$;
+
+-- Allow any authenticated user to call it.
+grant execute on function public.find_account_by_email(text) to authenticated;
 
 -- Helper function: is current user connected to this athlete?
 create or replace function public.is_connected_to_athlete(aid uuid)

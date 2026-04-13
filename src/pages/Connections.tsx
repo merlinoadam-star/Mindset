@@ -297,12 +297,15 @@ function InviteForm({
     setError(null);
     setSending(true);
     try {
-      // 1. Look up the target account by email
-      const { data: acct, error: lookupErr } = await supabase
-        .from("accounts")
-        .select("id, role")
-        .eq("email", email.trim().toLowerCase())
-        .single();
+      // 1. Look up the target account by email via the secure RPC
+      // (direct table query is blocked by RLS — the RPC is the clean path)
+      const { data: lookupData, error: lookupErr } = await supabase.rpc(
+        "find_account_by_email",
+        { lookup_email: email.trim() }
+      );
+      const acct = Array.isArray(lookupData)
+        ? lookupData[0]
+        : (lookupData as { id: string; role: string } | null);
 
       if (lookupErr || !acct) {
         setError(
