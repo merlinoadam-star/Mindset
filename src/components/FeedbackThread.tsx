@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../lib/authContext";
 import {
   deleteFeedback,
@@ -8,6 +8,7 @@ import {
   type FeedbackRow,
   type FeedbackTargetType,
 } from "../lib/feedbackSync";
+import { useRealtime } from "../lib/useRealtime";
 import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
 import { MessageSquare, Send, Trash2, Check } from "lucide-react";
 
@@ -39,7 +40,6 @@ export default function FeedbackThread({
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const didMarkReadRef = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -56,17 +56,29 @@ export default function FeedbackThread({
     load();
   }, [load]);
 
-  // If the viewer is the athlete, mark any of their own unread feedback
-  // as read after a short delay (enough to actually render).
+  // Realtime — reload the thread whenever any feedback for this athlete
+  // changes. Filter is athlete-scoped (Supabase allows one filter), we
+  // just re-fetch scoped to this target.
+  useRealtime(
+    {
+      table: "feedback",
+      filter: `athlete_id=eq.${athleteId}`,
+      enabled: Boolean(user),
+    },
+    load
+  );
+
+  // If the viewer is the athlete, auto-mark any unread notes as read
+  // after a short delay. Self-stabilizing — the read state change triggers
+  // a realtime event that re-fetches with read_at populated, so unread
+  // count drops to zero and the effect becomes a no-op.
   useEffect(() => {
     if (!user || !account) return;
     if (account.role !== "athlete") return;
-    if (didMarkReadRef.current) return;
     const unreadIds = items
       .filter((i) => !i.read_at && i.author_id !== user.id)
       .map((i) => i.id);
     if (unreadIds.length === 0) return;
-    didMarkReadRef.current = true;
     const t = window.setTimeout(() => {
       markFeedbackRead(unreadIds).then(() => {
         setItems((prev) =>

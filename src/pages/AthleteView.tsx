@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import {
@@ -14,6 +14,7 @@ import {
   type DbVideoRow,
 } from "../lib/videoSync";
 import FeedbackThread from "../components/FeedbackThread";
+import { useRealtime } from "../lib/useRealtime";
 import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
 import {
@@ -57,10 +58,10 @@ export default function AthleteViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!id) return;
-    (async () => {
-      setLoading(true);
+  const loadAll = useCallback(
+    async (showSpinner: boolean) => {
+      if (!id) return;
+      if (showSpinner) setLoading(true);
       setError(null);
       try {
         const [athleteRow, matchRows, all, videoRows] = await Promise.all([
@@ -73,7 +74,7 @@ export default function AthleteViewPage() {
           setError(
             "Couldn't find this athlete's profile. They may not have finished setup yet."
           );
-          setLoading(false);
+          if (showSpinner) setLoading(false);
           return;
         }
         setRow(athleteRow);
@@ -81,7 +82,7 @@ export default function AthleteViewPage() {
         setExtra(all);
         setVideos(videoRows);
         // Also fetch the account email for display
-        if (supabase) {
+        if (supabase && showSpinner) {
           const { data: acct } = await supabase
             .from("accounts")
             .select("email")
@@ -92,10 +93,34 @@ export default function AthleteViewPage() {
       } catch (e) {
         setError((e as Error).message);
       } finally {
-        setLoading(false);
+        if (showSpinner) setLoading(false);
       }
-    })();
-  }, [id]);
+    },
+    [id]
+  );
+
+  useEffect(() => {
+    loadAll(true);
+  }, [loadAll]);
+
+  // Realtime — any change to the athlete's data refreshes the view.
+  // One subscription per athlete-scoped table. All fire the same silent
+  // refetch (no spinner) so the coach sees updates appear smoothly.
+  const silentRefresh = useCallback(() => loadAll(false), [loadAll]);
+  const athleteFilter = id ? `athlete_id=eq.${id}` : undefined;
+  const idFilter = id ? `id=eq.${id}` : undefined;
+  useRealtime({ table: "athletes", filter: idFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "matches", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "practices", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "habit_completions", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "mental_checkins", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "recovery_checkins", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "nutrition_logs", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "weekly_reviews", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "tournaments", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "awards", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "unlocked_badges", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "videos", filter: athleteFilter, enabled: !!id }, silentRefresh);
 
   if (loading) {
     return (

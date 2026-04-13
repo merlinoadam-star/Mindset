@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/authContext";
 import { supabase } from "../lib/supabase";
+import { useRealtime } from "../lib/useRealtime";
 import {
   ACCOUNT_ROLE_EMOJIS,
   ACCOUNT_ROLE_LABELS,
@@ -39,20 +40,19 @@ export default function CoachDashboard() {
   const [athletes, setAthletes] = useState<ConnectedAthlete[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!supabase || !user) return;
-    (async () => {
-      setLoading(true);
+  const refresh = useCallback(
+    async (showSpinner: boolean) => {
+      if (!supabase || !user) return;
+      if (showSpinner) setLoading(true);
       // All connections where I'm the "other" party (coach/parent)
       const { data: conns } = await supabase
         .from("connections")
         .select("*")
         .eq("other_account_id", user.id);
       if (!conns) {
-        setLoading(false);
+        if (showSpinner) setLoading(false);
         return;
       }
-      // Fetch athlete accounts
       const ids = conns.map((c) => c.athlete_account_id);
       const { data: accts } = ids.length
         ? await supabase
@@ -60,9 +60,7 @@ export default function CoachDashboard() {
             .select("id, display_name, email")
             .in("id", ids)
         : { data: [] as { id: string; display_name: string; email: string }[] };
-      const acctMap = new Map(
-        (accts ?? []).map((a) => [a.id, a])
-      );
+      const acctMap = new Map((accts ?? []).map((a) => [a.id, a]));
       const result: ConnectedAthlete[] = conns
         .filter((c) => c.status === "pending" || c.status === "accepted")
         .map((c) => {
@@ -74,13 +72,31 @@ export default function CoachDashboard() {
             email: acct?.email ?? "",
             status: c.status,
             connectedRole: c.connected_role,
-            pendingIncoming: c.status === "pending" && c.initiated_by === "athlete",
+            pendingIncoming:
+              c.status === "pending" && c.initiated_by === "athlete",
           };
         });
       setAthletes(result);
-      setLoading(false);
-    })();
-  }, [user]);
+      if (showSpinner) setLoading(false);
+    },
+    [user]
+  );
+
+  useEffect(() => {
+    refresh(true);
+  }, [refresh]);
+
+  // Realtime — refresh when a new invite arrives or a connection is
+  // accepted / declined / revoked.
+  const silentRefresh = useCallback(() => refresh(false), [refresh]);
+  useRealtime(
+    {
+      table: "connections",
+      filter: user ? `other_account_id=eq.${user.id}` : undefined,
+      enabled: Boolean(user),
+    },
+    silentRefresh
+  );
 
   const accepted = useMemo(
     () => athletes.filter((a) => a.status === "accepted"),

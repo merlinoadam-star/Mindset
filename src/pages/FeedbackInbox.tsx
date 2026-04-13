@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/authContext";
 import {
@@ -6,6 +6,7 @@ import {
   markFeedbackRead,
   type FeedbackRow,
 } from "../lib/feedbackSync";
+import { useRealtime } from "../lib/useRealtime";
 import { useStore } from "../lib/store";
 import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
 import { ArrowLeft, MessageSquare, Check } from "lucide-react";
@@ -22,25 +23,37 @@ export default function FeedbackInboxPage() {
   const [items, setItems] = useState<FeedbackRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     if (!user) return;
-    (async () => {
-      setLoading(true);
-      const rows = await fetchAllFeedbackForAthlete(user.id);
-      setItems(rows);
-      setLoading(false);
+    setLoading(true);
+    const rows = await fetchAllFeedbackForAthlete(user.id);
+    setItems(rows);
+    setLoading(false);
 
-      // Mark all unread notes from others as read
-      const unread = rows
-        .filter((r) => !r.read_at && r.author_id !== user.id)
-        .map((r) => r.id);
-      if (unread.length > 0) {
-        window.setTimeout(() => {
-          markFeedbackRead(unread);
-        }, 1200);
-      }
-    })();
+    // Mark all unread notes from others as read
+    const unread = rows
+      .filter((r) => !r.read_at && r.author_id !== user.id)
+      .map((r) => r.id);
+    if (unread.length > 0) {
+      window.setTimeout(() => {
+        markFeedbackRead(unread);
+      }, 1200);
+    }
   }, [user]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  // Realtime — new notes appear automatically, read/delete events too.
+  useRealtime(
+    {
+      table: "feedback",
+      filter: user ? `athlete_id=eq.${user.id}` : undefined,
+      enabled: Boolean(user),
+    },
+    refresh
+  );
 
   if (!account) return null;
 

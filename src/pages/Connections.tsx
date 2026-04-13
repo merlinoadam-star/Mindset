@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../lib/authContext";
 import { supabase } from "../lib/supabase";
+import { useRealtime } from "../lib/useRealtime";
 import {
   ACCOUNT_ROLE_EMOJIS,
   ACCOUNT_ROLE_LABELS,
@@ -94,6 +95,25 @@ export default function ConnectionsPage() {
   useEffect(() => {
     fetchConnections();
   }, [fetchConnections]);
+
+  // Realtime — refresh the list whenever any connection involving me
+  // changes (incoming invites, accepts, removals).
+  useRealtime(
+    {
+      table: "connections",
+      filter: user ? `athlete_account_id=eq.${user.id}` : undefined,
+      enabled: Boolean(user),
+    },
+    fetchConnections
+  );
+  useRealtime(
+    {
+      table: "connections",
+      filter: user ? `other_account_id=eq.${user.id}` : undefined,
+      enabled: Boolean(user),
+    },
+    fetchConnections
+  );
 
   async function respond(id: string, status: ConnectionStatus) {
     if (!supabase) return;
