@@ -8,6 +8,11 @@ import {
 } from "../lib/athleteSync";
 import { fetchMatchesForAthlete, rowToMatch } from "../lib/matchSync";
 import { fetchAllAthleteData } from "../lib/dataSync";
+import {
+  fetchVideosForAthlete,
+  getVideoSignedUrl,
+  type DbVideoRow,
+} from "../lib/videoSync";
 import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
 import {
@@ -47,6 +52,7 @@ export default function AthleteViewPage() {
   const [matches, setMatches] = useState<MatchEntry[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [extra, setExtra] = useState<any | null>(null);
+  const [videos, setVideos] = useState<DbVideoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,10 +62,11 @@ export default function AthleteViewPage() {
       setLoading(true);
       setError(null);
       try {
-        const [athleteRow, matchRows, all] = await Promise.all([
+        const [athleteRow, matchRows, all, videoRows] = await Promise.all([
           fetchAthleteProfile(id),
           fetchMatchesForAthlete(id),
           fetchAllAthleteData(id),
+          fetchVideosForAthlete(id),
         ]);
         if (!athleteRow) {
           setError(
@@ -71,6 +78,7 @@ export default function AthleteViewPage() {
         setRow(athleteRow);
         setMatches(matchRows.map(rowToMatch));
         setExtra(all);
+        setVideos(videoRows);
         // Also fetch the account email for display
         if (supabase) {
           const { data: acct } = await supabase
@@ -735,6 +743,22 @@ export default function AthleteViewPage() {
         </Section>
       )}
 
+      {/* Videos — Phase 2B.6 */}
+      {videos.length > 0 && (
+        <Section icon={<Trophy size={14} />} title={`Videos (${videos.length})`}>
+          <div className="grid grid-cols-2 gap-2">
+            {videos.slice(0, 8).map((v) => (
+              <VideoThumb key={v.id} video={v} />
+            ))}
+          </div>
+          {videos.length > 8 && (
+            <p className="text-[11px] text-slate-500 italic mt-2 text-center">
+              Showing 8 of {videos.length} videos.
+            </p>
+          )}
+        </Section>
+      )}
+
       {/* Match Log — Phase 2B.4 */}
       {matches.length > 0 ? (
         <Section icon={<Trophy size={14} />} title={`Match Log (${matches.length})`}>
@@ -961,6 +985,113 @@ function GoalItem({ label, value }: { label: string; value?: string }) {
         {value}
       </div>
     </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Video thumbnail + in-place playback using a signed URL
+// -----------------------------------------------------------------------------
+function VideoThumb({ video }: { video: DbVideoRow }) {
+  const [playing, setPlaying] = useState(false);
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [loadingUrl, setLoadingUrl] = useState(false);
+
+  async function startPlayback() {
+    if (!video.storage_path) return;
+    setPlaying(true);
+    if (!signedUrl) {
+      setLoadingUrl(true);
+      const url = await getVideoSignedUrl(video.storage_path);
+      setSignedUrl(url);
+      setLoadingUrl(false);
+    }
+  }
+
+  if (playing) {
+    return (
+      <div className="col-span-2 rounded-2xl overflow-hidden bg-black">
+        <div className="aspect-video relative">
+          {loadingUrl && (
+            <div className="absolute inset-0 flex items-center justify-center text-white/50 text-sm">
+              Loading...
+            </div>
+          )}
+          {signedUrl && (
+            <video
+              src={signedUrl}
+              controls
+              autoPlay
+              playsInline
+              className="w-full h-full"
+            />
+          )}
+        </div>
+        <div className="p-3">
+          <div className="font-bold text-white text-sm">{video.title}</div>
+          {video.description && (
+            <div className="text-xs text-white/70 mt-1">
+              {video.description}
+            </div>
+          )}
+          {video.self_notes && (
+            <div className="text-xs text-white/60 italic mt-1">
+              &ldquo;{video.self_notes}&rdquo;
+            </div>
+          )}
+          <button
+            onClick={() => setPlaying(false)}
+            className="mt-2 text-xs text-white/60 font-semibold"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={startPlayback}
+      className="text-left group rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-card hover:shadow-card-hover transition"
+    >
+      <div className="aspect-video bg-slate-900 relative overflow-hidden">
+        {video.thumbnail_data_url ? (
+          <img
+            src={video.thumbnail_data_url}
+            alt={video.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-white/30 text-2xl">
+            🎥
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+          <div className="w-11 h-11 rounded-full bg-white/90 flex items-center justify-center">
+            <span className="ml-0.5 text-slate-900">▶</span>
+          </div>
+        </div>
+        {video.marked_for_review && !video.reviewed_at && (
+          <div className="absolute top-1 left-1 bg-amber-400 text-amber-900 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+            Review
+          </div>
+        )}
+        {video.reviewed_at && (
+          <div className="absolute top-1 left-1 bg-green-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
+            ✓ Done
+          </div>
+        )}
+      </div>
+      <div className="p-2">
+        <div className="font-bold text-xs text-slate-900 truncate">
+          {video.title}
+        </div>
+        <div className="text-[10px] text-slate-500 mt-0.5">
+          {video.tag}
+        </div>
+      </div>
+    </button>
   );
 }
 

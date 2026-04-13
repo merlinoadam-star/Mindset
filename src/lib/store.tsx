@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -52,6 +53,11 @@ import {
   syncUnlockedBadges,
   syncWeeklyReviews,
 } from "./dataSync";
+import {
+  deleteVideoFromCloud,
+  updateVideoMetadata,
+  uploadVideoToCloud,
+} from "./videoSync";
 
 interface StoreContextValue {
   state: AppState;
@@ -185,6 +191,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
   });
   const { account } = useAuth();
+
+  // Stable ref the video callbacks use to read the current athlete id
+  // without re-creating themselves every render.
+  const athleteAccountIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    athleteAccountIdRef.current =
+      account && account.role === "athlete" ? account.id : null;
+  }, [account]);
 
   useEffect(() => {
     saveState(state);
@@ -1170,18 +1184,48 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return next;
       });
 
+      // Phase 2B.6 — also push the video to Supabase Storage when signed
+      // in. Fire-and-forget; local state stays authoritative.
+      const athleteId = athleteAccountIdRef.current;
+      if (athleteId) {
+        uploadVideoToCloud(athleteId, entry, blob)
+          .then((path) => {
+            if (path) {
+              setState((prev) => ({
+                ...prev,
+                videos: prev.videos.map((v) =>
+                  v.id === entry.id ? { ...v, storagePath: path } : v
+                ),
+              }));
+            }
+          })
+          .catch((e) => console.error("Video cloud upload failed", e));
+      }
+
       return { awardedXp: VIDEO_UPLOAD_XP, newlyUnlocked, videoId: id };
     },
     []
   );
 
   const updateVideo = useCallback((id: string, updates: Partial<VideoEntry>) => {
-    setState((prev) => ({
-      ...prev,
-      videos: prev.videos.map((v) =>
-        v.id === id ? { ...v, ...updates, id: v.id, blobKey: v.blobKey } : v
-      ),
-    }));
+    let merged: VideoEntry | undefined;
+    setState((prev) => {
+      const next = {
+        ...prev,
+        videos: prev.videos.map((v) => {
+          if (v.id !== id) return v;
+          merged = { ...v, ...updates, id: v.id, blobKey: v.blobKey };
+          return merged;
+        }),
+      };
+      return next;
+    });
+    // Also push metadata changes to the cloud
+    if (merged && athleteAccountIdRef.current) {
+      updateVideoMetadata(merged).catch((e) =>
+        console.error("Video meta sync failed", e)
+      );
+    }
   }, []);
 
   const setVoicePersona = useCallback((id: string) => {
@@ -1189,11 +1233,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const deleteVideo = useCallback(async (id: string) => {
-    // Find blob key first so we can clean up IndexedDB
+    // Find blob key + storage path before we drop the row from state
     let blobKey: string | undefined;
+    let storagePath: string | undefined;
     setState((prev) => {
       const target = prev.videos.find((v) => v.id === id);
       blobKey = target?.blobKey;
+      storagePath = target?.storagePath;
       return {
         ...prev,
         videos: prev.videos.filter((v) => v.id !== id),
@@ -1205,6 +1251,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         console.error("Failed to delete video blob", e);
       }
+    }
+    // Phase 2B.6 — also remove from cloud storage + row
+    if (athleteAccountIdRef.current) {
+      deleteVideoFromCloud(id, storagePath).catch((e) =>
+        console.error("Video cloud delete failed", e)
+      );
     }
   }, []);
 

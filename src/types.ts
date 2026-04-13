@@ -419,6 +419,7 @@ export interface VideoEntry {
   durationSec?: number;
   thumbnailDataUrl?: string; // small jpeg frame, captured at ~0.1s
   blobKey: string; // key into IndexedDB where the video blob lives
+  storagePath?: string; // path inside Supabase Storage `videos` bucket (Phase 2B.6)
   mimeType: string;
   sizeBytes: number;
 
