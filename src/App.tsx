@@ -10,6 +10,7 @@ import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import CoachDashboard from "./pages/CoachDashboard";
 import AthleteViewPage from "./pages/AthleteView";
+import FeedbackInboxPage from "./pages/FeedbackInbox";
 import HabitsPage from "./pages/Habits";
 import PracticePage from "./pages/Practice";
 import MindsetPage from "./pages/Mindset";
@@ -97,6 +98,7 @@ function AppShell() {
           <Route path="voice" element={<VoicePersonasPage />} />
           <Route path="export" element={<ExportReportPage />} />
           <Route path="connections" element={<ConnectionsPage />} />
+          <Route path="feedback" element={<FeedbackInboxPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

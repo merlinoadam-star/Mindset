@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useStore } from "../lib/store";
+import { useAuth } from "../lib/authContext";
+import { isUuid } from "../lib/store";
 import { showReward } from "./RewardToast";
+import FeedbackThread from "./FeedbackThread";
 import {
   WRESTLING_WIN_TYPE_LABELS,
   type MatchEntry,
@@ -27,6 +30,7 @@ type Phase = "overview" | "pre" | "post";
 
 export default function MatchDetail({ match, onBack }: Props) {
   const { state, updateMatch, deleteMatch } = useStore();
+  const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>("overview");
 
   if (!state.profile) return null;
@@ -157,6 +161,15 @@ export default function MatchDetail({ match, onBack }: Props) {
                 <Field label="💡 Lesson" value={match.lessonLearned} />
               )}
             </section>
+          )}
+
+          {/* Coach / parent notes — Phase 2C */}
+          {user && isUuid(match.id) && (
+            <FeedbackThread
+              athleteId={user.id}
+              targetType="match"
+              targetId={match.id}
+            />
           )}
 
           <button

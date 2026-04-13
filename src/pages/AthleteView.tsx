@@ -13,6 +13,7 @@ import {
   getVideoSignedUrl,
   type DbVideoRow,
 } from "../lib/videoSync";
+import FeedbackThread from "../components/FeedbackThread";
 import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
 import {
@@ -748,7 +749,7 @@ export default function AthleteViewPage() {
         <Section icon={<Trophy size={14} />} title={`Videos (${videos.length})`}>
           <div className="grid grid-cols-2 gap-2">
             {videos.slice(0, 8).map((v) => (
-              <VideoThumb key={v.id} video={v} />
+              <VideoThumb key={v.id} video={v} athleteId={id!} />
             ))}
           </div>
           {videos.length > 8 && (
@@ -787,7 +788,7 @@ export default function AthleteViewPage() {
 
           <div className="space-y-2">
             {matches.slice(0, 15).map((m) => (
-              <MatchRow key={m.id} match={m} />
+              <MatchRow key={m.id} match={m} athleteId={id!} />
             ))}
           </div>
           {matches.length > 15 && (
@@ -818,9 +819,16 @@ export default function AthleteViewPage() {
 // -----------------------------------------------------------------------------
 // Match row for the match log section
 // -----------------------------------------------------------------------------
-function MatchRow({ match }: { match: MatchEntry }) {
+function MatchRow({
+  match,
+  athleteId,
+}: {
+  match: MatchEntry;
+  athleteId: string;
+}) {
   const prepared = !!match.preMatchCompletedAt;
   const reflected = !!match.postMatchCompletedAt;
+  const [showFeedback, setShowFeedback] = useState(false);
   return (
     <div className="rounded-xl border border-slate-200 p-3">
       <div className="flex items-start justify-between gap-2">
@@ -908,6 +916,27 @@ function MatchRow({ match }: { match: MatchEntry }) {
           )}
         </div>
       )}
+
+      {/* Feedback thread toggle */}
+      <div className="mt-2 pt-2 border-t border-slate-100">
+        <button
+          type="button"
+          onClick={() => setShowFeedback((s) => !s)}
+          className="text-[11px] font-bold text-brand-600 hover:text-brand-800 uppercase tracking-wider"
+        >
+          {showFeedback ? "Hide notes" : "💬 Leave / View notes"}
+        </button>
+        {showFeedback && (
+          <div className="mt-2">
+            <FeedbackThread
+              athleteId={athleteId}
+              targetType="match"
+              targetId={match.id}
+              compact
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -991,7 +1020,13 @@ function GoalItem({ label, value }: { label: string; value?: string }) {
 // -----------------------------------------------------------------------------
 // Video thumbnail + in-place playback using a signed URL
 // -----------------------------------------------------------------------------
-function VideoThumb({ video }: { video: DbVideoRow }) {
+function VideoThumb({
+  video,
+  athleteId,
+}: {
+  video: DbVideoRow;
+  athleteId: string;
+}) {
   const [playing, setPlaying] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loadingUrl, setLoadingUrl] = useState(false);
@@ -1044,6 +1079,15 @@ function VideoThumb({ video }: { video: DbVideoRow }) {
           >
             Close
           </button>
+        </div>
+        {/* Feedback thread under the expanded video */}
+        <div className="p-3 pt-0">
+          <FeedbackThread
+            athleteId={athleteId}
+            targetType="video"
+            targetId={video.id}
+            compact
+          />
         </div>
       </div>
     );

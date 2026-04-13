@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { useStore } from "../lib/store";
+import { useStore, isUuid } from "../lib/store";
+import { useAuth } from "../lib/authContext";
 import { showReward } from "../components/RewardToast";
+import FeedbackThread from "../components/FeedbackThread";
 import { loadVideoBlob, formatBytes, formatDuration } from "../lib/videoStorage";
 import {
   VIDEO_TAG_EMOJIS,
@@ -467,6 +469,7 @@ function VideoDetail({
   onBack: () => void;
 }) {
   const { updateVideo, deleteVideo } = useStore();
+  const { user } = useAuth();
   const [src, setSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -704,6 +707,15 @@ function VideoDetail({
           )}
         </div>
       </div>
+
+      {/* Coach / parent notes — Phase 2C */}
+      {user && isUuid(video.id) && (
+        <FeedbackThread
+          athleteId={user.id}
+          targetType="video"
+          targetId={video.id}
+        />
+      )}
 
       <button
         onClick={doDelete}
