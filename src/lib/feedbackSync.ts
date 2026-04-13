@@ -67,6 +67,31 @@ export async function postFeedback(params: {
     .single();
 
   if (error) return { error: error.message };
+
+  // Fire a push notification to the athlete (fire-and-forget — the
+  // feedback was saved whether or not the push goes through). The
+  // edge function must be deployed; if it isn't, the call fails
+  // silently.
+  if (params.authorId !== params.athleteId) {
+    const preview =
+      text.length > 80 ? text.slice(0, 77) + "..." : text;
+    const title =
+      params.authorRole === "coach"
+        ? "New note from your coach"
+        : "New note from your parent";
+    supabase.functions
+      .invoke("send-push", {
+        body: {
+          toAccountId: params.athleteId,
+          title,
+          body: preview,
+          url: "/feedback",
+          tag: `feedback-${params.targetType}-${params.targetId}`,
+        },
+      })
+      .catch((e) => console.warn("send-push invoke failed", e));
+  }
+
   return { row: data as FeedbackRow };
 }
 

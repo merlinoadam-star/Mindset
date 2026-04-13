@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { getPersona } from "../lib/speechPersonas";
 import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
+import NotificationsCard from "../components/NotificationsCard";
 
 export default function SettingsPage() {
   const { state, resetAll } = useStore();
@@ -121,6 +122,8 @@ export default function SettingsPage() {
         </div>
         <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
       </Link>
+
+      <NotificationsCard />
 
       <div className="card">
         <h2 className="font-bold mb-3">Profile</h2>

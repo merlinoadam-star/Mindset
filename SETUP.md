@@ -72,8 +72,68 @@ app. Follow these steps to turn it on.
 - **Sign in hangs** — double-check the `VITE_SUPABASE_*` env vars are set
   AND you redeployed; a fresh deploy is required after adding env vars
 
-## What's next (Stage 2B)
+## Additional SQL migrations to run
 
-Once sync is working, we'll hook up the actual data tables so everything
-(habits, matches, notes, videos, etc.) syncs automatically between the
-athlete and their coach / parent.
+As the project evolved, new migrations were added alongside the main
+`schema.sql`. Run each of these once in the SQL Editor:
+
+- `supabase/fix_account_lookup.sql` — lookup RPC for connection invites
+- `supabase/videos_storage.sql` — videos bucket + RLS (Phase 2B.6)
+- `supabase/feedback.sql` — coach/parent notes table (Phase 2C)
+- `supabase/realtime.sql` — enable Realtime publications (Phase 2D)
+- `supabase/push_subscriptions.sql` — push subscription table (Phase 2E)
+
+## Push notifications (optional, Phase 2E)
+
+If you want real push notifications when the app is closed, here's the
+additional setup:
+
+### A. Generate VAPID keys
+
+On your computer (Node 18+ required):
+
+```
+npx web-push generate-vapid-keys
+```
+
+Copy the two values it prints — the **Public Key** and the **Private Key**.
+
+### B. Add the public key to Vercel
+
+In Vercel → Project Settings → Environment Variables:
+
+| Key | Value |
+|---|---|
+| `VITE_VAPID_PUBLIC_KEY` | the Public Key from step A |
+
+Redeploy so the new env var takes effect.
+
+### C. Deploy the Edge Function
+
+1. In Supabase → **Edge Functions** → **Deploy new function**
+2. Name it `send-push`
+3. Paste the contents of `supabase/functions/send-push/index.ts` from this repo
+4. Click **Deploy**
+
+### D. Add function secrets
+
+In Supabase → **Project Settings** → **Edge Functions** → **Secrets**:
+
+| Key | Value |
+|---|---|
+| `VAPID_PUBLIC_KEY` | same public key |
+| `VAPID_PRIVATE_KEY` | the private key from step A |
+| `VAPID_SUBJECT` | `mailto:your-email@example.com` |
+
+Supabase auto-injects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` so
+you don't need to set those.
+
+### E. Turn it on in the app
+
+Each athlete signs in on their device, goes to **Settings** →
+**Push Notifications** → **Enable notifications**. On iOS, the app
+must be installed to the Home Screen first (Share sheet → Add to
+Home Screen).
+
+From that point, every coach/parent note fires a real push
+notification to the athlete's subscribed devices.
