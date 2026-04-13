@@ -23,7 +23,7 @@ interface AuthContextValue {
     password: string,
     displayName: string,
     role: AccountRole
-  ) => Promise<{ error?: string }>;
+  ) => Promise<{ error?: string; needsEmailConfirmation?: boolean }>;
   signIn: (
     email: string,
     password: string
@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password: string,
       displayName: string,
       role: AccountRole
-    ): Promise<{ error?: string }> => {
+    ): Promise<{ error?: string; needsEmailConfirmation?: boolean }> => {
       if (!supabase) return { error: "Sign-up isn't available yet." };
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -120,7 +120,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return { error: insertErr.message };
         }
       }
-      return {};
+      // If a session came back immediately, email confirmation is OFF and
+      // they're already signed in. Otherwise they need to confirm via email.
+      return { needsEmailConfirmation: !data.session };
     },
     []
   );

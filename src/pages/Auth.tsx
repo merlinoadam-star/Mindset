@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/authContext";
 import type { AccountRole } from "../types";
 import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
@@ -7,8 +8,16 @@ import { Mail, Lock, User as UserIcon, Sparkles } from "lucide-react";
 type Mode = "signin" | "signup" | "magic";
 
 export default function AuthPage() {
-  const { configured, signIn, signUp, sendMagicLink } = useAuth();
+  const { configured, session, signIn, signUp, sendMagicLink } = useAuth();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("signin");
+
+  // If we're already signed in (or just became signed in), bounce home.
+  useEffect(() => {
+    if (session) {
+      navigate("/", { replace: true });
+    }
+  }, [session, navigate]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -24,12 +33,21 @@ export default function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await signUp(email, password, displayName, role);
-        if (error) setError(error);
-        else setInfo("Check your email to confirm your account.");
+        const result = await signUp(email, password, displayName, role);
+        if (result.error) setError(result.error);
+        else if (result.needsEmailConfirmation) {
+          setInfo(
+            "Account created! Check your email to confirm before signing in."
+          );
+        } else {
+          // Email confirmation is off — we're signed in. The useEffect on
+          // session change will bounce us home.
+          setInfo("You're in! Redirecting...");
+        }
       } else if (mode === "signin") {
         const { error } = await signIn(email, password);
         if (error) setError(error);
+        // success → the session effect redirects
       } else if (mode === "magic") {
         const { error } = await sendMagicLink(email);
         if (error) setError(error);
