@@ -1,12 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { StoreProvider, useStore } from "./lib/store";
-import { AuthProvider } from "./lib/authContext";
+import { AuthProvider, useAuth } from "./lib/authContext";
 import Layout from "./components/Layout";
+import CoachLayout from "./components/CoachLayout";
 import RewardToast from "./components/RewardToast";
 import AuthPage from "./pages/Auth";
 import ConnectionsPage from "./pages/Connections";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
+import CoachDashboard from "./pages/CoachDashboard";
 import HabitsPage from "./pages/Habits";
 import PracticePage from "./pages/Practice";
 import MindsetPage from "./pages/Mindset";
@@ -31,7 +33,38 @@ import ExportReportPage from "./pages/ExportReport";
 
 function AppShell() {
   const { state } = useStore();
+  const { account, loading: authLoading } = useAuth();
 
+  // Still waiting on initial session resolution
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-slate-400 text-sm">Loading...</div>
+      </div>
+    );
+  }
+
+  // --- Coach / Parent routing ---
+  // A signed-in coach or parent never goes through athlete onboarding.
+  // They get their own dashboard with a roster of connected athletes.
+  if (account && (account.role === "coach" || account.role === "parent")) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="auth" element={<AuthPage />} />
+          <Route element={<CoachLayout />}>
+            <Route index element={<CoachDashboard />} />
+            <Route path="connections" element={<ConnectionsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    );
+  }
+
+  // --- Athlete routing ---
+  // (Also the default for anyone NOT signed in — Phase 1 continues working.)
   if (!state.profile) {
     return <Onboarding />;
   }
