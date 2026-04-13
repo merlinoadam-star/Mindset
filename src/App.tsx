@@ -9,6 +9,7 @@ import ConnectionsPage from "./pages/Connections";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import CoachDashboard from "./pages/CoachDashboard";
+import AthleteViewPage from "./pages/AthleteView";
 import HabitsPage from "./pages/Habits";
 import PracticePage from "./pages/Practice";
 import MindsetPage from "./pages/Mindset";
@@ -54,6 +55,7 @@ function AppShell() {
           <Route path="auth" element={<AuthPage />} />
           <Route element={<CoachLayout />}>
             <Route index element={<CoachDashboard />} />
+            <Route path="athlete/:id" element={<AthleteViewPage />} />
             <Route path="connections" element={<ConnectionsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />

@@ -35,6 +35,8 @@ import {
   shouldEarnNewFreeze,
   todayISO,
 } from "./gamification";
+import { useAuth } from "./authContext";
+import { upsertAthleteProfile } from "./athleteSync";
 
 interface StoreContextValue {
   state: AppState;
@@ -155,10 +157,38 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       usedFreezeDates: result.usedFreezeDates,
     };
   });
+  const { account } = useAuth();
 
   useEffect(() => {
     saveState(state);
   }, [state]);
+
+  // Phase 2B.2 — Auto-sync athlete profile to Supabase when signed in.
+  // Writes are debounced so we don't spam the database on every tiny
+  // change. If sync fails, the local state is unaffected.
+  useEffect(() => {
+    if (
+      !account ||
+      account.role !== "athlete" ||
+      !state.profile
+    ) {
+      return;
+    }
+    const id = window.setTimeout(() => {
+      upsertAthleteProfile(
+        account.id,
+        state.profile!,
+        state.xp,
+        state.voicePersonaId ?? "natural"
+      );
+    }, 800);
+    return () => window.clearTimeout(id);
+  }, [
+    account,
+    state.profile,
+    state.xp,
+    state.voicePersonaId,
+  ]);
 
   // After any XP-earning activity, check if the athlete has earned a new freeze
   useEffect(() => {

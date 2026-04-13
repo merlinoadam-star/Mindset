@@ -194,7 +194,11 @@ export default function CoachDashboard() {
           <h2 className="section-label mb-2 px-1">Your Athletes</h2>
           <div className="space-y-2">
             {accepted.map((a) => (
-              <div key={a.connectionId} className="card flex items-center gap-3">
+              <Link
+                key={a.connectionId}
+                to={`/athlete/${a.athleteAccountId}`}
+                className="card-interactive flex items-center gap-3"
+              >
                 <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center text-lg font-extrabold">
                   {a.name[0]?.toUpperCase() ?? "?"}
                 </div>
@@ -210,12 +214,9 @@ export default function CoachDashboard() {
                   </div>
                 </div>
                 <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
-              </div>
+              </Link>
             ))}
           </div>
-          <p className="text-[11px] text-slate-400 italic mt-3 px-1">
-            Tapping to see full athlete data comes in the next update.
-          </p>
         </section>
       )}
 
