@@ -7,6 +7,8 @@ import {
   type DbAthleteRow,
 } from "../lib/athleteSync";
 import { fetchMatchesForAthlete, rowToMatch } from "../lib/matchSync";
+import { fetchAllAthleteData } from "../lib/dataSync";
+import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
 import {
   VOLLEYBALL_POSITION_LABELS,
@@ -43,6 +45,8 @@ export default function AthleteViewPage() {
   const [row, setRow] = useState<DbAthleteRow | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [matches, setMatches] = useState<MatchEntry[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [extra, setExtra] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,9 +56,10 @@ export default function AthleteViewPage() {
       setLoading(true);
       setError(null);
       try {
-        const [athleteRow, matchRows] = await Promise.all([
+        const [athleteRow, matchRows, all] = await Promise.all([
           fetchAthleteProfile(id),
           fetchMatchesForAthlete(id),
+          fetchAllAthleteData(id),
         ]);
         if (!athleteRow) {
           setError(
@@ -65,6 +70,7 @@ export default function AthleteViewPage() {
         }
         setRow(athleteRow);
         setMatches(matchRows.map(rowToMatch));
+        setExtra(all);
         // Also fetch the account email for display
         if (supabase) {
           const { data: acct } = await supabase
@@ -389,6 +395,346 @@ export default function AthleteViewPage() {
           </Section>
         )}
 
+      {/* Training consistency — Phase 2B.5 */}
+      {extra && (
+        <Section icon={<Flame size={14} />} title="Training Consistency">
+          <div className="grid grid-cols-4 gap-2">
+            <StatTile
+              label="Practices"
+              value={`${extra.practices.length}`}
+              accent="text-brand-700"
+            />
+            <StatTile
+              label="Habits"
+              value={`${extra.habits.length}`}
+              accent="text-emerald-700"
+            />
+            <StatTile
+              label="Check-Ins"
+              value={`${extra.mentalCheckins.length}`}
+              accent="text-purple-700"
+            />
+            <StatTile
+              label="Recovery"
+              value={`${extra.recovery.length}`}
+              accent="text-sky-700"
+            />
+          </div>
+          {extra.practices.length > 0 && (
+            <div className="mt-3">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500 mb-1">
+                Recent Practices
+              </div>
+              <div className="space-y-1">
+                {extra.practices
+                  .slice(0, 5)
+                  .map(
+                    (p: {
+                      id: string;
+                      date: string;
+                      type: string;
+                      duration_min: number;
+                      intensity: number;
+                    }) => (
+                      <div
+                        key={p.id}
+                        className="flex items-center gap-2 text-xs py-1 border-b border-slate-100 last:border-b-0"
+                      >
+                        <span className="text-slate-500 w-20 flex-shrink-0 tabular-nums">
+                          {new Date(p.date + "T00:00:00").toLocaleDateString(
+                            undefined,
+                            { month: "short", day: "numeric" }
+                          )}
+                        </span>
+                        <span className="flex-1 font-semibold text-slate-800 truncate">
+                          {p.type}
+                        </span>
+                        <span className="text-slate-500 tabular-nums">
+                          {p.duration_min}m · {p.intensity}/5
+                        </span>
+                      </div>
+                    )
+                  )}
+              </div>
+            </div>
+          )}
+        </Section>
+      )}
+
+      {/* Recent Mental Check-Ins */}
+      {extra?.mentalCheckins && extra.mentalCheckins.length > 0 && (
+        <Section icon={<Target size={14} />} title="Recent Check-Ins">
+          <div className="space-y-2">
+            {extra.mentalCheckins
+              .slice(0, 5)
+              .map(
+                (c: {
+                  id: string;
+                  date: string;
+                  mood: number;
+                  goal: string | null;
+                  goal_met: boolean | null;
+                  gratitude: string | null;
+                }) => {
+                  const emoji = ["😩", "😕", "😐", "🙂", "🔥"][c.mood - 1] ?? "😐";
+                  return (
+                    <div
+                      key={c.id}
+                      className="rounded-xl border border-slate-200 p-3"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{emoji}</span>
+                        <span className="text-xs font-semibold text-slate-600">
+                          {new Date(c.date + "T00:00:00").toLocaleDateString(
+                            undefined,
+                            {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )}
+                        </span>
+                      </div>
+                      {c.goal && (
+                        <div className="mt-1 text-xs">
+                          <span className="text-slate-500">🎯 </span>
+                          <span
+                            className={
+                              c.goal_met === false
+                                ? "line-through text-slate-400"
+                                : "text-slate-800"
+                            }
+                          >
+                            {c.goal}
+                          </span>
+                          {c.goal_met === true && (
+                            <span className="ml-1 text-[10px] font-bold text-emerald-700">
+                              ✓ hit
+                            </span>
+                          )}
+                          {c.goal_met === false && (
+                            <span className="ml-1 text-[10px] font-bold text-slate-500">
+                              missed
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {c.gratitude && (
+                        <div className="text-xs text-slate-600 mt-0.5">
+                          <span className="text-slate-400">🙏 </span>
+                          {c.gratitude}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+              )}
+          </div>
+        </Section>
+      )}
+
+      {/* Recent Recovery */}
+      {extra?.recovery && extra.recovery.length > 0 && (
+        <Section icon={<Zap size={14} />} title="Recent Recovery">
+          <div className="space-y-1">
+            {extra.recovery
+              .slice(0, 5)
+              .map(
+                (r: {
+                  id: string;
+                  date: string;
+                  sleep_hours: number | null;
+                  sleep_quality: number | null;
+                  soreness: number | null;
+                  energy: number | null;
+                }) => {
+                  const parts: string[] = [];
+                  if (r.sleep_hours) parts.push(`${r.sleep_hours}h sleep`);
+                  if (r.energy) parts.push(`energy ${r.energy}/5`);
+                  if (r.soreness) parts.push(`soreness ${r.soreness}/5`);
+                  return (
+                    <div
+                      key={r.id}
+                      className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 last:border-b-0"
+                    >
+                      <span className="text-slate-600 font-semibold">
+                        {new Date(r.date + "T00:00:00").toLocaleDateString(
+                          undefined,
+                          { month: "short", day: "numeric" }
+                        )}
+                      </span>
+                      <span className="text-slate-700">
+                        {parts.join(" · ")}
+                      </span>
+                    </div>
+                  );
+                }
+              )}
+          </div>
+        </Section>
+      )}
+
+      {/* Latest Weekly Review */}
+      {extra?.weeklyReviews && extra.weeklyReviews.length > 0 && (
+        <Section icon={<Flame size={14} />} title="Latest Weekly Review">
+          {(() => {
+            const w = extra.weeklyReviews[0] as {
+              week_start_date: string;
+              wins: string[];
+              challenge: string | null;
+              learned: string | null;
+              next_week_goal: string | null;
+            };
+            return (
+              <div className="space-y-2 text-sm">
+                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">
+                  Week of{" "}
+                  {new Date(w.week_start_date + "T00:00:00").toLocaleDateString(
+                    undefined,
+                    { month: "long", day: "numeric" }
+                  )}
+                </div>
+                {w.wins && w.wins.filter(Boolean).length > 0 && (
+                  <div>
+                    <div className="text-amber-700 font-bold text-xs">
+                      🏆 Wins
+                    </div>
+                    <ul className="text-slate-700 mt-0.5 list-disc list-inside">
+                      {w.wins.filter(Boolean).map((win, i) => (
+                        <li key={i}>{win}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {w.challenge && (
+                  <div>
+                    <div className="text-red-600 font-bold text-xs">
+                      ⚠️ Challenge
+                    </div>
+                    <div className="text-slate-700">{w.challenge}</div>
+                  </div>
+                )}
+                {w.learned && (
+                  <div>
+                    <div className="text-amber-600 font-bold text-xs">
+                      💡 Lesson
+                    </div>
+                    <div className="text-slate-700">{w.learned}</div>
+                  </div>
+                )}
+                {w.next_week_goal && (
+                  <div>
+                    <div className="text-brand-700 font-bold text-xs">
+                      🎯 Next Goal
+                    </div>
+                    <div className="text-slate-700">{w.next_week_goal}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </Section>
+      )}
+
+      {/* Tournaments */}
+      {extra?.tournaments && extra.tournaments.length > 0 && (
+        <Section icon={<Trophy size={14} />} title="Tournaments & Events">
+          <ul className="space-y-1 text-sm">
+            {extra.tournaments
+              .slice(0, 10)
+              .map(
+                (t: {
+                  id: string;
+                  name: string;
+                  year: number;
+                  result: string;
+                  type: string | null;
+                }) => (
+                  <li
+                    key={t.id}
+                    className="flex items-start gap-2 py-1 border-b border-slate-100 last:border-b-0"
+                  >
+                    <span>🏆</span>
+                    <div className="flex-1">
+                      <span className="font-semibold text-slate-900">
+                        {t.name}
+                      </span>
+                      <span className="text-slate-500"> · {t.year}</span>
+                      {t.result && (
+                        <span className="font-semibold text-slate-700">
+                          {" "}
+                          — {t.result}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                )
+              )}
+          </ul>
+        </Section>
+      )}
+
+      {/* Awards */}
+      {extra?.awards && extra.awards.length > 0 && (
+        <Section icon={<Trophy size={14} />} title="Awards & Accolades">
+          <ul className="space-y-1 text-sm">
+            {extra.awards.map(
+              (a: {
+                id: string;
+                name: string;
+                year: number;
+                note: string | null;
+              }) => (
+                <li
+                  key={a.id}
+                  className="flex items-start gap-2 py-1 border-b border-slate-100 last:border-b-0"
+                >
+                  <span>🎖️</span>
+                  <div className="flex-1">
+                    <span className="font-semibold text-slate-900">
+                      {a.name}
+                    </span>
+                    <span className="text-slate-500"> · {a.year}</span>
+                    {a.note && (
+                      <span className="text-slate-500 italic">
+                        {" "}
+                        — {a.note}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              )
+            )}
+          </ul>
+        </Section>
+      )}
+
+      {/* Badges */}
+      {extra?.badges && extra.badges.length > 0 && (
+        <Section icon={<Zap size={14} />} title={`Badges (${extra.badges.length}/${BADGES.length})`}>
+          <div className="grid grid-cols-4 gap-2">
+            {extra.badges
+              .slice(0, 12)
+              .map((b: { id: string }) => {
+                const def = getBadge(b.id);
+                if (!def) return null;
+                return (
+                  <div
+                    key={b.id}
+                    className="rounded-xl bg-slate-50 border border-slate-200 p-2 text-center"
+                    title={def.description}
+                  >
+                    <div className="text-2xl">{def.emoji}</div>
+                    <div className="text-[9px] font-bold text-slate-700 mt-0.5 leading-tight">
+                      {def.name}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </Section>
+      )}
+
       {/* Match Log — Phase 2B.4 */}
       {matches.length > 0 ? (
         <Section icon={<Trophy size={14} />} title={`Match Log (${matches.length})`}>
@@ -438,8 +784,8 @@ export default function AthleteViewPage() {
           <Zap size={12} /> <Flame size={12} />
           Coming next
         </div>
-        Habit streak, practice history, recovery trends, and the ability to
-        leave coach feedback on videos and matches.
+        Video sharing for coach feedback, real-time updates when the athlete
+        logs something, and coach-authored notes on matches and videos.
       </div>
     </div>
   );

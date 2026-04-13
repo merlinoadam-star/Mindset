@@ -193,6 +193,8 @@ export interface HabitDefinition {
 }
 
 export interface HabitCompletion {
+  /** Stable id for sync. Older local records may not have one. */
+  id?: string;
   habitId: string;
   date: string;
   completedAt: string;

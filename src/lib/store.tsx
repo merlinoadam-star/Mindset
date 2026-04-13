@@ -38,6 +38,20 @@ import {
 import { useAuth } from "./authContext";
 import { upsertAthleteProfile } from "./athleteSync";
 import { syncAllMatches } from "./matchSync";
+import {
+  syncAwards,
+  syncHabitCompletions,
+  syncMentalCheckins,
+  syncMentalSessions,
+  syncNutritionLogs,
+  syncOpponents,
+  syncPowerPhrases,
+  syncPractices,
+  syncRecoveryCheckins,
+  syncTournaments,
+  syncUnlockedBadges,
+  syncWeeklyReviews,
+} from "./dataSync";
 
 interface StoreContextValue {
   state: AppState;
@@ -214,6 +228,105 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id);
   }, [account, state.matches]);
 
+  // Phase 2B.5 — Sync all other athlete data types. Each gets its own
+  // debounced effect so unrelated changes don't trigger cross-entity
+  // syncs. The helpers are idempotent by id.
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncPractices(account.id, state.practices);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.practices]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncHabitCompletions(account.id, state.habitCompletions);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.habitCompletions]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncOpponents(account.id, state.opponents);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.opponents]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncMentalCheckins(account.id, state.checkins);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.checkins]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncMentalSessions(account.id, state.mentalSessions ?? []);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.mentalSessions]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncRecoveryCheckins(account.id, state.recoveryCheckins ?? []);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.recoveryCheckins]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncNutritionLogs(account.id, state.nutritionLogs ?? []);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.nutritionLogs]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncWeeklyReviews(account.id, state.weeklyReviews ?? []);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.weeklyReviews]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncPowerPhrases(account.id, state.powerPhrases ?? []);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.powerPhrases]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncTournaments(account.id, state.profile?.tournaments ?? []);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.profile?.tournaments]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncAwards(account.id, state.profile?.awards ?? []);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.profile?.awards]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    const id = window.setTimeout(() => {
+      syncUnlockedBadges(account.id, state.unlockedBadges);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, state.unlockedBadges]);
+
   // After any XP-earning activity, check if the athlete has earned a new freeze
   useEffect(() => {
     if (shouldEarnNewFreeze(state)) {
@@ -287,6 +400,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             habitCompletions: [
               ...prev.habitCompletions,
               {
+                id: genId(),
                 habitId,
                 date: today,
                 completedAt: new Date().toISOString(),
