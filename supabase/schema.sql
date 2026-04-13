@@ -98,6 +98,24 @@ create table if not exists public.practices (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.opponents (
+  id uuid primary key default gen_random_uuid(),
+  athlete_id uuid not null references public.athletes(id) on delete cascade,
+  first_name text,
+  last_name text not null,
+  team_name text,
+  state text,
+  coach_name text,
+  weight_class text,
+  position text,
+  grade text,
+  jersey_number text,
+  strategy_notes text,
+  general_notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz
+);
+
 create table if not exists public.matches (
   id uuid primary key default gen_random_uuid(),
   athlete_id uuid not null references public.athletes(id) on delete cascade,
@@ -123,24 +141,6 @@ create table if not exists public.matches (
   post_match_completed_at timestamptz,
   xp_earned int not null default 0,
   created_at timestamptz not null default now()
-);
-
-create table if not exists public.opponents (
-  id uuid primary key default gen_random_uuid(),
-  athlete_id uuid not null references public.athletes(id) on delete cascade,
-  first_name text,
-  last_name text not null,
-  team_name text,
-  state text,
-  coach_name text,
-  weight_class text,
-  position text,
-  grade text,
-  jersey_number text,
-  strategy_notes text,
-  general_notes text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz
 );
 
 create table if not exists public.mental_checkins (
