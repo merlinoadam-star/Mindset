@@ -8,7 +8,12 @@ import { supabase } from "./supabase";
  * the user explicitly turns it off.
  */
 
-export type PrefKey = "notes" | "cheers" | "weeklyFocus" | "milestones";
+export type PrefKey =
+  | "notes"
+  | "cheers"
+  | "weeklyFocus"
+  | "milestones"
+  | "dailyReminder";
 
 export type NotificationPrefs = Record<PrefKey, boolean>;
 
@@ -17,6 +22,7 @@ export const DEFAULT_PREFS: NotificationPrefs = {
   cheers: true,
   weeklyFocus: true,
   milestones: true,
+  dailyReminder: true,
 };
 
 export async function fetchNotificationPrefs(
