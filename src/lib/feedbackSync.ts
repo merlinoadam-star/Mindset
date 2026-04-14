@@ -88,6 +88,7 @@ export async function postFeedback(params: {
           body: preview,
           url: "/feedback",
           tag: `feedback-${params.targetType}-${params.targetId}`,
+          prefKey: isCheer ? "cheers" : "notes",
         },
       })
       .catch((e) => console.warn("send-push invoke failed", e));

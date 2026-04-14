@@ -130,6 +130,7 @@ export async function setWeeklyFocus(params: {
           body: preview,
           url: "/",
           tag: `weekly-focus-${week}`,
+          prefKey: "weeklyFocus",
         },
       })
       .catch((e) => console.warn("send-push invoke failed", e));

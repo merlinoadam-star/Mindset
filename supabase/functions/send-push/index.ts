@@ -43,6 +43,12 @@ interface Payload {
   body: string;
   url?: string;
   tag?: string;
+  /**
+   * Key into the recipient's notification_prefs JSONB. If the pref is
+   * explicitly set to false, this call is a no-op. Missing key = ON.
+   * Known keys: "notes", "cheers", "weeklyFocus", "milestones".
+   */
+  prefKey?: string;
 }
 
 // @ts-expect-error — Deno global
@@ -66,7 +72,7 @@ Deno.serve(async (req: Request) => {
     return new Response("Invalid JSON", { status: 400, headers: corsHeaders });
   }
 
-  const { toAccountId, title, body, url, tag } = payload;
+  const { toAccountId, title, body, url, tag, prefKey } = payload;
   if (!toAccountId || !title) {
     return new Response("Missing toAccountId or title", {
       status: 400,
@@ -75,6 +81,27 @@ Deno.serve(async (req: Request) => {
   }
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  // Notification preferences check — if the recipient has explicitly
+  // disabled this pref key, return a 200 without sending. Missing key
+  // defaults to ON.
+  if (prefKey) {
+    const { data: account } = await admin
+      .from("accounts")
+      .select("notification_prefs")
+      .eq("id", toAccountId)
+      .maybeSingle();
+    const prefs = (account?.notification_prefs ?? {}) as Record<string, unknown>;
+    if (prefs[prefKey] === false) {
+      return new Response(
+        JSON.stringify({ sent: 0, reason: `pref ${prefKey} disabled` }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "content-type": "application/json" },
+        }
+      );
+    }
+  }
 
   const { data: subs, error } = await admin
     .from("push_subscriptions")

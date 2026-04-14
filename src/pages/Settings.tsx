@@ -15,6 +15,7 @@ import {
 import { getPersona } from "../lib/speechPersonas";
 import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
 import NotificationsCard from "../components/NotificationsCard";
+import NotificationPrefsCard from "../components/NotificationPrefsCard";
 import { deleteMyAccount } from "../lib/accountLifecycle";
 import {
   exportAthleteData,
@@ -154,6 +155,8 @@ export default function SettingsPage() {
       </Link>
 
       <NotificationsCard />
+
+      <NotificationPrefsCard />
 
       <div className="card">
         <h2 className="font-bold mb-3">Profile</h2>

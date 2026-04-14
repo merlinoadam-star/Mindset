@@ -30,14 +30,15 @@ async function pushToMany(
   title: string,
   body: string,
   tag: string,
-  url: string
+  url: string,
+  prefKey = "milestones"
 ): Promise<void> {
   if (!supabase || accountIds.length === 0) return;
   await Promise.all(
     accountIds.map((id) =>
       supabase!.functions
         .invoke("send-push", {
-          body: { toAccountId: id, title, body, url, tag },
+          body: { toAccountId: id, title, body, url, tag, prefKey },
         })
         .catch((e) => console.warn("send-push invoke failed", e))
     )

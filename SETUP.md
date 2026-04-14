@@ -84,6 +84,7 @@ As the project evolved, new migrations were added alongside the main
 - `supabase/push_subscriptions.sql` — push subscription table (Phase 2E)
 - `supabase/weekly_focus.sql` — coach/parent weekly focus (Phase 3A.1)
 - `supabase/cheers.sql` — allow "cheer" target_type in feedback (Phase 3A.2)
+- `supabase/notification_prefs.sql` — per-user notification toggles (Phase 3B.5)
 
 ## Push notifications (optional, Phase 2E)
 
