@@ -82,6 +82,7 @@ As the project evolved, new migrations were added alongside the main
 - `supabase/feedback.sql` — coach/parent notes table (Phase 2C)
 - `supabase/realtime.sql` — enable Realtime publications (Phase 2D)
 - `supabase/push_subscriptions.sql` — push subscription table (Phase 2E)
+- `supabase/weekly_focus.sql` — coach/parent weekly focus (Phase 3A.1)
 
 ## Push notifications (optional, Phase 2E)
 

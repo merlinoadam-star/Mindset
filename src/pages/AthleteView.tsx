@@ -14,6 +14,7 @@ import {
   type DbVideoRow,
 } from "../lib/videoSync";
 import FeedbackThread from "../components/FeedbackThread";
+import CoachWeeklyFocusCard from "../components/CoachWeeklyFocusCard";
 import { useRealtime } from "../lib/useRealtime";
 import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
@@ -121,6 +122,7 @@ export default function AthleteViewPage() {
   useRealtime({ table: "awards", filter: athleteFilter, enabled: !!id }, silentRefresh);
   useRealtime({ table: "unlocked_badges", filter: athleteFilter, enabled: !!id }, silentRefresh);
   useRealtime({ table: "videos", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "weekly_focus", filter: athleteFilter, enabled: !!id }, silentRefresh);
 
   if (loading) {
     return (
@@ -205,6 +207,9 @@ export default function AthleteViewPage() {
           </div>
         </div>
       </div>
+
+      {/* Weekly focus (editable by connected coach / parent) */}
+      {id && <CoachWeeklyFocusCard athleteId={id} />}
 
       {/* Level / XP card */}
       <div className="card">

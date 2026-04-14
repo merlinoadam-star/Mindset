@@ -7,6 +7,7 @@ import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
 import DailyGoalCard from "../components/DailyGoalCard";
 import UnreadFeedbackBanner from "../components/UnreadFeedbackBanner";
+import WeeklyFocusCard from "../components/WeeklyFocusCard";
 import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles, Video as VideoIcon, Users } from "lucide-react";
 import { currentWeekMondayISO } from "../lib/gamification";
 
@@ -66,6 +67,8 @@ export default function Dashboard() {
       <XPBar xp={state.xp} info={info} />
 
       <UnreadFeedbackBanner />
+
+      <WeeklyFocusCard />
 
       <DailyGoalCard />
 
