@@ -348,3 +348,136 @@ export async function fetchAllAthleteData(athleteId: string) {
     mentalSessions,
   };
 }
+
+// -----------------------------------------------------------------------------
+// Row → client converters (for rehydrating local state from cloud on sign-in)
+// -----------------------------------------------------------------------------
+
+export const rowToPractice = (r: AnyRow): PracticeEntry => ({
+  id: r.id as string,
+  date: r.date as string,
+  durationMin: r.duration_min as number,
+  type: r.type as string,
+  intensity: r.intensity as PracticeEntry["intensity"],
+  notes: (r.notes as string | null) ?? "",
+  drills: (r.drills as string[] | null) ?? undefined,
+  xpEarned: r.xp_earned as number,
+});
+
+export const rowToHabitCompletion = (r: AnyRow): HabitCompletion => ({
+  id: r.id as string,
+  habitId: r.habit_id as string,
+  date: r.date as string,
+  completedAt: r.completed_at as string,
+});
+
+export const rowToOpponent = (r: AnyRow): OpponentEntry => ({
+  id: r.id as string,
+  firstName: (r.first_name as string | null) ?? undefined,
+  lastName: r.last_name as string,
+  teamName: (r.team_name as string | null) ?? undefined,
+  state: (r.state as string | null) ?? undefined,
+  coachName: (r.coach_name as string | null) ?? undefined,
+  weightClass: (r.weight_class as string | null) ?? undefined,
+  position: (r.position as string | null) ?? undefined,
+  grade: (r.grade as string | null) ?? undefined,
+  jerseyNumber: (r.jersey_number as string | null) ?? undefined,
+  strategyNotes: (r.strategy_notes as string | null) ?? undefined,
+  generalNotes: (r.general_notes as string | null) ?? undefined,
+  createdAt: r.created_at as string,
+  updatedAt: (r.updated_at as string | null) ?? undefined,
+});
+
+export const rowToMentalCheckin = (r: AnyRow): MentalCheckin => ({
+  id: r.id as string,
+  date: r.date as string,
+  mood: r.mood as MentalCheckin["mood"],
+  gratitude: (r.gratitude as string | null) ?? "",
+  goal: (r.goal as string | null) ?? "",
+  goalMet: (r.goal_met as boolean | null) ?? undefined,
+  goalReviewNote: (r.goal_review_note as string | null) ?? undefined,
+  goalReviewedAt: (r.goal_reviewed_at as string | null) ?? undefined,
+  xpEarned: r.xp_earned as number,
+});
+
+export const rowToMentalSession = (r: AnyRow): MentalSession => ({
+  id: r.id as string,
+  kind: r.kind as MentalSession["kind"],
+  refId: r.ref_id as string,
+  date: r.date as string,
+  completedAt: r.completed_at as string,
+  xpEarned: r.xp_earned as number,
+});
+
+export const rowToRecoveryCheckin = (r: AnyRow): RecoveryCheckin => ({
+  id: r.id as string,
+  date: r.date as string,
+  sleepHours: (r.sleep_hours as number | null) ?? undefined,
+  sleepQuality: (r.sleep_quality as RecoveryCheckin["sleepQuality"]) ?? undefined,
+  soreness: (r.soreness as RecoveryCheckin["soreness"]) ?? undefined,
+  energy: (r.energy as RecoveryCheckin["energy"]) ?? undefined,
+  notes: (r.notes as string | null) ?? undefined,
+  xpEarned: r.xp_earned as number,
+});
+
+export const rowToNutritionLog = (r: AnyRow): NutritionLog => ({
+  id: r.id as string,
+  date: r.date as string,
+  ateBreakfast: (r.ate_breakfast as boolean | null) ?? undefined,
+  ateLunch: (r.ate_lunch as boolean | null) ?? undefined,
+  ateDinner: (r.ate_dinner as boolean | null) ?? undefined,
+  ateSnacks: (r.ate_snacks as boolean | null) ?? undefined,
+  hadProtein: (r.had_protein as boolean | null) ?? undefined,
+  hadFruitVeg: (r.had_fruit_veg as boolean | null) ?? undefined,
+  hadWholeGrains: (r.had_whole_grains as boolean | null) ?? undefined,
+  hadHealthyFats: (r.had_healthy_fats as boolean | null) ?? undefined,
+  preWorkoutFuel: (r.pre_workout_fuel as boolean | null) ?? undefined,
+  postWorkoutFuel: (r.post_workout_fuel as boolean | null) ?? undefined,
+  waterGlasses: (r.water_glasses as number | null) ?? undefined,
+  proudOf: (r.proud_of as string | null) ?? undefined,
+  notes: (r.notes as string | null) ?? undefined,
+  xpEarned: r.xp_earned as number,
+});
+
+export const rowToWeeklyReview = (r: AnyRow): WeeklyReview => {
+  const wins = (r.wins as string[] | null) ?? ["", "", ""];
+  return {
+    id: r.id as string,
+    weekStartDate: r.week_start_date as string,
+    wins: [wins[0] ?? "", wins[1] ?? "", wins[2] ?? ""] as WeeklyReview["wins"],
+    challenge: (r.challenge as string | null) ?? "",
+    learned: (r.learned as string | null) ?? "",
+    nextWeekGoal: (r.next_week_goal as string | null) ?? "",
+    xpEarned: r.xp_earned as number,
+    createdAt: r.created_at as string,
+  };
+};
+
+export const rowToPowerPhrase = (r: AnyRow): PowerPhrase => ({
+  id: r.id as string,
+  text: r.text as string,
+  isPinned: (r.is_pinned as boolean | null) ?? false,
+  timesUsed: (r.times_used as number | null) ?? 0,
+  createdAt: r.created_at as string,
+});
+
+export const rowToTournament = (r: AnyRow): TournamentEntry => ({
+  id: r.id as string,
+  name: r.name as string,
+  year: r.year as number,
+  result: r.result as string,
+  type: (r.type as TournamentEntry["type"]) ?? undefined,
+  date: (r.date as string | null) ?? undefined,
+});
+
+export const rowToAward = (r: AnyRow): AwardEntry => ({
+  id: r.id as string,
+  name: r.name as string,
+  year: r.year as number,
+  note: (r.note as string | null) ?? undefined,
+});
+
+export const rowToUnlockedBadge = (r: AnyRow): UnlockedBadge => ({
+  id: r.id as string,
+  unlockedAt: r.unlocked_at as string,
+});

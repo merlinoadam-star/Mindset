@@ -37,9 +37,30 @@ import {
   todayISO,
 } from "./gamification";
 import { useAuth } from "./authContext";
-import { upsertAthleteProfile } from "./athleteSync";
-import { syncAllMatches } from "./matchSync";
 import {
+  fetchAthleteProfile,
+  rowToProfile,
+  upsertAthleteProfile,
+} from "./athleteSync";
+import {
+  fetchMatchesForAthlete,
+  rowToMatch,
+  syncAllMatches,
+} from "./matchSync";
+import {
+  fetchAllAthleteData,
+  rowToAward,
+  rowToHabitCompletion,
+  rowToMentalCheckin,
+  rowToMentalSession,
+  rowToNutritionLog,
+  rowToOpponent,
+  rowToPowerPhrase,
+  rowToPractice,
+  rowToRecoveryCheckin,
+  rowToTournament,
+  rowToUnlockedBadge,
+  rowToWeeklyReview,
   syncAwards,
   syncHabitCompletions,
   syncMentalCheckins,
@@ -192,6 +213,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
   const { account } = useAuth();
 
+  // Tracks whether we've pulled the athlete's cloud data into local state
+  // for this sign-in session. All sync-UP effects wait on this so we don't
+  // upload empty local state over existing cloud data on a new device.
+  const [cloudHydrated, setCloudHydrated] = useState(false);
+
+  // Today's date — recomputed periodically so unchanged tab sessions still
+  // detect a day rollover (e.g. phone left open overnight).
+  const [today, setToday] = useState<string>(() => todayISO());
+
   // Stable ref the video callbacks use to read the current athlete id
   // without re-creating themselves every render.
   const athleteAccountIdRef = useRef<string | null>(null);
@@ -204,14 +234,209 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveState(state);
   }, [state]);
 
+  // Hydrate local state from Supabase on athlete sign-in. Without this the
+  // app only ever WRITES to Supabase and new devices come up blank (forcing
+  // the user through onboarding, which then overwrites their cloud profile).
+  //
+  // Merge strategy: items present in the cloud replace local items with the
+  // same id; items that exist only locally (never synced yet) are kept.
+  // If the cloud is completely empty (first-time user), we leave local state
+  // alone so the subsequent upload pushes it up.
+  const hydratedAccountIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!account || account.role !== "athlete") {
+      hydratedAccountIdRef.current = null;
+      setCloudHydrated(false);
+      return;
+    }
+    // Already hydrated for THIS account — skip. Switching athletes resets.
+    if (hydratedAccountIdRef.current === account.id) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const [profileRow, dataRows, matchRows] = await Promise.all([
+          fetchAthleteProfile(account.id),
+          fetchAllAthleteData(account.id),
+          fetchMatchesForAthlete(account.id),
+        ]);
+        if (cancelled) return;
+
+        const mergeById = <T extends { id?: string }>(
+          cloud: T[],
+          local: T[]
+        ): T[] => {
+          if (cloud.length === 0) return local;
+          const cloudIds = new Set(
+            cloud.map((c) => c.id).filter((x): x is string => Boolean(x))
+          );
+          const localOnly = local.filter(
+            (l) => !l.id || !cloudIds.has(l.id)
+          );
+          return [...cloud, ...localOnly];
+        };
+
+        setState((prev) => {
+          let profile = prev.profile;
+          let xp = prev.xp;
+          let voicePersonaId = prev.voicePersonaId;
+          if (profileRow) {
+            const cloudProfile = rowToProfile(profileRow);
+            // Preserve local tournaments/awards if cloud profile doesn't have them
+            // yet (they sync via their own tables).
+            profile = {
+              ...cloudProfile,
+              tournaments: cloudProfile.tournaments ?? prev.profile?.tournaments,
+              awards: cloudProfile.awards ?? prev.profile?.awards,
+            };
+            // Cloud XP is authoritative — it may have been earned on another device.
+            xp = Math.max(profileRow.xp ?? 0, prev.xp);
+            voicePersonaId = profileRow.voice_persona_id ?? prev.voicePersonaId;
+          }
+
+          const matches = mergeById(matchRows.map(rowToMatch), prev.matches);
+
+          const practices = dataRows
+            ? mergeById(dataRows.practices.map(rowToPractice), prev.practices)
+            : prev.practices;
+          const habitCompletions = dataRows
+            ? mergeById(
+                dataRows.habits.map(rowToHabitCompletion),
+                prev.habitCompletions
+              )
+            : prev.habitCompletions;
+          const opponents = dataRows
+            ? mergeById(dataRows.opponents.map(rowToOpponent), prev.opponents)
+            : prev.opponents;
+          const checkins = dataRows
+            ? mergeById(
+                dataRows.mentalCheckins.map(rowToMentalCheckin),
+                prev.checkins
+              )
+            : prev.checkins;
+          const mentalSessions = dataRows
+            ? mergeById(
+                dataRows.mentalSessions.map(rowToMentalSession),
+                prev.mentalSessions ?? []
+              )
+            : prev.mentalSessions;
+          const recoveryCheckins = dataRows
+            ? mergeById(
+                dataRows.recovery.map(rowToRecoveryCheckin),
+                prev.recoveryCheckins ?? []
+              )
+            : prev.recoveryCheckins;
+          const nutritionLogs = dataRows
+            ? mergeById(
+                dataRows.nutrition.map(rowToNutritionLog),
+                prev.nutritionLogs ?? []
+              )
+            : prev.nutritionLogs;
+          const weeklyReviews = dataRows
+            ? mergeById(
+                dataRows.weeklyReviews.map(rowToWeeklyReview),
+                prev.weeklyReviews ?? []
+              )
+            : prev.weeklyReviews;
+          const powerPhrases = dataRows
+            ? mergeById(
+                dataRows.powerPhrases.map(rowToPowerPhrase),
+                prev.powerPhrases ?? []
+              )
+            : prev.powerPhrases;
+          const unlockedBadges = dataRows
+            ? mergeById(
+                dataRows.badges.map(rowToUnlockedBadge),
+                prev.unlockedBadges
+              )
+            : prev.unlockedBadges;
+
+          // Tournaments + awards live on the profile object. Fold the fetched
+          // rows into the profile (again, cloud wins by id, local-only entries
+          // are preserved).
+          const cloudTournaments = dataRows
+            ? dataRows.tournaments.map(rowToTournament)
+            : [];
+          const cloudAwards = dataRows ? dataRows.awards.map(rowToAward) : [];
+          if (profile) {
+            profile = {
+              ...profile,
+              tournaments:
+                cloudTournaments.length > 0
+                  ? mergeById(cloudTournaments, profile.tournaments ?? [])
+                  : profile.tournaments,
+              awards:
+                cloudAwards.length > 0
+                  ? mergeById(cloudAwards, profile.awards ?? [])
+                  : profile.awards,
+            };
+          }
+
+          return {
+            ...prev,
+            profile,
+            xp,
+            voicePersonaId,
+            matches,
+            practices,
+            habitCompletions,
+            opponents,
+            checkins,
+            mentalSessions,
+            recoveryCheckins,
+            nutritionLogs,
+            weeklyReviews,
+            powerPhrases,
+            unlockedBadges,
+          };
+        });
+      } catch (e) {
+        console.error("Cloud hydration failed", e);
+      } finally {
+        if (!cancelled) {
+          hydratedAccountIdRef.current = account.id;
+          setCloudHydrated(true);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [account]);
+
+  // Day-change detector — re-reads today's date every minute. When the date
+  // actually changes (typically overnight), React re-renders any component
+  // that depends on `today`, which naturally clears "today-scoped" UI like
+  // the daily goal card and makes habit toggles fresh for the new day.
+  // Long-term data (matches, practices, tournaments) isn't affected.
+  useEffect(() => {
+    const tick = () => {
+      const now = todayISO();
+      setToday((prev) => (prev === now ? prev : now));
+    };
+    const id = window.setInterval(tick, 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+
   // Phase 2B.2 — Auto-sync athlete profile to Supabase when signed in.
   // Writes are debounced so we don't spam the database on every tiny
   // change. If sync fails, the local state is unaffected.
+  // Gated on cloudHydrated so we don't upload an empty profile over the
+  // real one on a fresh device before the fetch comes back.
   useEffect(() => {
     if (
       !account ||
       account.role !== "athlete" ||
-      !state.profile
+      !state.profile ||
+      !cloudHydrated
     ) {
       return;
     }
@@ -226,6 +451,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(id);
   }, [
     account,
+    cloudHydrated,
     state.profile,
     state.xp,
     state.voicePersonaId,
@@ -234,112 +460,114 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Phase 2B.4 — Auto-sync match log to Supabase when signed in.
   // Upserts every match and deletes cloud rows that no longer exist locally.
   // Debounced. Old non-UUID records are skipped (they stay local-only).
+  // Every sync-UP effect below waits on cloudHydrated so a fresh device
+  // doesn't wipe the user's cloud data before the initial fetch completes.
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncAllMatches(account.id, state.matches);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.matches]);
+  }, [account, cloudHydrated, state.matches]);
 
   // Phase 2B.5 — Sync all other athlete data types. Each gets its own
   // debounced effect so unrelated changes don't trigger cross-entity
   // syncs. The helpers are idempotent by id.
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncPractices(account.id, state.practices);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.practices]);
+  }, [account, cloudHydrated, state.practices]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncHabitCompletions(account.id, state.habitCompletions);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.habitCompletions]);
+  }, [account, cloudHydrated, state.habitCompletions]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncOpponents(account.id, state.opponents);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.opponents]);
+  }, [account, cloudHydrated, state.opponents]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncMentalCheckins(account.id, state.checkins);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.checkins]);
+  }, [account, cloudHydrated, state.checkins]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncMentalSessions(account.id, state.mentalSessions ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.mentalSessions]);
+  }, [account, cloudHydrated, state.mentalSessions]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncRecoveryCheckins(account.id, state.recoveryCheckins ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.recoveryCheckins]);
+  }, [account, cloudHydrated, state.recoveryCheckins]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncNutritionLogs(account.id, state.nutritionLogs ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.nutritionLogs]);
+  }, [account, cloudHydrated, state.nutritionLogs]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncWeeklyReviews(account.id, state.weeklyReviews ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.weeklyReviews]);
+  }, [account, cloudHydrated, state.weeklyReviews]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncPowerPhrases(account.id, state.powerPhrases ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.powerPhrases]);
+  }, [account, cloudHydrated, state.powerPhrases]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncTournaments(account.id, state.profile?.tournaments ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.profile?.tournaments]);
+  }, [account, cloudHydrated, state.profile?.tournaments]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncAwards(account.id, state.profile?.awards ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.profile?.awards]);
+  }, [account, cloudHydrated, state.profile?.awards]);
 
   useEffect(() => {
-    if (!account || account.role !== "athlete") return;
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
     const id = window.setTimeout(() => {
       syncUnlockedBadges(account.id, state.unlockedBadges);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, state.unlockedBadges]);
+  }, [account, cloudHydrated, state.unlockedBadges]);
 
   // After any XP-earning activity, check if the athlete has earned a new freeze
   useEffect(() => {
@@ -1305,13 +1533,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const hasCheckinToday = useMemo(
-    () => state.checkins.some((c) => c.date === todayISO()),
-    [state.checkins]
+    () => state.checkins.some((c) => c.date === today),
+    [state.checkins, today]
   );
 
   const hasClaimedQuoteToday = useMemo(
-    () => state.lastQuoteClaimDate === todayISO(),
-    [state.lastQuoteClaimDate]
+    () => state.lastQuoteClaimDate === today,
+    [state.lastQuoteClaimDate, today]
   );
 
   const value: StoreContextValue = {
