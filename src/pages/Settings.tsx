@@ -16,6 +16,11 @@ import { getPersona } from "../lib/speechPersonas";
 import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
 import NotificationsCard from "../components/NotificationsCard";
 import { deleteMyAccount } from "../lib/accountLifecycle";
+import {
+  exportAthleteData,
+  exportCoachParentData,
+} from "../lib/dataExport";
+import { Download } from "lucide-react";
 
 export default function SettingsPage() {
   const { state, resetAll } = useStore();
@@ -25,6 +30,25 @@ export default function SettingsPage() {
   const [deleteText, setDeleteText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportErr, setExportErr] = useState<string | null>(null);
+
+  const handleExport = async () => {
+    setExportErr(null);
+    setExporting(true);
+    try {
+      if (account && (account.role === "coach" || account.role === "parent")) {
+        const { error } = await exportCoachParentData(account);
+        if (error) setExportErr(error);
+      } else {
+        exportAthleteData(account ?? null, state);
+      }
+    } catch (e) {
+      setExportErr((e as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (!state.profile) return null;
 
@@ -185,6 +209,35 @@ export default function SettingsPage() {
             </dd>
           </div>
         </dl>
+      </div>
+
+      {/* Data export — for everyone, always available */}
+      <div className="card">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 text-white flex items-center justify-center flex-shrink-0">
+            <Download size={18} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-slate-900">Download my data</div>
+            <div className="text-xs text-slate-500 mt-0.5 leading-snug">
+              {account && (account.role === "coach" || account.role === "parent")
+                ? "Export your notes, cheers, weekly focuses, and connections as JSON."
+                : "Export your profile, matches, practices, habits, and history as JSON."}
+            </div>
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="mt-3 btn-secondary !py-1.5 !px-3 !text-xs disabled:opacity-40"
+            >
+              {exporting ? "Preparing..." : "Download JSON"}
+            </button>
+            {exportErr && (
+              <div className="text-xs text-red-600 mt-2 font-medium">
+                {exportErr}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="card border-red-200">
