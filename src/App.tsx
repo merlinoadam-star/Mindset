@@ -5,6 +5,7 @@ import Layout from "./components/Layout";
 import CoachLayout from "./components/CoachLayout";
 import RewardToast from "./components/RewardToast";
 import AuthPage from "./pages/Auth";
+import ResetPasswordPage from "./pages/ResetPassword";
 import ConnectionsPage from "./pages/Connections";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
@@ -36,6 +37,24 @@ import ExportReportPage from "./pages/ExportReport";
 function AppShell() {
   const { state } = useStore();
   const { account, loading: authLoading } = useAuth();
+
+  // Password-reset deep link — users land here from the email link with
+  // a recovery token in the URL hash. We bypass all the normal auth /
+  // profile gating and let them set a new password. After success the
+  // page does a hard redirect to "/" to exit this mode.
+  if (
+    typeof window !== "undefined" &&
+    window.location.pathname === "/reset-password"
+  ) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="*" element={<Navigate to="/reset-password" replace />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
 
   // Still waiting on initial session resolution
   if (authLoading) {

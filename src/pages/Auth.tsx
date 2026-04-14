@@ -5,10 +5,17 @@ import type { AccountRole } from "../types";
 import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
 import { Mail, Lock, User as UserIcon, Sparkles } from "lucide-react";
 
-type Mode = "signin" | "signup" | "magic";
+type Mode = "signin" | "signup" | "magic" | "forgot";
 
 export default function AuthPage() {
-  const { configured, session, signIn, signUp, sendMagicLink } = useAuth();
+  const {
+    configured,
+    session,
+    signIn,
+    signUp,
+    sendMagicLink,
+    sendPasswordReset,
+  } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("signin");
 
@@ -52,6 +59,13 @@ export default function AuthPage() {
         const { error } = await sendMagicLink(email);
         if (error) setError(error);
         else setInfo("Check your email for a sign-in link.");
+      } else if (mode === "forgot") {
+        const { error } = await sendPasswordReset(email);
+        if (error) setError(error);
+        else
+          setInfo(
+            "If an account exists for that email, we've sent a password reset link. Check your inbox."
+          );
       }
     } finally {
       setLoading(false);
@@ -96,11 +110,15 @@ export default function AuthPage() {
               ? "Create your account"
               : mode === "magic"
               ? "Sign in with email"
+              : mode === "forgot"
+              ? "Reset your password"
               : "Welcome back"}
           </h1>
           <p className="text-white/60 mt-2 text-sm">
             {mode === "signup"
               ? "Athletes, coaches, and parents — one app, three perspectives."
+              : mode === "forgot"
+              ? "Enter your email and we'll send you a link to set a new password."
               : "Sign in to sync with your coach and parent."}
           </p>
         </div>
@@ -179,7 +197,7 @@ export default function AuthPage() {
             </div>
           </div>
 
-          {mode !== "magic" && (
+          {mode !== "magic" && mode !== "forgot" && (
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
                 Password
@@ -224,30 +242,69 @@ export default function AuthPage() {
               ? "Create Account"
               : mode === "magic"
               ? "Send Magic Link"
+              : mode === "forgot"
+              ? "Send Reset Link"
               : "Sign In"}
           </button>
 
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <div className="flex-1 h-px bg-slate-200" />
-            <span>or</span>
-            <div className="flex-1 h-px bg-slate-200" />
-          </div>
+          {mode === "signin" && (
+            <div className="text-center -mt-2">
+              <button
+                type="button"
+                className="text-xs text-slate-500 hover:text-slate-700 font-medium"
+                onClick={() => {
+                  setMode("forgot");
+                  setError(null);
+                  setInfo(null);
+                }}
+              >
+                Forgot your password?
+              </button>
+            </div>
+          )}
 
-          <button
-            type="button"
-            onClick={() =>
-              setMode(mode === "magic" ? "signin" : "magic")
-            }
-            className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 flex items-center justify-center gap-2"
-          >
-            <Sparkles size={14} />
-            {mode === "magic"
-              ? "Use password instead"
-              : "Email me a magic link"}
-          </button>
+          {mode === "forgot" && (
+            <div className="text-center -mt-2">
+              <button
+                type="button"
+                className="text-xs text-slate-500 hover:text-slate-700 font-medium"
+                onClick={() => {
+                  setMode("signin");
+                  setError(null);
+                  setInfo(null);
+                }}
+              >
+                ← Back to sign in
+              </button>
+            </div>
+          )}
 
-          <div className="text-center text-xs text-slate-500 pt-1">
-            {mode === "signup" ? (
+          {mode !== "forgot" && (
+            <>
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <div className="flex-1 h-px bg-slate-200" />
+                <span>or</span>
+                <div className="flex-1 h-px bg-slate-200" />
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setMode(mode === "magic" ? "signin" : "magic")
+                }
+                className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 flex items-center justify-center gap-2"
+              >
+                <Sparkles size={14} />
+                {mode === "magic"
+                  ? "Use password instead"
+                  : "Email me a magic link"}
+              </button>
+            </>
+          )}
+
+          {mode !== "forgot" && (
+            <div className="text-center text-xs text-slate-500 pt-1">
+              {mode === "signup" ? (
               <>
                 Already have an account?{" "}
                 <button
@@ -270,7 +327,8 @@ export default function AuthPage() {
                 </button>
               </>
             )}
-          </div>
+            </div>
+          )}
         </form>
       </div>
     </div>

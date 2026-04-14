@@ -30,6 +30,8 @@ interface AuthContextValue {
   ) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   sendMagicLink: (email: string) => Promise<{ error?: string }>;
+  sendPasswordReset: (email: string) => Promise<{ error?: string }>;
+  updatePassword: (newPassword: string) => Promise<{ error?: string }>;
   refreshAccount: () => Promise<void>;
 }
 
@@ -156,6 +158,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const sendPasswordReset = useCallback(
+    async (email: string): Promise<{ error?: string }> => {
+      if (!supabase) return { error: "Password reset isn't available yet." };
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/reset-password`
+          : undefined;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+      if (error) return { error: error.message };
+      return {};
+    },
+    []
+  );
+
+  const updatePassword = useCallback(
+    async (newPassword: string): Promise<{ error?: string }> => {
+      if (!supabase) return { error: "Password update isn't available yet." };
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (error) return { error: error.message };
+      return {};
+    },
+    []
+  );
+
   const refreshAccount = useCallback(async () => {
     if (user) await loadAccount(user);
   }, [user, loadAccount]);
@@ -170,6 +200,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signOut,
     sendMagicLink,
+    sendPasswordReset,
+    updatePassword,
     refreshAccount,
   };
 
