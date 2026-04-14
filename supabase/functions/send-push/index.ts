@@ -27,6 +27,16 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
+// CORS headers — browsers send an OPTIONS preflight before the actual POST,
+// and all responses to cross-origin JS need an allow-origin header or the
+// browser throws the response away.
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 interface Payload {
   toAccountId: string;
   title: string;
@@ -37,21 +47,31 @@ interface Payload {
 
 // @ts-expect-error — Deno global
 Deno.serve(async (req: Request) => {
+  // CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
   // Only accept POST + authed users
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
+    return new Response("Method not allowed", {
+      status: 405,
+      headers: corsHeaders,
+    });
   }
 
   let payload: Payload;
   try {
     payload = await req.json();
   } catch {
-    return new Response("Invalid JSON", { status: 400 });
+    return new Response("Invalid JSON", { status: 400, headers: corsHeaders });
   }
 
   const { toAccountId, title, body, url, tag } = payload;
   if (!toAccountId || !title) {
-    return new Response("Missing toAccountId or title", { status: 400 });
+    return new Response("Missing toAccountId or title", {
+      status: 400,
+      headers: corsHeaders,
+    });
   }
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -62,12 +82,18 @@ Deno.serve(async (req: Request) => {
     .eq("account_id", toAccountId);
 
   if (error) {
-    return new Response(`DB error: ${error.message}`, { status: 500 });
+    return new Response(`DB error: ${error.message}`, {
+      status: 500,
+      headers: corsHeaders,
+    });
   }
   if (!subs || subs.length === 0) {
     return new Response(
       JSON.stringify({ sent: 0, reason: "no subscriptions" }),
-      { status: 200, headers: { "content-type": "application/json" } }
+      {
+        status: 200,
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      }
     );
   }
 
@@ -108,6 +134,9 @@ Deno.serve(async (req: Request) => {
   const sent = results.filter((r) => r.ok).length;
   return new Response(
     JSON.stringify({ sent, total: subs.length, results }),
-    { status: 200, headers: { "content-type": "application/json" } }
+    {
+      status: 200,
+      headers: { ...corsHeaders, "content-type": "application/json" },
+    }
   );
 });
