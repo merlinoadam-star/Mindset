@@ -15,6 +15,7 @@ import {
 } from "../lib/videoSync";
 import FeedbackThread from "../components/FeedbackThread";
 import CoachWeeklyFocusCard from "../components/CoachWeeklyFocusCard";
+import CheerButtons from "../components/CheerButtons";
 import { useRealtime } from "../lib/useRealtime";
 import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
@@ -210,6 +211,9 @@ export default function AthleteViewPage() {
 
       {/* Weekly focus (editable by connected coach / parent) */}
       {id && <CoachWeeklyFocusCard athleteId={id} />}
+
+      {/* One-tap encouragement */}
+      {id && <CheerButtons athleteId={id} />}
 
       {/* Level / XP card */}
       <div className="card">

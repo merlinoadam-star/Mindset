@@ -9,7 +9,7 @@ import type { AccountRole } from "../types";
  * can see whether it was seen.
  */
 
-export type FeedbackTargetType = "match" | "video" | "practice";
+export type FeedbackTargetType = "match" | "video" | "practice" | "cheer";
 
 export interface FeedbackRow {
   id: string;
@@ -75,10 +75,11 @@ export async function postFeedback(params: {
   if (params.authorId !== params.athleteId) {
     const preview =
       text.length > 80 ? text.slice(0, 77) + "..." : text;
-    const title =
-      params.authorRole === "coach"
-        ? "New note from your coach"
-        : "New note from your parent";
+    const isCheer = params.targetType === "cheer";
+    const roleLabel = params.authorRole === "coach" ? "coach" : "parent";
+    const title = isCheer
+      ? `Cheer from your ${roleLabel}!`
+      : `New note from your ${roleLabel}`;
     supabase.functions
       .invoke("send-push", {
         body: {

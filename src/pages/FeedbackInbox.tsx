@@ -92,6 +92,7 @@ export default function FeedbackInboxPage() {
         <div className="space-y-2">
           {items.map((it) => {
             const isMine = user?.id === it.author_id;
+            const isCheer = it.target_type === "cheer";
             const matchTarget =
               it.target_type === "match"
                 ? state.matches.find((m) => m.id === it.target_id)
@@ -100,16 +101,17 @@ export default function FeedbackInboxPage() {
               it.target_type === "video"
                 ? state.videos.find((v) => v.id === it.target_id)
                 : null;
-            const contextLabel =
-              matchTarget?.opponent
-                ? `Match vs. ${matchTarget.opponent}`
-                : videoTarget?.title
-                ? `Video: ${videoTarget.title}`
-                : it.target_type === "match"
-                ? "A match"
-                : it.target_type === "video"
-                ? "A video"
-                : "A practice";
+            const contextLabel = isCheer
+              ? null
+              : matchTarget?.opponent
+              ? `Match vs. ${matchTarget.opponent}`
+              : videoTarget?.title
+              ? `Video: ${videoTarget.title}`
+              : it.target_type === "match"
+              ? "A match"
+              : it.target_type === "video"
+              ? "A video"
+              : "A practice";
 
             return (
               <button
@@ -119,25 +121,43 @@ export default function FeedbackInboxPage() {
                   else if (videoTarget) navigate(`/videos`);
                 }}
                 className={`w-full text-left card ${
-                  !it.read_at && !isMine
+                  isCheer
+                    ? !it.read_at && !isMine
+                      ? "border-pink-300 bg-gradient-to-br from-pink-50 to-rose-50"
+                      : "border-pink-200 bg-gradient-to-br from-pink-50/50 to-white"
+                    : !it.read_at && !isMine
                     ? "border-brand-300 bg-gradient-to-br from-brand-50 to-white"
                     : ""
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div className="text-2xl flex-shrink-0 pt-0.5">
-                    {ACCOUNT_ROLE_EMOJIS[it.author_role]}
+                    {isCheer ? "💝" : ACCOUNT_ROLE_EMOJIS[it.author_role]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-slate-900">
                         {it.author_name || ACCOUNT_ROLE_LABELS[it.author_role]}
                       </span>
-                      <span className="text-[11px] text-slate-500">
-                        {ACCOUNT_ROLE_LABELS[it.author_role]}
+                      <span
+                        className={`text-[11px] ${
+                          isCheer
+                            ? "text-pink-700 font-bold bg-pink-100 px-1.5 py-0.5 rounded-full uppercase tracking-wider"
+                            : "text-slate-500"
+                        }`}
+                      >
+                        {isCheer
+                          ? "Cheer"
+                          : ACCOUNT_ROLE_LABELS[it.author_role]}
                       </span>
                       {!it.read_at && !isMine && (
-                        <span className="ml-auto text-[10px] font-bold text-brand-700 bg-brand-100 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                        <span
+                          className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
+                            isCheer
+                              ? "text-pink-700 bg-pink-100"
+                              : "text-brand-700 bg-brand-100"
+                          }`}
+                        >
                           New
                         </span>
                       )}
@@ -147,11 +167,24 @@ export default function FeedbackInboxPage() {
                         </span>
                       )}
                     </div>
-                    <div className="text-xs text-slate-500 mt-0.5">
-                      on <span className="italic">{contextLabel}</span> ·{" "}
-                      {formatDate(it.created_at)}
-                    </div>
-                    <p className="text-sm text-slate-800 mt-1.5 whitespace-pre-wrap leading-snug">
+                    {contextLabel && (
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        on <span className="italic">{contextLabel}</span> ·{" "}
+                        {formatDate(it.created_at)}
+                      </div>
+                    )}
+                    {isCheer && (
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        {formatDate(it.created_at)}
+                      </div>
+                    )}
+                    <p
+                      className={`mt-1.5 whitespace-pre-wrap leading-snug ${
+                        isCheer
+                          ? "text-base font-semibold text-slate-800"
+                          : "text-sm text-slate-800"
+                      }`}
+                    >
                       {it.text}
                     </p>
                   </div>
