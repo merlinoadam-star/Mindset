@@ -17,6 +17,7 @@ import FeedbackThread from "../components/FeedbackThread";
 import CoachWeeklyFocusCard from "../components/CoachWeeklyFocusCard";
 import CheerButtons from "../components/CheerButtons";
 import AthleteGlanceCard from "../components/AthleteGlanceCard";
+import WeeklyWrapUpCard from "../components/WeeklyWrapUpCard";
 import { useRealtime } from "../lib/useRealtime";
 import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
@@ -247,6 +248,9 @@ export default function AthleteViewPage() {
           <span>{info.progressPct}%</span>
         </div>
       </div>
+
+      {/* AI-generated weekly wrap-up (Phase 4F.1) */}
+      {id && <WeeklyWrapUpCard athleteId={id} />}
 
       {/* At-a-glance analytics (Phase 4D.2) */}
       <AthleteGlanceCard

@@ -9,11 +9,14 @@ import DailyGoalCard from "../components/DailyGoalCard";
 import UnreadFeedbackBanner from "../components/UnreadFeedbackBanner";
 import WeeklyFocusCard from "../components/WeeklyFocusCard";
 import ReminderBanner from "../components/ReminderBanner";
+import WeeklyWrapUpCard from "../components/WeeklyWrapUpCard";
+import { useAuth } from "../lib/authContext";
 import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles, Video as VideoIcon, Users } from "lucide-react";
 import { currentWeekMondayISO } from "../lib/gamification";
 
 export default function Dashboard() {
   const { state, hasCheckinToday } = useStore();
+  const { account } = useAuth();
   if (!state.profile) return null;
 
   const info = computeLevel(state.xp, state.profile.sport);
@@ -74,6 +77,10 @@ export default function Dashboard() {
       <ReminderBanner />
 
       <WeeklyFocusCard />
+
+      {account && account.role === "athlete" && (
+        <WeeklyWrapUpCard athleteId={account.id} />
+      )}
 
       <DailyGoalCard />
 
