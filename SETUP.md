@@ -139,3 +139,29 @@ Home Screen).
 
 From that point, every coach/parent note fires a real push
 notification to the athlete's subscribed devices.
+
+## Account deletion (optional, Phase 3B.2)
+
+This lets a signed-in user permanently delete their account + all
+their data from Settings → Danger Zone. Requires one more Edge
+Function:
+
+1. Supabase → **Edge Functions** → **Deploy new function**
+2. Name it `delete-account`
+3. Paste the contents of `supabase/functions/delete-account/index.ts`
+4. Click **Deploy**
+5. On the function's **Details / Settings** page, turn **Verify JWT
+   with legacy secret** OFF (same as you did for `send-push`)
+
+No secrets to add — the function uses the auto-injected
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+
+## Password reset (Phase 3B.1)
+
+Supabase's built-in password reset requires one quick settings tweak:
+
+1. Supabase → **Authentication** → **URL Configuration**
+2. Under **Redirect URLs**, add `https://your-domain.vercel.app/reset-password`
+3. Click **Save**
+
+Without this, the reset email links will 404.

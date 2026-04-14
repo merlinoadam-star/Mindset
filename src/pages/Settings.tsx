@@ -10,15 +10,21 @@ import {
   Users,
   LogOut,
   LogIn,
+  AlertTriangle,
 } from "lucide-react";
 import { getPersona } from "../lib/speechPersonas";
 import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
 import NotificationsCard from "../components/NotificationsCard";
+import { deleteMyAccount } from "../lib/accountLifecycle";
 
 export default function SettingsPage() {
   const { state, resetAll } = useStore();
   const { configured, account, signOut } = useAuth();
   const [confirming, setConfirming] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<"idle" | "confirm">("idle");
+  const [deleteText, setDeleteText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteErr, setDeleteErr] = useState<string | null>(null);
 
   if (!state.profile) return null;
 
@@ -184,8 +190,9 @@ export default function SettingsPage() {
       <div className="card border-red-200">
         <h2 className="font-bold mb-1 text-red-700">Danger Zone</h2>
         <p className="text-sm text-slate-600 mb-3">
-          Reset all data. This will delete your profile, XP, habits, practices,
-          and badges.
+          Reset all data on this device. Your profile, XP, habits, practices,
+          and badges will be cleared locally. If you&apos;re signed in, the
+          cloud copy stays intact — this only wipes the browser.
         </p>
         {confirming ? (
           <div className="flex gap-2">
@@ -201,7 +208,7 @@ export default function SettingsPage() {
               }}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl px-5 py-3 transition"
             >
-              Yes, reset everything
+              Yes, reset this device
             </button>
           </div>
         ) : (
@@ -209,10 +216,88 @@ export default function SettingsPage() {
             onClick={() => setConfirming(true)}
             className="text-red-600 hover:text-red-700 font-semibold text-sm"
           >
-            Reset all data
+            Reset this device
           </button>
         )}
       </div>
+
+      {/* Account deletion — only offered to signed-in users */}
+      {configured && account && (
+        <div className="card border-red-300 bg-red-50/30">
+          <div className="flex items-start gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center flex-shrink-0">
+              <AlertTriangle size={18} />
+            </div>
+            <div>
+              <h2 className="font-bold text-red-800">Delete my account</h2>
+              <p className="text-sm text-slate-700 mt-0.5 leading-snug">
+                Permanently deletes your account, all your data, all your
+                videos, and every connection. This can&apos;t be undone.
+              </p>
+            </div>
+          </div>
+
+          {deleteStep === "confirm" ? (
+            <div className="space-y-2 mt-3">
+              <label className="text-xs font-bold text-slate-600 block">
+                Type <span className="font-mono text-red-700">DELETE</span> to
+                confirm:
+              </label>
+              <input
+                value={deleteText}
+                onChange={(e) => setDeleteText(e.target.value)}
+                className="w-full rounded-xl border-2 border-red-200 px-3 py-2 text-sm focus:border-red-400 outline-none"
+                placeholder="DELETE"
+                autoFocus
+              />
+              {deleteErr && (
+                <div className="rounded-lg bg-red-100 border border-red-300 text-red-800 px-3 py-2 text-xs">
+                  {deleteErr}
+                </div>
+              )}
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => {
+                    setDeleteStep("idle");
+                    setDeleteText("");
+                    setDeleteErr(null);
+                  }}
+                  className="btn-secondary"
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={deleteText !== "DELETE" || deleting}
+                  onClick={async () => {
+                    setDeleting(true);
+                    setDeleteErr(null);
+                    const { error } = await deleteMyAccount();
+                    if (error) {
+                      setDeleteErr(error);
+                      setDeleting(false);
+                      return;
+                    }
+                    // Hard reload so the app shell re-initializes without
+                    // any cached state or auth tokens.
+                    window.location.href = "/";
+                  }}
+                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed text-white font-semibold rounded-xl px-5 py-3 transition"
+                >
+                  {deleting ? "Deleting..." : "Delete forever"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setDeleteStep("confirm")}
+              className="mt-2 text-red-700 hover:text-red-900 font-semibold text-sm"
+            >
+              Delete my account...
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="text-center text-xs text-slate-400 pt-4">
         Mindset · v0.1 · Phase 1
