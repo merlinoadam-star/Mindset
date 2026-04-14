@@ -11,6 +11,7 @@ import {
   opponentDisplayName,
   opponentMatchesQuery,
 } from "../lib/opponentStats";
+import MatchupTrendStrip from "../components/charts/MatchupTrendStrip";
 import {
   ArrowLeft,
   Search,
@@ -18,6 +19,7 @@ import {
   Users,
   Trophy,
   Pencil,
+  Swords,
   Trash2,
   X,
   ChevronRight,
@@ -26,11 +28,14 @@ import {
   Calendar,
 } from "lucide-react";
 
+type SortKey = "most-faced" | "best-record" | "name";
+
 export default function OpponentsPage() {
   const { state, addOpponent } = useStore();
   const [query, setQuery] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [sort, setSort] = useState<SortKey>("most-faced");
 
   if (!state.profile) return null;
 
@@ -53,21 +58,39 @@ export default function OpponentsPage() {
     const list = state.opponents.filter((o) =>
       opponentMatchesQuery(o, query)
     );
-    // Decorate with match count so the most-faced appear first
-    return list
-      .map((o) => ({
-        o,
-        stats: computeOpponentStats(state.matches, o),
-      }))
-      .sort((a, b) => {
-        if (b.stats.totalMatches !== a.stats.totalMatches) {
+    const decorated = list.map((o) => ({
+      o,
+      stats: computeOpponentStats(state.matches, o),
+    }));
+    const sorted = [...decorated].sort((a, b) => {
+      if (sort === "most-faced") {
+        if (b.stats.totalMatches !== a.stats.totalMatches)
           return b.stats.totalMatches - a.stats.totalMatches;
-        }
-        return opponentDisplayName(a.o).localeCompare(
-          opponentDisplayName(b.o)
-        );
-      });
-  }, [state.opponents, state.matches, query]);
+      } else if (sort === "best-record") {
+        const aPct =
+          a.stats.totalMatches > 0
+            ? a.stats.wins / a.stats.totalMatches
+            : -1;
+        const bPct =
+          b.stats.totalMatches > 0
+            ? b.stats.wins / b.stats.totalMatches
+            : -1;
+        if (bPct !== aPct) return bPct - aPct;
+      }
+      return opponentDisplayName(a.o).localeCompare(
+        opponentDisplayName(b.o)
+      );
+    });
+    return sorted;
+  }, [state.opponents, state.matches, query, sort]);
+
+  // Rivals — opponents you've faced 3+ times. Sort by total matches
+  // (close call = more notable rivalry).
+  const rivals = useMemo(() => {
+    return filtered
+      .filter((d) => d.stats.totalMatches >= 3)
+      .slice(0, 4);
+  }, [filtered]);
 
   if (activeId) {
     const opp = state.opponents.find((o) => o.id === activeId);
@@ -176,6 +199,75 @@ export default function OpponentsPage() {
           <p className="text-[11px] text-slate-500 mt-2">
             Tap to add any as a tracked opponent.
           </p>
+        </div>
+      )}
+
+      {/* Rivals callout — opponents faced 3+ times */}
+      {rivals.length > 0 && !query && (
+        <div className="card bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200">
+          <div className="flex items-center gap-2 mb-2">
+            <Swords size={14} className="text-indigo-700" />
+            <h3 className="font-bold text-indigo-900 text-sm">
+              Rivals ({rivals.length})
+            </h3>
+            <span className="text-[11px] text-slate-500 font-medium">
+              faced 3+ times
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {rivals.map(({ o, stats }) => (
+              <button
+                key={o.id}
+                onClick={() => setActiveId(o.id)}
+                className="text-left p-2.5 rounded-xl bg-white border border-indigo-100 hover:border-indigo-300"
+              >
+                <div className="font-bold text-slate-900 text-sm truncate">
+                  {opponentDisplayName(o)}
+                </div>
+                <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                  <span
+                    className={`font-bold tabular-nums ${
+                      stats.wins > stats.losses
+                        ? "text-emerald-700"
+                        : stats.wins < stats.losses
+                        ? "text-rose-700"
+                        : "text-slate-700"
+                    }`}
+                  >
+                    {stats.wins}-{stats.losses}
+                  </span>
+                  <span>·</span>
+                  <span>{stats.totalMatches} matches</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sort controls */}
+      {state.opponents.length > 1 && (
+        <div className="flex items-center gap-1 text-xs">
+          <span className="text-slate-500 font-semibold mr-1">Sort:</span>
+          {(
+            [
+              ["most-faced", "Most faced"],
+              ["best-record", "Best record"],
+              ["name", "Name"],
+            ] as Array<[SortKey, string]>
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setSort(key)}
+              className={`px-2.5 py-1 rounded-full font-semibold transition ${
+                sort === key
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       )}
 
@@ -422,6 +514,9 @@ function OpponentDetail({
           to this opponent to see head-to-head stats.
         </div>
       )}
+
+      {/* Matchup trend (Phase 4D.3) */}
+      <MatchupTrendStrip matches={state.matches} opponent={opponent} />
 
       {/* Events in common */}
       {stats.events.length > 0 && (

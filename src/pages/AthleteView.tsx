@@ -16,6 +16,7 @@ import {
 import FeedbackThread from "../components/FeedbackThread";
 import CoachWeeklyFocusCard from "../components/CoachWeeklyFocusCard";
 import CheerButtons from "../components/CheerButtons";
+import AthleteGlanceCard from "../components/AthleteGlanceCard";
 import { useRealtime } from "../lib/useRealtime";
 import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
@@ -246,6 +247,13 @@ export default function AthleteViewPage() {
           <span>{info.progressPct}%</span>
         </div>
       </div>
+
+      {/* At-a-glance analytics (Phase 4D.2) */}
+      <AthleteGlanceCard
+        profileRow={row}
+        matches={matches}
+        extra={extra}
+      />
 
       {/* About */}
       {(profile.heightInches ||
