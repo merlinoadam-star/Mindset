@@ -65,7 +65,9 @@ export default function Dashboard() {
         </Link>
       </header>
 
-      <XPBar xp={state.xp} info={info} />
+      <Link to="/progress" className="block group">
+        <XPBar xp={state.xp} info={info} />
+      </Link>
 
       <UnreadFeedbackBanner />
 
