@@ -32,10 +32,16 @@ import { emptyState, loadState, saveState, clearState } from "./storage";
 import { habitsForSport, getHabit } from "./habits";
 import {
   applyAutoFreezes,
+  computeLevel,
+  computeStreak,
   evaluateBadges,
   shouldEarnNewFreeze,
   todayISO,
 } from "./gamification";
+import {
+  notifyConnectionsOfLevelUp,
+  notifyConnectionsOfStreak,
+} from "./milestoneAlerts";
 import { useAuth } from "./authContext";
 import {
   fetchAthleteProfile,
@@ -586,6 +592,98 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     state.checkins.length,
     state.mentalSessions?.length,
     state.recoveryCheckins?.length,
+  ]);
+
+  // Phase 3A.3 — milestone alerts. When the athlete crosses a level-up
+  // or a streak milestone, push a congrats to every connected coach /
+  // parent. Refs start null; the first observation after hydration
+  // records the current value WITHOUT firing a push (so we don't spam
+  // parents with "just leveled up!" for old levels the athlete earned
+  // long ago).
+  const prevLevelRef = useRef<number | null>(null);
+  const prevStreakMilestoneRef = useRef<number | null>(null);
+  const STREAK_MILESTONES = useMemo(() => [3, 7, 14, 30, 60, 100, 365], []);
+
+  // Level-up detection — watches xp + sport/name
+  useEffect(() => {
+    if (
+      !account ||
+      account.role !== "athlete" ||
+      !state.profile ||
+      !cloudHydrated
+    ) {
+      prevLevelRef.current = null;
+      return;
+    }
+    const { level, title } = computeLevel(state.xp, state.profile.sport);
+    if (prevLevelRef.current === null) {
+      prevLevelRef.current = level;
+      return;
+    }
+    if (level > prevLevelRef.current) {
+      notifyConnectionsOfLevelUp(
+        account.id,
+        state.profile.name,
+        level,
+        title
+      );
+    }
+    prevLevelRef.current = level;
+  }, [
+    account,
+    cloudHydrated,
+    state.xp,
+    state.profile?.sport,
+    state.profile?.name,
+  ]);
+
+  // Streak milestone detection. Uses activity-length deps as a cheap
+  // trigger for "something that could affect the streak just happened".
+  useEffect(() => {
+    if (
+      !account ||
+      account.role !== "athlete" ||
+      !state.profile ||
+      !cloudHydrated
+    ) {
+      prevStreakMilestoneRef.current = null;
+      return;
+    }
+    const streak = computeStreak(state);
+    // Find the highest milestone the current streak has crossed.
+    let current: number | null = null;
+    for (let i = STREAK_MILESTONES.length - 1; i >= 0; i--) {
+      if (streak >= STREAK_MILESTONES[i]) {
+        current = STREAK_MILESTONES[i];
+        break;
+      }
+    }
+    if (prevStreakMilestoneRef.current === null) {
+      prevStreakMilestoneRef.current = current;
+      return;
+    }
+    if (
+      current !== null &&
+      (prevStreakMilestoneRef.current === null ||
+        current > prevStreakMilestoneRef.current)
+    ) {
+      notifyConnectionsOfStreak(account.id, state.profile.name, current);
+    }
+    prevStreakMilestoneRef.current = current;
+    // state is intentionally omitted from deps — we key on the activity
+    // arrays that actually feed into computeStreak.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    account,
+    cloudHydrated,
+    state.profile?.name,
+    state.habitCompletions.length,
+    state.practices.length,
+    state.checkins.length,
+    state.mentalSessions?.length,
+    state.recoveryCheckins?.length,
+    state.nutritionLogs?.length,
+    STREAK_MILESTONES,
   ]);
 
   const setProfile = useCallback((profile: Profile) => {
