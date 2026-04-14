@@ -126,7 +126,6 @@ export default function ConnectionsPage() {
 
   async function revoke(id: string) {
     if (!supabase) return;
-    if (!confirm("Remove this connection?")) return;
     await supabase.from("connections").delete().eq("id", id);
     fetchConnections();
   }
@@ -569,28 +568,62 @@ function AcceptedCard({
   meId: string;
   onRevoke: () => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
   const isMe = row.athleteAccountId === meId || row.otherAccountId === meId;
   const showOther = row.athleteAccountId === meId;
   const partnerName = showOther ? row.otherName : row.athleteName;
   const partnerEmail = showOther ? row.otherEmail : row.athleteEmail;
   const partnerRole = showOther ? row.connectedRole : "athlete";
+  const iAmTheAthlete = row.athleteAccountId === meId;
+
+  // Copy changes based on what removal means for the person clicking.
+  const warning = iAmTheAthlete
+    ? `${partnerName} will lose access to your profile, matches, videos, and notes. You can always send a new invite later.`
+    : `You'll lose access to ${partnerName}'s data. They can send you a new invite if you want to reconnect.`;
+
   return (
-    <div className="card flex items-center gap-3">
-      <div className="text-3xl">{ACCOUNT_ROLE_EMOJIS[partnerRole]}</div>
-      <div className="flex-1 min-w-0">
-        <div className="font-bold text-slate-900">{partnerName}</div>
-        <div className="text-xs text-slate-500 truncate">{partnerEmail}</div>
-        <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-700 mt-0.5 flex items-center gap-1">
-          <Check size={10} strokeWidth={3} /> Synced as {ACCOUNT_ROLE_LABELS[partnerRole]}
+    <div className="card">
+      <div className="flex items-center gap-3">
+        <div className="text-3xl">{ACCOUNT_ROLE_EMOJIS[partnerRole]}</div>
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-slate-900">{partnerName}</div>
+          <div className="text-xs text-slate-500 truncate">{partnerEmail}</div>
+          <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-700 mt-0.5 flex items-center gap-1">
+            <Check size={10} strokeWidth={3} /> Synced as{" "}
+            {ACCOUNT_ROLE_LABELS[partnerRole]}
+          </div>
         </div>
+        {isMe && !confirming && (
+          <button
+            onClick={() => setConfirming(true)}
+            className="text-xs text-slate-400 hover:text-red-600 font-semibold"
+          >
+            Remove
+          </button>
+        )}
       </div>
-      {isMe && (
-        <button
-          onClick={onRevoke}
-          className="text-xs text-slate-400 hover:text-red-600 font-semibold"
-        >
-          Remove
-        </button>
+
+      {confirming && (
+        <div className="mt-3 rounded-xl bg-red-50 border border-red-200 p-3 space-y-2">
+          <div className="text-xs text-red-900 font-semibold">
+            Remove this connection?
+          </div>
+          <div className="text-xs text-red-800 leading-snug">{warning}</div>
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={() => setConfirming(false)}
+              className="flex-1 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-semibold"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onRevoke}
+              className="flex-1 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold"
+            >
+              Yes, remove
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -603,26 +636,53 @@ function OutgoingCard({
   row: ConnectionRow;
   onRevoke: () => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
   return (
-    <div className="card flex items-center gap-3">
-      <Clock size={20} className="text-amber-500 flex-shrink-0" />
-      <div className="flex-1 min-w-0">
-        <div className="font-bold text-slate-900 truncate">
-          {row.initiatedBy === "athlete"
-            ? row.otherName
-            : row.athleteName}
+    <div className="card">
+      <div className="flex items-center gap-3">
+        <Clock size={20} className="text-amber-500 flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-slate-900 truncate">
+            {row.initiatedBy === "athlete"
+              ? row.otherName
+              : row.athleteName}
+          </div>
+          <div className="text-xs text-slate-500">
+            Awaiting their response ·{" "}
+            {ACCOUNT_ROLE_LABELS[row.connectedRole].toLowerCase()}
+          </div>
         </div>
-        <div className="text-xs text-slate-500">
-          Awaiting their response ·{" "}
-          {ACCOUNT_ROLE_LABELS[row.connectedRole].toLowerCase()}
-        </div>
+        {!confirming && (
+          <button
+            onClick={() => setConfirming(true)}
+            className="text-xs text-slate-400 hover:text-red-600 font-semibold"
+          >
+            Cancel
+          </button>
+        )}
       </div>
-      <button
-        onClick={onRevoke}
-        className="text-xs text-slate-400 hover:text-red-600 font-semibold"
-      >
-        Cancel
-      </button>
+
+      {confirming && (
+        <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200 p-3 space-y-2">
+          <div className="text-xs text-slate-700 leading-snug">
+            Cancel this pending invite? You can always send another one.
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setConfirming(false)}
+              className="flex-1 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-semibold"
+            >
+              Keep waiting
+            </button>
+            <button
+              onClick={onRevoke}
+              className="flex-1 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-900 text-white text-xs font-bold"
+            >
+              Cancel invite
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
