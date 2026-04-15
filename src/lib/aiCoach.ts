@@ -105,6 +105,45 @@ export async function fetchReflectionPrompts(params: {
 }
 
 // ---------------------------------------------------------------------------
+// Focus suggestions (F.4)
+// ---------------------------------------------------------------------------
+
+/** Parse the model's "- line\n- line\n- line" output into an array. */
+export function parseFocusSuggestions(content: string): string[] {
+  return content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("- ") || line.startsWith("•") || /^\d+[.)]/.test(line))
+    .map((line) => line.replace(/^[-•]\s*/, "").replace(/^\d+[.)]\s*/, "").trim())
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
+export async function fetchFocusSuggestions(params: {
+  athleteId: string;
+  refresh?: boolean;
+}): Promise<{ suggestions?: string[]; error?: string }> {
+  if (!supabase) return { error: "Sync isn't configured." };
+
+  const { data, error } = await supabase.functions.invoke("ai-coach", {
+    body: {
+      kind: "focus-suggestions",
+      athleteId: params.athleteId,
+      // No weekly caching — always generate fresh so coach sees current data.
+      // Cache key is "latest" so repeated clicks within the cache window
+      // reuse. Set refresh=true to force a new one.
+      contextKey: "latest",
+      refresh: params.refresh ?? false,
+    },
+  });
+
+  if (error) return { error: error.message };
+  if (!data?.ok) return { error: data?.error ?? "Couldn't generate suggestions." };
+
+  return { suggestions: parseFocusSuggestions(data.content ?? "") };
+}
+
+// ---------------------------------------------------------------------------
 // Q&A (F.3)
 // ---------------------------------------------------------------------------
 

@@ -151,6 +151,8 @@ Deno.serve(async (req: Request) => {
     content = await generateWeeklyWrapUp(admin, athleteId, contextKey);
   } else if (kind === "reflection-prompts") {
     content = await generateReflectionPrompts(admin, athleteId, contextKey);
+  } else if (kind === "focus-suggestions") {
+    content = await generateFocusSuggestions(admin, athleteId);
   } else {
     return new Response(`Unsupported kind: ${kind}`, {
       status: 400,
@@ -772,6 +774,168 @@ Rules:
       return null;
     }
 
+    const result = await resp.json();
+    const text = result?.content?.[0]?.text;
+    if (typeof text !== "string") return null;
+    return text.trim();
+  } catch (e) {
+    console.error("Anthropic call failed", e);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Weekly focus suggestions for coach / parent (F.4)
+// ---------------------------------------------------------------------------
+
+async function generateFocusSuggestions(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+  athleteId: string
+): Promise<string | null> {
+  const { data: profile } = await admin
+    .from("athletes")
+    .select("name, sport, age")
+    .eq("id", athleteId)
+    .maybeSingle();
+  if (!profile) return null;
+
+  const since = new Date();
+  since.setDate(since.getDate() - 21);
+  const sinceIso = since.toISOString().slice(0, 10);
+
+  const [habitsRes, practicesRes, checkinsRes, matchesRes] =
+    await Promise.all([
+      admin
+        .from("habit_completions")
+        .select("habit_id, date")
+        .eq("athlete_id", athleteId)
+        .gte("date", sinceIso),
+      admin
+        .from("practices")
+        .select("date, type, intensity")
+        .eq("athlete_id", athleteId)
+        .gte("date", sinceIso),
+      admin
+        .from("mental_checkins")
+        .select("date, mood, goal, goal_met")
+        .eq("athlete_id", athleteId)
+        .gte("date", sinceIso),
+      admin
+        .from("matches")
+        .select(
+          "date, opponent, result, performance_rating, went_well, could_be_better, next_focus"
+        )
+        .eq("athlete_id", athleteId)
+        .gte("date", sinceIso)
+        .order("date", { ascending: false })
+        .limit(8),
+    ]);
+
+  const habits = habitsRes.data ?? [];
+  const practices = practicesRes.data ?? [];
+  const checkins = checkinsRes.data ?? [];
+  const matches = matchesRes.data ?? [];
+
+  const habitCounts: Record<string, number> = {};
+  for (const h of habits as Array<{ habit_id: string }>) {
+    habitCounts[h.habit_id] = (habitCounts[h.habit_id] ?? 0) + 1;
+  }
+  const habitLines = Object.entries(habitCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([h, c]) => `  - ${h}: ${c}x`)
+    .join("\n");
+
+  const matchLines = (
+    matches as Array<{
+      date: string;
+      opponent: string | null;
+      result: string | null;
+      performance_rating: number | null;
+      went_well: string | null;
+      could_be_better: string | null;
+      next_focus: string | null;
+    }>
+  )
+    .map(
+      (m) =>
+        `  - ${m.date} vs ${m.opponent ?? "?"}: ${m.result ?? "n/a"}${
+          m.performance_rating ? ` (${m.performance_rating}/5)` : ""
+        }${m.went_well ? ` · well: "${m.went_well}"` : ""}${
+          m.could_be_better ? ` · better: "${m.could_be_better}"` : ""
+        }${m.next_focus ? ` · next: "${m.next_focus}"` : ""}`
+    )
+    .join("\n");
+
+  const goalLines = (
+    checkins as Array<{
+      date: string;
+      goal: string | null;
+      goal_met: boolean | null;
+    }>
+  )
+    .filter((c) => c.goal)
+    .slice(0, 10)
+    .map(
+      (c) =>
+        `  - ${c.date}: "${c.goal}"${
+          c.goal_met === true ? " ✓" : c.goal_met === false ? " ✗" : ""
+        }`
+    )
+    .join("\n");
+
+  const dataBlock = `
+Athlete: ${profile.name}, ${profile.sport}, age ${profile.age}
+
+Last 3 weeks of activity:
+- Habit completions: ${habits.length} total
+- Practices logged: ${practices.length}
+- Mental check-ins: ${checkins.length}
+- Matches: ${matches.length}
+
+${habitLines ? `Most-done habits:\n${habitLines}\n` : ""}${
+    goalLines ? `Recent daily goals:\n${goalLines}\n` : ""
+  }${matchLines ? `Recent matches:\n${matchLines}\n` : ""}
+`.trim();
+
+  const SYSTEM_PROMPT = `You generate 3 short weekly-focus suggestions for a youth athlete's coach or parent to choose from. Each suggestion is a concrete thing the athlete can work on for ONE week.
+
+Rules:
+- Output format: exactly 3 lines, each starting with "- " (hyphen + space). No numbering, no preamble, no commentary before or after.
+- Each suggestion is 1 short sentence, max ~15 words.
+- Each suggestion must be grounded in something specific from the data — name a habit they skip, a match theme, a goal pattern. Be concrete.
+- Avoid vague platitudes ("focus on effort", "stay consistent").
+- Avoid medical, diet, or weight-cut suggestions.
+- Age-appropriate (8-14yo). Plain language. No emoji.
+- The three suggestions must be distinct ideas.
+- If the data is thin, suggest foundational habits plainly.`;
+
+  const USER_PROMPT = `Generate 3 weekly-focus suggestions now.\n\n${dataBlock}`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 250,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: USER_PROMPT }],
+      }),
+    });
+    if (!resp.ok) {
+      console.error(
+        "Anthropic API error",
+        resp.status,
+        await resp.text()
+      );
+      return null;
+    }
     const result = await resp.json();
     const text = result?.content?.[0]?.text;
     if (typeof text !== "string") return null;
