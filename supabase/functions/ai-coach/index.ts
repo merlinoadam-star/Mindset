@@ -48,6 +48,7 @@ interface Payload {
   athleteId?: string;
   contextKey?: string;
   refresh?: boolean;
+  question?: string;
 }
 
 // @ts-expect-error — Deno global
@@ -139,7 +140,12 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // --- Generate fresh insight
+  // --- "Ask" — different flow: not cached, stored as a Q/A conversation.
+  if (kind === "ask") {
+    return await handleAsk(admin, callerId, athleteId, payload.question ?? "");
+  }
+
+  // --- Generate fresh cached insight
   let content: string | null = null;
   if (kind === "weekly-wrap-up") {
     content = await generateWeeklyWrapUp(admin, athleteId, contextKey);
@@ -381,6 +387,276 @@ Rules:
     console.error("Anthropic call failed", e);
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Q&A handler — kind="ask"
+// ---------------------------------------------------------------------------
+
+const DAILY_ASK_LIMIT = 20;
+
+async function handleAsk(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+  callerId: string,
+  athleteId: string,
+  rawQuestion: string
+): Promise<Response> {
+  const question = rawQuestion.trim();
+  if (!question || question.length < 3) {
+    return new Response(
+      JSON.stringify({ ok: false, error: "Please enter a question." }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      }
+    );
+  }
+  if (question.length > 500) {
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        error: "Question is too long. Keep it under 500 characters.",
+      }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      }
+    );
+  }
+
+  // Rate limit — count asks by this athlete in the last 24h
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count } = await admin
+    .from("ai_conversations")
+    .select("id", { head: true, count: "exact" })
+    .eq("athlete_id", athleteId)
+    .gte("asked_at", cutoff);
+  if ((count ?? 0) >= DAILY_ASK_LIMIT) {
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        error: `Daily limit reached (${DAILY_ASK_LIMIT} questions/24h). Try again tomorrow.`,
+      }),
+      {
+        status: 429,
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      }
+    );
+  }
+
+  // Determine asker role for the stored row
+  const { data: askerAccount } = await admin
+    .from("accounts")
+    .select("role")
+    .eq("id", callerId)
+    .maybeSingle();
+  const askerRole = (askerAccount?.role ?? "athlete") as
+    | "athlete"
+    | "coach"
+    | "parent";
+
+  // Insert the question row first so the UI can show "thinking..."
+  const { data: inserted, error: insertErr } = await admin
+    .from("ai_conversations")
+    .insert({
+      athlete_id: athleteId,
+      asker_id: callerId,
+      asker_role: askerRole,
+      question,
+    })
+    .select()
+    .single();
+  if (insertErr || !inserted) {
+    return new Response(
+      JSON.stringify({ ok: false, error: "Couldn't save question." }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      }
+    );
+  }
+
+  // Build the athlete-context summary (short — just enough to ground
+  // the model without blowing token budget).
+  const context = await buildAthleteContextSummary(admin, athleteId);
+
+  const SYSTEM_PROMPT = `You are a warm, honest mindset coach for a youth athlete (ages 8-14). You help them think about training, mental game, practice habits, and reflection. You can pull from the athlete-context data block below to be specific.
+
+Absolute safety rules (non-negotiable):
+- Do NOT give medical advice, diagnose injuries, or recommend supplements. If asked, say "That's a question for a parent, coach, or doctor" and stop.
+- Do NOT give weight-cutting, dieting, or body-composition advice. Redirect to a trusted adult and registered dietitian.
+- If the question hints at mental-health distress, self-harm, or being hurt by someone — respond with one kind sentence and direct them to tell a trusted adult right now. Do not continue with normal coaching.
+- No political, religious, or romantic content. If asked, politely decline and redirect to training topics.
+
+Style rules:
+- Keep answers short: 2-5 sentences.
+- Reference their actual data when relevant. NEVER invent stats, matches, or habits they don't have.
+- If you don't have enough context to answer well, say so and name one thing they could track to help answer later.
+- Speak to them directly, using their first name at most once.
+- No emoji. No bullet lists unless they ask for one. No preachy "remember to..." wrap-ups.
+- It's fine to say "I don't know" or "I'm not the right helper for that."`;
+
+  const USER_PROMPT = `Athlete context (for grounding):
+${context}
+
+The question:
+"${question}"
+
+Answer now.`;
+
+  let answer: string | null = null;
+  let errorMsg: string | null = null;
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 400,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: USER_PROMPT }],
+      }),
+    });
+
+    if (!resp.ok) {
+      errorMsg = `Anthropic API ${resp.status}`;
+    } else {
+      const result = await resp.json();
+      const text = result?.content?.[0]?.text;
+      if (typeof text === "string") {
+        answer = text.trim();
+      } else {
+        errorMsg = "Empty response from model.";
+      }
+    }
+  } catch (e) {
+    errorMsg = String(e);
+  }
+
+  await admin
+    .from("ai_conversations")
+    .update({
+      answer,
+      model: MODEL,
+      answered_at: new Date().toISOString(),
+      error: errorMsg,
+    })
+    .eq("id", inserted.id);
+
+  if (errorMsg && !answer) {
+    return new Response(
+      JSON.stringify({ ok: false, error: errorMsg, id: inserted.id }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "content-type": "application/json" },
+      }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      id: inserted.id,
+      question,
+      answer,
+      model: MODEL,
+      asked_at: inserted.asked_at,
+    }),
+    {
+      status: 200,
+      headers: { ...corsHeaders, "content-type": "application/json" },
+    }
+  );
+}
+
+/** Compact athlete-context summary used as grounding for Q&A. */
+async function buildAthleteContextSummary(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+  athleteId: string
+): Promise<string> {
+  const { data: profile } = await admin
+    .from("athletes")
+    .select("name, sport, age, xp, team_name, weight_class, primary_position")
+    .eq("id", athleteId)
+    .maybeSingle();
+
+  const since = new Date();
+  since.setDate(since.getDate() - 30);
+  const sinceIso = since.toISOString().slice(0, 10);
+
+  const [
+    habitsRes,
+    practicesRes,
+    checkinsRes,
+    matchesRes,
+    recoveryRes,
+  ] = await Promise.all([
+    admin
+      .from("habit_completions")
+      .select("id", { head: true, count: "exact" })
+      .eq("athlete_id", athleteId)
+      .gte("date", sinceIso),
+    admin
+      .from("practices")
+      .select("id", { head: true, count: "exact" })
+      .eq("athlete_id", athleteId)
+      .gte("date", sinceIso),
+    admin
+      .from("mental_checkins")
+      .select("id", { head: true, count: "exact" })
+      .eq("athlete_id", athleteId)
+      .gte("date", sinceIso),
+    admin
+      .from("matches")
+      .select("date, opponent, result, performance_rating")
+      .eq("athlete_id", athleteId)
+      .gte("date", sinceIso)
+      .order("date", { ascending: false })
+      .limit(5),
+    admin
+      .from("recovery_checkins")
+      .select("id", { head: true, count: "exact" })
+      .eq("athlete_id", athleteId)
+      .gte("date", sinceIso),
+  ]);
+
+  const matchLines = (matchesRes.data ?? [])
+    .map(
+      (m: {
+        date: string;
+        opponent: string | null;
+        result: string | null;
+        performance_rating: number | null;
+      }) =>
+        `  - ${m.date} vs ${m.opponent ?? "?"}: ${m.result ?? "n/a"}${
+          m.performance_rating ? ` (${m.performance_rating}/5)` : ""
+        }`
+    )
+    .join("\n");
+
+  return `
+Athlete: ${profile?.name ?? "?"} (${profile?.sport ?? "?"}, age ${
+    profile?.age ?? "?"
+  })${profile?.team_name ? `, team "${profile.team_name}"` : ""}${
+    profile?.weight_class ? `, weight class ${profile.weight_class}` : ""
+  }${profile?.primary_position ? `, plays ${profile.primary_position}` : ""}
+Total XP: ${profile?.xp ?? 0}
+
+Last 30 days:
+- Habits completed: ${habitsRes.count ?? 0}
+- Practices logged: ${practicesRes.count ?? 0}
+- Mental check-ins: ${checkinsRes.count ?? 0}
+- Recovery logs: ${recoveryRes.count ?? 0}
+- Matches: ${(matchesRes.data ?? []).length}${
+    matchLines ? `\n${matchLines}` : ""
+  }
+  `.trim();
 }
 
 // ---------------------------------------------------------------------------

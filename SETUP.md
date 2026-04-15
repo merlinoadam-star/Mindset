@@ -87,6 +87,7 @@ As the project evolved, new migrations were added alongside the main
 - `supabase/notification_prefs.sql` — per-user notification toggles (Phase 3B.5)
 - `supabase/daily_reminders.sql` — daily reminder columns (Phase 3C.4)
 - `supabase/ai_insights.sql` — AI insights cache table (Phase 4F.1)
+- `supabase/ai_conversations.sql` — AI Coach Q&A history (Phase 4F.3)
 
 ## Push notifications (optional, Phase 2E)
 

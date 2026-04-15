@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Sparkles, RefreshCw } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Sparkles, RefreshCw, MessageSquare, ChevronRight } from "lucide-react";
 import { useAuth } from "../lib/authContext";
 import {
   currentWeekMonday,
@@ -133,6 +134,15 @@ export default function WeeklyWrapUpCard({
               {error}
             </div>
           )}
+
+          <Link
+            to="/ask"
+            className="mt-3 -mx-3 -mb-3 px-3 py-2 border-t border-purple-200/70 flex items-center gap-2 text-xs font-semibold text-purple-700 hover:bg-purple-50/60 rounded-b-2xl"
+          >
+            <MessageSquare size={12} />
+            <span className="flex-1">Ask AI Coach a question</span>
+            <ChevronRight size={12} />
+          </Link>
         </div>
       </div>
     </div>

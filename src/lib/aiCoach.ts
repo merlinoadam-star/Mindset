@@ -104,6 +104,91 @@ export async function fetchReflectionPrompts(params: {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Q&A (F.3)
+// ---------------------------------------------------------------------------
+
+export interface Conversation {
+  id: string;
+  athlete_id: string;
+  asker_id: string;
+  asker_role: "athlete" | "coach" | "parent";
+  question: string;
+  answer: string | null;
+  model: string | null;
+  asked_at: string;
+  answered_at: string | null;
+  error: string | null;
+  // Enriched client-side
+  asker_name?: string;
+}
+
+export async function askAiCoach(params: {
+  athleteId: string;
+  question: string;
+}): Promise<{ conversation?: Conversation; error?: string }> {
+  if (!supabase) return { error: "Sync isn't configured." };
+  const { data, error } = await supabase.functions.invoke("ai-coach", {
+    body: {
+      kind: "ask",
+      athleteId: params.athleteId,
+      question: params.question,
+    },
+  });
+  if (error) return { error: error.message };
+  if (!data?.ok) return { error: data?.error ?? "Couldn't generate answer." };
+  return {
+    conversation: {
+      id: data.id,
+      athlete_id: params.athleteId,
+      asker_id: "", // server knows; not needed client-side after insert
+      asker_role: "athlete",
+      question: data.question,
+      answer: data.answer,
+      model: data.model,
+      asked_at: data.asked_at,
+      answered_at: new Date().toISOString(),
+      error: null,
+    },
+  };
+}
+
+export async function fetchConversations(
+  athleteId: string,
+  limit = 50
+): Promise<Conversation[]> {
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("ai_conversations")
+    .select("*")
+    .eq("athlete_id", athleteId)
+    .order("asked_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+
+  // Enrich with asker names in one query
+  const askerIds = [...new Set((data as Conversation[]).map((c) => c.asker_id))];
+  if (askerIds.length > 0) {
+    const { data: accts } = await supabase
+      .from("accounts")
+      .select("id, display_name")
+      .in("id", askerIds);
+    const map = new Map<string, string>(
+      (accts ?? []).map((a) => [a.id, a.display_name])
+    );
+    return (data as Conversation[]).map((c) => ({
+      ...c,
+      asker_name: map.get(c.asker_id) ?? "",
+    }));
+  }
+  return data as Conversation[];
+}
+
+export async function deleteConversation(id: string): Promise<void> {
+  if (!supabase) return;
+  await supabase.from("ai_conversations").delete().eq("id", id);
+}
+
 export function currentWeekMonday(): string {
   const d = new Date();
   const day = d.getDay();

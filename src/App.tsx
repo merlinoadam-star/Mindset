@@ -34,6 +34,7 @@ import OpponentsPage from "./pages/Opponents";
 import VoicePersonasPage from "./pages/VoicePersonas";
 import ExportReportPage from "./pages/ExportReport";
 import ProgressPage from "./pages/Progress";
+import AskCoachPage from "./pages/AskCoach";
 
 function AppShell() {
   const { state } = useStore();
@@ -118,6 +119,7 @@ function AppShell() {
           <Route path="voice" element={<VoicePersonasPage />} />
           <Route path="export" element={<ExportReportPage />} />
           <Route path="progress" element={<ProgressPage />} />
+          <Route path="ask" element={<AskCoachPage />} />
           <Route path="connections" element={<ConnectionsPage />} />
           <Route path="feedback" element={<FeedbackInboxPage />} />
           <Route path="profile" element={<ProfilePage />} />
