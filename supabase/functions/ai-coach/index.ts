@@ -140,14 +140,18 @@ Deno.serve(async (req: Request) => {
   }
 
   // --- Generate fresh insight
-  if (kind !== "weekly-wrap-up") {
+  let content: string | null = null;
+  if (kind === "weekly-wrap-up") {
+    content = await generateWeeklyWrapUp(admin, athleteId, contextKey);
+  } else if (kind === "reflection-prompts") {
+    content = await generateReflectionPrompts(admin, athleteId, contextKey);
+  } else {
     return new Response(`Unsupported kind: ${kind}`, {
       status: 400,
       headers: corsHeaders,
     });
   }
 
-  const content = await generateWeeklyWrapUp(admin, athleteId, contextKey);
   if (!content) {
     return new Response("Failed to generate content", {
       status: 500,
@@ -346,6 +350,129 @@ Rules:
 - Address them by first name once.`;
 
   const USER_PROMPT = `Here's the athlete's week. Write the coaching note now.\n\n${dataBlock}`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 400,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: "user", content: USER_PROMPT }],
+      }),
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.error("Anthropic API error", resp.status, errText);
+      return null;
+    }
+
+    const result = await resp.json();
+    const text = result?.content?.[0]?.text;
+    if (typeof text !== "string") return null;
+    return text.trim();
+  } catch (e) {
+    console.error("Anthropic call failed", e);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Post-match reflection prompts generator
+// contextKey = match id (UUID)
+// ---------------------------------------------------------------------------
+
+async function generateReflectionPrompts(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+  athleteId: string,
+  matchId: string
+): Promise<string | null> {
+  // Fetch the match + athlete profile
+  const [{ data: match }, { data: profile }] = await Promise.all([
+    admin.from("matches").select("*").eq("id", matchId).maybeSingle(),
+    admin
+      .from("athletes")
+      .select("name, sport, age")
+      .eq("id", athleteId)
+      .maybeSingle(),
+  ]);
+
+  if (!match || !profile) return null;
+
+  // If there's a linked opponent, pull head-to-head history
+  let history: Array<{ date: string; result: string | null }> = [];
+  if (match.opponent_id) {
+    const { data: hist } = await admin
+      .from("matches")
+      .select("date, result")
+      .eq("athlete_id", athleteId)
+      .eq("opponent_id", match.opponent_id)
+      .neq("id", matchId)
+      .order("date", { ascending: false })
+      .limit(5);
+    history = hist ?? [];
+  }
+
+  const scoreLine =
+    match.wrestling?.myScore != null && match.wrestling?.theirScore != null
+      ? `${match.wrestling.myScore}-${match.wrestling.theirScore}`
+      : null;
+
+  const historyLine =
+    history.length > 0
+      ? `Previous ${history.length} matches vs this opponent: ${history
+          .map(
+            (h: { date: string; result: string | null }) =>
+              `${h.date}=${h.result ?? "n/a"}`
+          )
+          .join(", ")}`
+      : "No prior matches against this opponent on record.";
+
+  const dataBlock = `
+Athlete: ${profile.name}, ${profile.sport}, age ${profile.age}
+
+Match: ${match.date} vs ${match.opponent ?? "unknown"}${
+    match.event ? ` (${match.event})` : ""
+  }
+Result: ${match.result ?? "not set"}${scoreLine ? ` · score ${scoreLine}` : ""}
+Performance rating: ${
+    match.performance_rating ? `${match.performance_rating}/5` : "not rated"
+  }
+
+Pre-match focus: ${match.focus_objective ?? "none"}
+Pre-match technique: ${match.execute_this ?? "none"}
+Mental state before (1-5): ${match.mental_state_before ?? "not rated"}
+
+Post-match reflections they already wrote:
+- Went well: ${match.went_well ?? "(empty)"}
+- Could be better: ${match.could_be_better ?? "(empty)"}
+- Next focus: ${match.next_focus ?? "(empty)"}
+- Lesson learned: ${match.lesson_learned ?? "(empty)"}
+- Gratitude: ${match.gratitude ?? "(empty)"}
+
+${historyLine}
+`.trim();
+
+  const SYSTEM_PROMPT = `You generate 3-4 open-ended reflection questions for a youth athlete (ages 8-14) who just finished a match and filled out their post-match reflection. Your questions should help them go a little deeper without feeling like a test.
+
+Rules:
+- Output ONLY a numbered list of 3-4 questions. Nothing else — no intro, no outro, no preamble.
+- Each question references a SPECIFIC detail they wrote or a specific fact from the match data.
+- Don't repeat what they already said. Build on it.
+- No yes/no questions. No leading questions.
+- Age-appropriate language (simple, friendly).
+- Avoid "how did it make you feel" — that's overused. Prefer "what", "which", "when", concrete things.
+- Don't moralize. Don't fake empathy. Don't use emoji.
+- If a field is empty, you can invite them gently — "One thing you left blank was X. What's one sentence you could add?"`;
+
+  const USER_PROMPT = `Here's the match. Generate 3-4 reflection questions.\n\n${dataBlock}`;
 
   try {
     const resp = await fetch("https://api.anthropic.com/v1/messages", {

@@ -4,6 +4,7 @@ import { useAuth } from "../lib/authContext";
 import { isUuid } from "../lib/store";
 import { showReward } from "./RewardToast";
 import FeedbackThread from "./FeedbackThread";
+import MatchReflectionPrompts from "./MatchReflectionPrompts";
 import {
   WRESTLING_WIN_TYPE_LABELS,
   type MatchEntry,
@@ -161,6 +162,11 @@ export default function MatchDetail({ match, onBack }: Props) {
                 <Field label="💡 Lesson" value={match.lessonLearned} />
               )}
             </section>
+          )}
+
+          {/* AI reflection prompts — Phase 4F.2 — only when post-match is done */}
+          {user && isUuid(match.id) && match.postMatchCompletedAt && (
+            <MatchReflectionPrompts athleteId={user.id} matchId={match.id} />
           )}
 
           {/* Coach / parent notes — Phase 2C */}
