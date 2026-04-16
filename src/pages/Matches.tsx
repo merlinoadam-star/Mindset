@@ -3,13 +3,15 @@ import { useStore } from "../lib/store";
 import { todayISO } from "../lib/gamification";
 import { opponentDisplayName } from "../lib/opponentStats";
 import type { MatchEntry } from "../types";
-import { Swords, Plus, ChevronRight, Check, Clock, Users } from "lucide-react";
+import { Swords, Plus, ChevronRight, Check, Clock, Users, List, CalendarDays } from "lucide-react";
 import MatchDetail from "../components/MatchDetail";
+import MatchCalendar from "../components/MatchCalendar";
 
 export default function MatchesPage() {
   const { state, addMatch } = useStore();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
+  const [view, setView] = useState<"list" | "calendar">("list");
 
   if (!state.profile) return null;
 
@@ -47,28 +49,61 @@ export default function MatchesPage() {
       </header>
 
       {matches.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
-          <div className="card !p-3 text-center">
-            <div className="text-2xl font-extrabold tabular-nums text-slate-900">
-              {matches.length}
+        <>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="card !p-3 text-center">
+              <div className="text-2xl font-extrabold tabular-nums text-slate-900">
+                {matches.length}
+              </div>
+              <div className="text-xs text-slate-500 mt-1 font-medium">Total</div>
             </div>
-            <div className="text-xs text-slate-500 mt-1 font-medium">Total</div>
+            <div className="card !p-3 text-center">
+              <div className="text-2xl font-extrabold tabular-nums text-green-600">
+                {wins}
+              </div>
+              <div className="text-xs text-slate-500 mt-1 font-medium">Wins</div>
+            </div>
+            <div className="card !p-3 text-center">
+              <div className="text-2xl font-extrabold tabular-nums text-red-500">
+                {losses}
+              </div>
+              <div className="text-xs text-slate-500 mt-1 font-medium">
+                Losses
+              </div>
+            </div>
           </div>
-          <div className="card !p-3 text-center">
-            <div className="text-2xl font-extrabold tabular-nums text-green-600">
-              {wins}
-            </div>
-            <div className="text-xs text-slate-500 mt-1 font-medium">Wins</div>
+
+          {/* View toggle */}
+          <div className="flex rounded-xl bg-slate-100 p-1">
+            <button
+              onClick={() => setView("list")}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition ${
+                view === "list"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500"
+              }`}
+            >
+              <List size={13} /> List
+            </button>
+            <button
+              onClick={() => setView("calendar")}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition ${
+                view === "calendar"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500"
+              }`}
+            >
+              <CalendarDays size={13} /> Calendar
+            </button>
           </div>
-          <div className="card !p-3 text-center">
-            <div className="text-2xl font-extrabold tabular-nums text-red-500">
-              {losses}
-            </div>
-            <div className="text-xs text-slate-500 mt-1 font-medium">
-              Losses
-            </div>
-          </div>
-        </div>
+        </>
+      )}
+
+      {view === "calendar" && matches.length > 0 && (
+        <MatchCalendar
+          matches={matches}
+          onMatchClick={(id) => setActiveId(id)}
+        />
       )}
 
       {newOpen && (
@@ -81,7 +116,7 @@ export default function MatchesPage() {
         />
       )}
 
-      {matches.length === 0 && !newOpen ? (
+      {view === "list" && matches.length === 0 && !newOpen ? (
         <div className="card text-center py-10">
           <Swords size={40} className="mx-auto text-slate-300" />
           <h3 className="font-bold mt-3 text-slate-900">No matches yet</h3>
@@ -96,13 +131,13 @@ export default function MatchesPage() {
             <Plus size={16} className="inline mr-1" /> Log Your First Match
           </button>
         </div>
-      ) : (
+      ) : view === "list" ? (
         <div className="space-y-2">
           {matches.map((m) => (
             <MatchListItem key={m.id} match={m} onOpen={() => setActiveId(m.id)} />
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 
