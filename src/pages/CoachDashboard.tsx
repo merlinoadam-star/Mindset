@@ -122,7 +122,7 @@ export default function CoachDashboard() {
             <div className="text-xs text-slate-400 font-medium">
               {greeting},
             </div>
-            <div className="text-xl font-extrabold tracking-tight text-slate-900 leading-tight">
+            <div className="text-xl font-extrabold tracking-tight text-slate-900 leading-tight truncate max-w-[180px]">
               {account.displayName}
             </div>
             <div className="text-[11px] text-slate-500">
@@ -138,18 +138,17 @@ export default function CoachDashboard() {
         </Link>
       </header>
 
-      {/* Phase 2B preview notice */}
-      <div className="rounded-2xl bg-gradient-to-br from-brand-50 to-purple-50 border border-brand-100 p-3 flex items-start gap-2">
-        <Sparkles size={14} className="text-brand-600 mt-0.5 flex-shrink-0" />
-        <div className="text-xs text-slate-700 leading-relaxed">
-          <span className="font-bold">
-            Welcome, {ACCOUNT_ROLE_LABELS[account.role].toLowerCase()}!
-          </span>{" "}
-          Your connected athletes show up below. Data sync is rolling out in
-          stages — for now you&apos;ll see their names and status. In the next
-          update, you&apos;ll see their full profile, match log, and progress.
+      {/* Welcome tip — only when they have athletes */}
+      {accepted.length > 0 && (
+        <div className="rounded-2xl bg-gradient-to-br from-brand-50 to-purple-50 border border-brand-100 p-3 flex items-start gap-2">
+          <Sparkles size={14} className="text-brand-600 mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-slate-700 leading-relaxed">
+            Tap any athlete to see their full profile, match log, progress
+            charts, AI weekly recap, and more. You can set a weekly focus, send
+            cheers, and leave notes from their page.
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Pending invites (incoming) */}
       {pending.filter((p) => p.pendingIncoming).length > 0 && (

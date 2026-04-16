@@ -132,6 +132,12 @@ export default function WeeklyWrapUpCard({
           {error && (
             <div className="text-xs text-red-600 mt-2 font-medium">
               {error}
+              <button
+                onClick={() => generate(false)}
+                className="ml-2 text-brand-600 hover:text-brand-800 font-bold underline"
+              >
+                Retry
+              </button>
             </div>
           )}
 

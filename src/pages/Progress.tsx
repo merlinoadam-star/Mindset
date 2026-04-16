@@ -44,6 +44,20 @@ export default function ProgressPage() {
         </div>
       </header>
 
+      {stats.totalHabits + stats.totalPractices + stats.totalMatches + stats.totalCheckins === 0 ? (
+        <div className="card text-center py-10">
+          <TrendingUp size={40} className="mx-auto text-slate-300" />
+          <h3 className="font-bold mt-3 text-slate-900">
+            No data yet
+          </h3>
+          <p className="text-sm text-slate-500 mt-1 max-w-xs mx-auto">
+            Start logging habits, practices, or matches and your progress
+            charts will appear here.
+          </p>
+        </div>
+      ) : (
+      <>
+
       {/* Headline stat grid */}
       <div className="grid grid-cols-2 gap-3">
         <Stat
@@ -93,6 +107,8 @@ export default function ProgressPage() {
       <div className="text-center text-xs text-slate-400 pt-2 pb-6">
         All computed on-device from your logged data.
       </div>
+      </>
+      )}
     </div>
   );
 }

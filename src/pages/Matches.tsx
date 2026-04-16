@@ -99,7 +99,7 @@ export default function MatchesPage() {
         </>
       )}
 
-      {view === "calendar" && matches.length > 0 && (
+      {view === "calendar" && (
         <MatchCalendar
           matches={matches}
           onMatchClick={(id) => setActiveId(id)}

@@ -56,7 +56,7 @@ export default function Dashboard() {
             <div className="text-xs text-slate-400 font-medium">
               {greeting},
             </div>
-            <div className="text-xl font-extrabold tracking-tight text-slate-900 leading-tight">
+            <div className="text-xl font-extrabold tracking-tight text-slate-900 leading-tight truncate max-w-[180px]">
               {state.profile.name}
             </div>
           </div>
