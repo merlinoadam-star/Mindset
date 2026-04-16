@@ -17,6 +17,7 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
+import CoachGuidedTutorial from "../components/CoachGuidedTutorial";
 
 interface ConnectedAthlete {
   connectionId: string;
@@ -137,6 +138,11 @@ export default function CoachDashboard() {
           <Settings size={18} />
         </Link>
       </header>
+
+      <CoachGuidedTutorial
+        hasAcceptedAthletes={accepted.length > 0}
+        athleteIds={accepted.map((a) => a.athleteAccountId)}
+      />
 
       {/* Welcome tip — only when they have athletes */}
       {accepted.length > 0 && (
