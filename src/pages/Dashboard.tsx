@@ -58,14 +58,14 @@ export default function Dashboard() {
             <div className="text-xs text-slate-400 font-medium">
               {greeting},
             </div>
-            <div className="text-xl font-extrabold tracking-tight text-slate-900 leading-tight truncate max-w-[180px]">
+            <div className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight truncate max-w-[180px]">
               {state.profile.name}
             </div>
           </div>
         </Link>
         <Link
           to="/settings"
-          className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-card flex items-center justify-center text-slate-400 hover:text-slate-600 transition"
+          className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-card flex items-center justify-center text-slate-400 hover:text-slate-600 transition"
         >
           <Settings size={18} />
         </Link>

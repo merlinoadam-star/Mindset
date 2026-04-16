@@ -28,7 +28,8 @@ import {
   exportAthleteData,
   exportCoachParentData,
 } from "../lib/dataExport";
-import { Download } from "lucide-react";
+import { Download, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme, type Theme } from "../lib/useTheme";
 
 export default function SettingsPage() {
   const { state, resetAll } = useStore();
@@ -39,6 +40,7 @@ export default function SettingsPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
   const [guideOn, setGuideOn] = useState(() => isGuideEnabled());
+  const { theme, setTheme } = useTheme();
   const [exporting, setExporting] = useState(false);
   const [exportErr, setExportErr] = useState<string | null>(null);
 
@@ -177,6 +179,34 @@ export default function SettingsPage() {
         </div>
         <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
       </Link>
+
+      {/* Theme */}
+      <div className="card">
+        <div className="font-bold text-slate-900 dark:text-white mb-3">
+          Appearance
+        </div>
+        <div className="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+          {(
+            [
+              { key: "light", icon: <Sun size={14} />, label: "Light" },
+              { key: "dark", icon: <Moon size={14} />, label: "Dark" },
+              { key: "system", icon: <Monitor size={14} />, label: "Auto" },
+            ] as Array<{ key: Theme; icon: React.ReactNode; label: string }>
+          ).map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setTheme(opt.key)}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition ${
+                theme === opt.key
+                  ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                  : "text-slate-500 dark:text-slate-400"
+              }`}
+            >
+              {opt.icon} {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <InstallSettingsCard />
 
