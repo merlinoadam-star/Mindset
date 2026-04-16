@@ -13,7 +13,8 @@ export type PrefKey =
   | "cheers"
   | "weeklyFocus"
   | "milestones"
-  | "dailyReminder";
+  | "dailyReminder"
+  | "matchReminders";
 
 export type NotificationPrefs = Record<PrefKey, boolean>;
 
@@ -23,6 +24,7 @@ export const DEFAULT_PREFS: NotificationPrefs = {
   weeklyFocus: true,
   milestones: true,
   dailyReminder: true,
+  matchReminders: true,
 };
 
 export async function fetchNotificationPrefs(

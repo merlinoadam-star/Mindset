@@ -38,6 +38,11 @@ const LABELS_ATHLETE: Array<{
     title: "Weekly focus updates",
     desc: "When your coach or parent sets a new weekly focus.",
   },
+  {
+    key: "matchReminders",
+    title: "Match-day reminders",
+    desc: "Get a push the evening before and the morning of a scheduled match.",
+  },
 ];
 
 const LABELS_COACH_PARENT: Array<{
