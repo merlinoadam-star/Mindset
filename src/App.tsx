@@ -1,40 +1,53 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { StoreProvider, useStore } from "./lib/store";
 import { AuthProvider, useAuth } from "./lib/authContext";
 import Layout from "./components/Layout";
 import CoachLayout from "./components/CoachLayout";
 import RewardToast from "./components/RewardToast";
-import AuthPage from "./pages/Auth";
-import ResetPasswordPage from "./pages/ResetPassword";
-import ConnectionsPage from "./pages/Connections";
+
+// Eager — needed before any route renders
 import Onboarding from "./pages/Onboarding";
-import Dashboard from "./pages/Dashboard";
-import CoachDashboard from "./pages/CoachDashboard";
-import AthleteViewPage from "./pages/AthleteView";
-import FeedbackInboxPage from "./pages/FeedbackInbox";
-import HabitsPage from "./pages/Habits";
-import PracticePage from "./pages/Practice";
-import MindsetPage from "./pages/Mindset";
-import BadgesPage from "./pages/Badges";
-import SettingsPage from "./pages/Settings";
-import TriviaPage from "./pages/Trivia";
-import ProfilePage from "./pages/Profile";
-import MatchesPage from "./pages/Matches";
-import VisualizePage from "./pages/Visualize";
-import BreathePage from "./pages/Breathe";
-import LessonsPage from "./pages/Lessons";
-import WeeklyReviewPage from "./pages/WeeklyReview";
-import PowerPhrasesPage from "./pages/PowerPhrases";
-import ScenariosPage from "./pages/Scenarios";
-import GamesPage from "./pages/Games";
-import ReactionTapPage from "./pages/ReactionTap";
-import FocusFlashPage from "./pages/FocusFlash";
-import VideoLibraryPage from "./pages/VideoLibrary";
-import OpponentsPage from "./pages/Opponents";
-import VoicePersonasPage from "./pages/VoicePersonas";
-import ExportReportPage from "./pages/ExportReport";
-import ProgressPage from "./pages/Progress";
-import AskCoachPage from "./pages/AskCoach";
+
+// Lazy — each page loads on demand when the route is visited
+const AuthPage = lazy(() => import("./pages/Auth"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPassword"));
+const ConnectionsPage = lazy(() => import("./pages/Connections"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const CoachDashboard = lazy(() => import("./pages/CoachDashboard"));
+const AthleteViewPage = lazy(() => import("./pages/AthleteView"));
+const FeedbackInboxPage = lazy(() => import("./pages/FeedbackInbox"));
+const HabitsPage = lazy(() => import("./pages/Habits"));
+const PracticePage = lazy(() => import("./pages/Practice"));
+const MindsetPage = lazy(() => import("./pages/Mindset"));
+const BadgesPage = lazy(() => import("./pages/Badges"));
+const SettingsPage = lazy(() => import("./pages/Settings"));
+const TriviaPage = lazy(() => import("./pages/Trivia"));
+const ProfilePage = lazy(() => import("./pages/Profile"));
+const MatchesPage = lazy(() => import("./pages/Matches"));
+const VisualizePage = lazy(() => import("./pages/Visualize"));
+const BreathePage = lazy(() => import("./pages/Breathe"));
+const LessonsPage = lazy(() => import("./pages/Lessons"));
+const WeeklyReviewPage = lazy(() => import("./pages/WeeklyReview"));
+const PowerPhrasesPage = lazy(() => import("./pages/PowerPhrases"));
+const ScenariosPage = lazy(() => import("./pages/Scenarios"));
+const GamesPage = lazy(() => import("./pages/Games"));
+const ReactionTapPage = lazy(() => import("./pages/ReactionTap"));
+const FocusFlashPage = lazy(() => import("./pages/FocusFlash"));
+const VideoLibraryPage = lazy(() => import("./pages/VideoLibrary"));
+const OpponentsPage = lazy(() => import("./pages/Opponents"));
+const VoicePersonasPage = lazy(() => import("./pages/VoicePersonas"));
+const ExportReportPage = lazy(() => import("./pages/ExportReport"));
+const ProgressPage = lazy(() => import("./pages/Progress"));
+const AskCoachPage = lazy(() => import("./pages/AskCoach"));
+
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <div className="text-sm text-slate-400">Loading...</div>
+    </div>
+  );
+}
 
 function AppShell() {
   const { state } = useStore();
@@ -50,10 +63,12 @@ function AppShell() {
   ) {
     return (
       <BrowserRouter>
-        <Routes>
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="*" element={<Navigate to="/reset-password" replace />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="*" element={<Navigate to="/reset-password" replace />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     );
   }
@@ -73,16 +88,18 @@ function AppShell() {
   if (account && (account.role === "coach" || account.role === "parent")) {
     return (
       <BrowserRouter>
-        <Routes>
-          <Route path="auth" element={<AuthPage />} />
-          <Route element={<CoachLayout />}>
-            <Route index element={<CoachDashboard />} />
-            <Route path="athlete/:id" element={<AthleteViewPage />} />
-            <Route path="connections" element={<ConnectionsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Route>
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="auth" element={<AuthPage />} />
+            <Route element={<CoachLayout />}>
+              <Route index element={<CoachDashboard />} />
+              <Route path="athlete/:id" element={<AthleteViewPage />} />
+              <Route path="connections" element={<ConnectionsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     );
   }
@@ -95,38 +112,40 @@ function AppShell() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="auth" element={<AuthPage />} />
-        <Route element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="habits" element={<HabitsPage />} />
-          <Route path="practice" element={<PracticePage />} />
-          <Route path="mindset" element={<MindsetPage />} />
-          <Route path="badges" element={<BadgesPage />} />
-          <Route path="trivia" element={<TriviaPage />} />
-          <Route path="matches" element={<MatchesPage />} />
-          <Route path="visualize" element={<VisualizePage />} />
-          <Route path="breathe" element={<BreathePage />} />
-          <Route path="lessons" element={<LessonsPage />} />
-          <Route path="review" element={<WeeklyReviewPage />} />
-          <Route path="phrases" element={<PowerPhrasesPage />} />
-          <Route path="scenarios" element={<ScenariosPage />} />
-          <Route path="games" element={<GamesPage />} />
-          <Route path="games/reaction" element={<ReactionTapPage />} />
-          <Route path="games/flash" element={<FocusFlashPage />} />
-          <Route path="videos" element={<VideoLibraryPage />} />
-          <Route path="opponents" element={<OpponentsPage />} />
-          <Route path="voice" element={<VoicePersonasPage />} />
-          <Route path="export" element={<ExportReportPage />} />
-          <Route path="progress" element={<ProgressPage />} />
-          <Route path="ask" element={<AskCoachPage />} />
-          <Route path="connections" element={<ConnectionsPage />} />
-          <Route path="feedback" element={<FeedbackInboxPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="auth" element={<AuthPage />} />
+          <Route element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="habits" element={<HabitsPage />} />
+            <Route path="practice" element={<PracticePage />} />
+            <Route path="mindset" element={<MindsetPage />} />
+            <Route path="badges" element={<BadgesPage />} />
+            <Route path="trivia" element={<TriviaPage />} />
+            <Route path="matches" element={<MatchesPage />} />
+            <Route path="visualize" element={<VisualizePage />} />
+            <Route path="breathe" element={<BreathePage />} />
+            <Route path="lessons" element={<LessonsPage />} />
+            <Route path="review" element={<WeeklyReviewPage />} />
+            <Route path="phrases" element={<PowerPhrasesPage />} />
+            <Route path="scenarios" element={<ScenariosPage />} />
+            <Route path="games" element={<GamesPage />} />
+            <Route path="games/reaction" element={<ReactionTapPage />} />
+            <Route path="games/flash" element={<FocusFlashPage />} />
+            <Route path="videos" element={<VideoLibraryPage />} />
+            <Route path="opponents" element={<OpponentsPage />} />
+            <Route path="voice" element={<VoicePersonasPage />} />
+            <Route path="export" element={<ExportReportPage />} />
+            <Route path="progress" element={<ProgressPage />} />
+            <Route path="ask" element={<AskCoachPage />} />
+            <Route path="connections" element={<ConnectionsPage />} />
+            <Route path="feedback" element={<FeedbackInboxPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
