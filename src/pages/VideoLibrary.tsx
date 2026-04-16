@@ -235,7 +235,15 @@ function VideoCard({
         <div className="font-bold text-sm text-slate-900 truncate">
           {video.title}
         </div>
-        <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1">
+        <div className="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1 flex-wrap">
+          {video.author && video.author !== "athlete" && (
+            <>
+              <span className="px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 font-bold uppercase tracking-wider text-[8px]">
+                From {video.author}
+              </span>
+              <span>·</span>
+            </>
+          )}
           <span>{VIDEO_TAG_LABELS[video.tag]}</span>
           <span>·</span>
           <span>{new Date(video.createdAt).toLocaleDateString()}</span>

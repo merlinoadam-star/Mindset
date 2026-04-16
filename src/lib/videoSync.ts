@@ -183,3 +183,76 @@ export async function getVideoSignedUrl(
   }
   return data.signedUrl;
 }
+
+// ---------------------------------------------------------------------------
+// Coach / parent video upload (Phase 5 — Video Sharing)
+// ---------------------------------------------------------------------------
+
+/**
+ * Upload a video on behalf of an athlete. The uploader is the coach/parent;
+ * the athlete_id determines whose library it lands in and which storage
+ * folder it goes to. Fires a push notification to the athlete.
+ */
+export async function uploadVideoAsCoach(params: {
+  athleteId: string;
+  uploaderId: string;
+  uploaderRole: "coach" | "parent";
+  blob: Blob;
+  title: string;
+  description?: string;
+  tag: string;
+}): Promise<{ videoId?: string; error?: string }> {
+  if (!supabase) return { error: "Sync isn't configured." };
+
+  const videoId = crypto.randomUUID();
+  const mime = params.blob.type || "video/mp4";
+  const ext = mime.split("/")[1]?.split(";")[0] ?? "mp4";
+  const path = `${params.athleteId}/${videoId}.${ext}`;
+
+  // 1. Upload blob to Storage
+  const { error: uploadErr } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, params.blob, {
+      contentType: mime,
+      upsert: false,
+    });
+  if (uploadErr) return { error: `Upload failed: ${uploadErr.message}` };
+
+  // 2. Insert metadata row
+  const { error: rowErr } = await supabase.from("videos").insert({
+    id: videoId,
+    athlete_id: params.athleteId,
+    uploader_account_id: params.uploaderId,
+    title: params.title,
+    description: params.description ?? null,
+    tag: params.tag,
+    duration_sec: null,
+    storage_path: path,
+    mime_type: mime,
+    size_bytes: params.blob.size,
+    author: params.uploaderRole,
+    audience: "self",
+  });
+  if (rowErr) return { error: `Save failed: ${rowErr.message}` };
+
+  // 3. Push notification to athlete (fire-and-forget)
+  const roleLabel = params.uploaderRole === "coach" ? "coach" : "parent";
+  try {
+    supabase.functions
+      .invoke("send-push", {
+        body: {
+          toAccountId: params.athleteId,
+          title: `New video from your ${roleLabel}`,
+          body: params.title,
+          url: "/videos",
+          tag: `video-upload-${videoId}`,
+          prefKey: "notes",
+        },
+      })
+      .then(() => {}, () => {});
+  } catch {
+    /* best-effort */
+  }
+
+  return { videoId };
+}

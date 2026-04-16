@@ -18,6 +18,7 @@ import CoachWeeklyFocusCard from "../components/CoachWeeklyFocusCard";
 import CheerButtons from "../components/CheerButtons";
 import AthleteGlanceCard from "../components/AthleteGlanceCard";
 import WeeklyWrapUpCard from "../components/WeeklyWrapUpCard";
+import CoachVideoUpload from "../components/CoachVideoUpload";
 import { useRealtime } from "../lib/useRealtime";
 import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
@@ -789,6 +790,9 @@ export default function AthleteViewPage() {
           </div>
         </Section>
       )}
+
+      {/* Coach video upload */}
+      {id && <CoachVideoUpload athleteId={id} athleteName={profile.name} />}
 
       {/* Videos — Phase 2B.6 */}
       {videos.length > 0 && (
