@@ -109,7 +109,7 @@ export default function GuidedTutorial() {
   const [tutorialState, setTutorialState] = useState(loadTutorialState);
   const [hasConnection, setHasConnection] = useState(false);
   const [showIosSteps, setShowIosSteps] = useState(false);
-  const [guideOn] = useState(isGuideEnabled);
+  const [guideOn, setGuideOn] = useState(isGuideEnabled);
   const [dailyDismissKey, setDailyDismissKey] = useState(0); // bump to re-check
 
   // Check for connections
@@ -294,7 +294,6 @@ export default function GuidedTutorial() {
   ]);
 
   if (!guideOn) return null;
-  if (tutorialState.dismissed && !setupComplete) return null;
 
   // ---------------------------------------------------------------------------
   // Setup mode — show the 4 sequential steps
@@ -327,9 +326,8 @@ export default function GuidedTutorial() {
     };
 
     const dismissAll = () => {
-      const next = { ...tutorialState, dismissed: true };
-      saveTutorialState(next);
-      setTutorialState(next);
+      setGuideEnabled(false);
+      setGuideOn(false);
     };
 
     return (
