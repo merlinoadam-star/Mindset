@@ -433,7 +433,7 @@ export default function GuidedTutorial() {
               </a>
             ) : (
               <div className="text-xs text-amber-700 mt-2">
-                Cloud sync isn&apos;t configured yet.
+                Ask your parent or coach to help set this up!
               </div>
             )}
             <SkipButton onClick={() => skip("account")} />

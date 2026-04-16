@@ -121,8 +121,8 @@ export default function MatchesPage() {
           <Swords size={40} className="mx-auto text-slate-300" />
           <h3 className="font-bold mt-3 text-slate-900">No matches yet</h3>
           <p className="text-sm text-slate-500 mt-1 max-w-xs mx-auto">
-            Log a match to prepare mentally before and reflect with the
-            Well&nbsp;/&nbsp;Better&nbsp;/&nbsp;Next framework after.
+            Log a match to get your head right before and learn from it
+            after. You&apos;ve got this.
           </p>
           <button
             onClick={() => setNewOpen(true)}

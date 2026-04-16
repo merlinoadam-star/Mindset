@@ -281,11 +281,11 @@ export default function SettingsPage() {
             <Download size={18} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-bold text-slate-900">Download my data</div>
+            <div className="font-bold text-slate-900">Save my season</div>
             <div className="text-xs text-slate-500 mt-0.5 leading-snug">
               {account && (account.role === "coach" || account.role === "parent")
-                ? "Export your notes, cheers, weekly focuses, and connections as JSON."
-                : "Export your profile, matches, practices, habits, and history as JSON."}
+                ? "Back up your notes, cheers, focuses, and connections to your device."
+                : "Back up everything you've built — profile, matches, habits, and more."}
             </div>
             <button
               onClick={handleExport}
@@ -416,7 +416,7 @@ export default function SettingsPage() {
       )}
 
       <div className="text-center text-xs text-slate-400 pt-4">
-        Mindset · v0.1 · Phase 1
+        Mindset · Built for Young Athletes
       </div>
     </div>
   );

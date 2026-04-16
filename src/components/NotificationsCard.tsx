@@ -88,7 +88,7 @@ export default function NotificationsCard() {
         <div className="flex-1 min-w-0">
           <div className="font-bold text-slate-900">Push Notifications</div>
           <div className="text-xs text-slate-500 mt-0.5">
-            Get pinged when your team leaves a note
+            Get alerts when your coach cheers you on
           </div>
         </div>
       </div>

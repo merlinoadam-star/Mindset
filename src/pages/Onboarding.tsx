@@ -118,7 +118,7 @@ export default function Onboarding() {
           <div className="flex-1 flex flex-col animate-slide-up">
             <StepHeader
               title="What's your first name?"
-              subtitle="This is how your coach and teammates will see you."
+              subtitle="Your coach will see this name."
             />
             <div className="bg-white text-slate-900 rounded-3xl p-6 shadow-elevated flex-1 flex flex-col">
               <input

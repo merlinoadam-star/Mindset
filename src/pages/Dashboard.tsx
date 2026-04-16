@@ -126,7 +126,7 @@ export default function Dashboard() {
           <QuickAction
             to="/habits"
             icon={<CheckSquare size={18} />}
-            label="Check off your daily habits"
+            label="Check off what you did today!"
             done={doneToday === totalHabitsToday && totalHabitsToday > 0}
             progress={`${doneToday}/${totalHabitsToday}`}
             color="brand"
@@ -165,7 +165,7 @@ export default function Dashboard() {
           <QuickAction
             to="/opponents"
             icon={<Users size={18} />}
-            label="Opponent tracker — head-to-head & scouting notes"
+            label="Scout your opponents"
             color="brand"
           />
           <QuickAction

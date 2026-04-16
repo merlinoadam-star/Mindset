@@ -199,7 +199,7 @@ export default function DailyGoalCard() {
           </button>
         </div>
         <p className="text-[11px] text-white/50 mt-2 text-center">
-          +10 XP for reviewing — process over perfection
+          +10 XP for reviewing — every rep counts
         </p>
       </div>
     </div>

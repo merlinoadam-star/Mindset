@@ -48,11 +48,11 @@ export default function ProgressPage() {
         <div className="card text-center py-10">
           <TrendingUp size={40} className="mx-auto text-slate-300" />
           <h3 className="font-bold mt-3 text-slate-900">
-            No data yet
+            Your progress starts here!
           </h3>
           <p className="text-sm text-slate-500 mt-1 max-w-xs mx-auto">
-            Start logging habits, practices, or matches and your progress
-            charts will appear here.
+            Check off a habit, log a practice, or prep for a match — your
+            charts will start filling in right away.
           </p>
         </div>
       ) : (

@@ -29,7 +29,7 @@ export default function QuoteOfTheDay() {
           <div className="flex items-center gap-2">
             <Sparkles size={14} className="text-amber-600" />
             <span className="text-[11px] uppercase tracking-[0.2em] font-bold text-amber-700">
-              Daily Wisdom
+              Your Daily Fire
             </span>
           </div>
           <SpeakButton

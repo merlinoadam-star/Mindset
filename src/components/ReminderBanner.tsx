@@ -136,7 +136,7 @@ export default function ReminderBanner() {
         color="amber"
         icon={<Flame size={18} />}
         title={`Don't break your ${reminder.streak}-day streak!`}
-        desc="Check off a habit or log something today to keep it going."
+        desc="Do one thing today to keep your streak alive!"
         cta="Keep it alive"
         onDismiss={dismiss}
       />
