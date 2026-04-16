@@ -1,12 +1,18 @@
 {
   "name": "Mindset — Youth Athlete App",
   "short_name": "Mindset",
-  "description": "Gamified mindset and training tracker for youth wrestlers and volleyball players.",
+  "description": "Gamified mindset and training tracker for youth wrestlers and volleyball players. Build habits, prep for matches, track progress, and connect with your coach.",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#4f46e5",
   "orientation": "portrait",
+  "categories": ["sports", "health", "fitness", "education"],
+  "lang": "en",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon.svg",

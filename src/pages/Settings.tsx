@@ -18,6 +18,7 @@ import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
 import NotificationsCard from "../components/NotificationsCard";
 import NotificationPrefsCard from "../components/NotificationPrefsCard";
 import DailyReminderCard from "../components/DailyReminderCard";
+import { InstallSettingsCard } from "../components/InstallAppCard";
 import { deleteMyAccount } from "../lib/accountLifecycle";
 import {
   exportAthleteData,
@@ -171,6 +172,8 @@ export default function SettingsPage() {
         </div>
         <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
       </Link>
+
+      <InstallSettingsCard />
 
       <NotificationsCard />
 
