@@ -12,6 +12,7 @@ import ReminderBanner from "../components/ReminderBanner";
 import WeeklyWrapUpCard from "../components/WeeklyWrapUpCard";
 import UpcomingMatchesCard from "../components/UpcomingMatchesCard";
 import { InstallBanner } from "../components/InstallAppCard";
+import GuidedTutorial from "../components/GuidedTutorial";
 import { useAuth } from "../lib/authContext";
 import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles, Video as VideoIcon, Users } from "lucide-react";
 import { currentWeekMondayISO } from "../lib/gamification";
@@ -69,6 +70,8 @@ export default function Dashboard() {
           <Settings size={18} />
         </Link>
       </header>
+
+      <GuidedTutorial />
 
       <Link to="/progress" className="block group">
         <XPBar xp={state.xp} info={info} />
