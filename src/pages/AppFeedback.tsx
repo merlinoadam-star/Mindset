@@ -12,6 +12,8 @@ import {
 import { useAuth } from "../lib/authContext";
 import { supabase } from "../lib/supabase";
 
+const APP_OWNER_ID = import.meta.env.VITE_APP_OWNER_ACCOUNT_ID as string | undefined;
+
 type FeedbackType = "bug" | "idea" | "other";
 
 interface FeedbackRow {
@@ -98,6 +100,27 @@ export default function AppFeedbackPage() {
     if (err) {
       setError(err.message);
       return;
+    }
+
+    // Notify the app owner (fire-and-forget)
+    if (APP_OWNER_ID && APP_OWNER_ID !== user.id) {
+      const preview = text.trim().length > 80 ? text.trim().slice(0, 77) + "..." : text.trim();
+      const typeLabel = type === "bug" ? "Bug report" : type === "idea" ? "New idea" : "Feedback";
+      try {
+        supabase.functions
+          .invoke("send-push", {
+            body: {
+              toAccountId: APP_OWNER_ID,
+            title: `${typeLabel} from ${account?.displayName ?? "a tester"}`,
+            body: preview,
+            url: "/app-feedback",
+            tag: `app-feedback-${Date.now()}`,
+          },
+        })
+        .then(() => {}, () => {});
+      } catch {
+        /* best-effort */
+      }
     }
     setSent(true);
     setText("");
