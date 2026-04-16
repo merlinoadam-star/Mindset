@@ -80,18 +80,25 @@ export async function postFeedback(params: {
     const title = isCheer
       ? `Cheer from your ${roleLabel}!`
       : `New note from your ${roleLabel}`;
-    supabase.functions
-      .invoke("send-push", {
-        body: {
-          toAccountId: params.athleteId,
-          title,
-          body: preview,
-          url: "/feedback",
-          tag: `feedback-${params.targetType}-${params.targetId}`,
-          prefKey: isCheer ? "cheers" : "notes",
-        },
-      })
-      .catch((e) => console.warn("send-push invoke failed", e));
+    try {
+      supabase.functions
+        .invoke("send-push", {
+          body: {
+            toAccountId: params.athleteId,
+            title,
+            body: preview,
+            url: "/feedback",
+            tag: `feedback-${params.targetType}-${params.targetId}`,
+            prefKey: isCheer ? "cheers" : "notes",
+          },
+        })
+        .then(
+          () => {},
+          () => {}
+        );
+    } catch {
+      /* push is best-effort */
+    }
   }
 
   return { row: data as FeedbackRow };

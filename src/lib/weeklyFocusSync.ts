@@ -122,18 +122,25 @@ export async function setWeeklyFocus(params: {
       params.authorRole === "coach"
         ? "New focus from your coach"
         : "New focus from your parent";
-    supabase.functions
-      .invoke("send-push", {
-        body: {
-          toAccountId: params.athleteId,
-          title,
-          body: preview,
-          url: "/",
-          tag: `weekly-focus-${week}`,
-          prefKey: "weeklyFocus",
-        },
-      })
-      .catch((e) => console.warn("send-push invoke failed", e));
+    try {
+      supabase.functions
+        .invoke("send-push", {
+          body: {
+            toAccountId: params.athleteId,
+            title,
+            body: preview,
+            url: "/",
+            tag: `weekly-focus-${week}`,
+            prefKey: "weeklyFocus",
+          },
+        })
+        .then(
+          () => {},
+          () => {}
+        );
+    } catch {
+      /* push is best-effort */
+    }
   }
 
   return { row: data as WeeklyFocusRow };
