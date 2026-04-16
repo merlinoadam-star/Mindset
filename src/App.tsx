@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from "./lib/authContext";
 import Layout from "./components/Layout";
 import CoachLayout from "./components/CoachLayout";
 import RewardToast from "./components/RewardToast";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Eager — needed before any route renders
 import Onboarding from "./pages/Onboarding";
@@ -152,11 +153,13 @@ function AppShell() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <StoreProvider>
-        <AppShell />
-        <RewardToast />
-      </StoreProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <StoreProvider>
+          <AppShell />
+          <RewardToast />
+        </StoreProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
