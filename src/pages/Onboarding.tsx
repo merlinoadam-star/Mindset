@@ -40,7 +40,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [sport, setSport] = useState<Sport | null>(null);
-  const [age, setAge] = useState(10);
+  const [ageStr, setAgeStr] = useState("10");
   const [grade, setGrade] = useState("5");
   const [done, setDone] = useState(false);
 
@@ -56,7 +56,7 @@ export default function Onboarding() {
     setProfile({
       name: name.trim(),
       sport,
-      age,
+      age: parseInt(ageStr) || 10,
       grade,
       createdAt: new Date().toISOString(),
     });
@@ -240,8 +240,8 @@ export default function Onboarding() {
                 type="number"
                 min={5}
                 max={19}
-                value={age}
-                onChange={(e) => setAge(parseInt(e.target.value) || 0)}
+                value={ageStr}
+                onChange={(e) => setAgeStr(e.target.value)}
                 className="w-full rounded-2xl border-2 border-slate-200 px-4 py-3.5 text-lg focus:border-brand-500 outline-none transition"
               />
 
