@@ -4,6 +4,7 @@ import { useStore, isUuid } from "../lib/store";
 import { useAuth } from "../lib/authContext";
 import { showReward } from "../components/RewardToast";
 import FeedbackThread from "../components/FeedbackThread";
+import VideoReviewCard from "../components/VideoReviewCard";
 import { loadVideoBlob, formatBytes, formatDuration } from "../lib/videoStorage";
 import {
   VIDEO_TAG_EMOJIS,
@@ -715,6 +716,17 @@ function VideoDetail({
           )}
         </div>
       </div>
+
+      {/* AI Video Review */}
+      {user && isUuid(video.id) && (
+        <VideoReviewCard
+          videoId={video.id}
+          athleteId={user.id}
+          storagePath={video.storagePath}
+          localBlobUrl={src ?? undefined}
+          description={video.description}
+        />
+      )}
 
       {/* Coach / parent notes — Phase 2C */}
       {user && isUuid(video.id) && (
