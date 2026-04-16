@@ -19,6 +19,10 @@ import NotificationsCard from "../components/NotificationsCard";
 import NotificationPrefsCard from "../components/NotificationPrefsCard";
 import DailyReminderCard from "../components/DailyReminderCard";
 import { InstallSettingsCard } from "../components/InstallAppCard";
+import {
+  isGuideEnabled,
+  setGuideEnabled,
+} from "../components/GuidedTutorial";
 import { deleteMyAccount } from "../lib/accountLifecycle";
 import {
   exportAthleteData,
@@ -34,6 +38,7 @@ export default function SettingsPage() {
   const [deleteText, setDeleteText] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
+  const [guideOn, setGuideOn] = useState(() => isGuideEnabled());
   const [exporting, setExporting] = useState(false);
   const [exportErr, setExportErr] = useState<string | null>(null);
 
@@ -174,6 +179,38 @@ export default function SettingsPage() {
       </Link>
 
       <InstallSettingsCard />
+
+      {/* Guided tour toggle */}
+      <div className="card">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-slate-900">Guided setup</div>
+            <div className="text-xs text-slate-500 mt-0.5">
+              Show step-by-step tips at the top of your dashboard to help you
+              get the most out of Mindset.
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={guideOn}
+            onClick={() => {
+              const next = !guideOn;
+              setGuideEnabled(next);
+              setGuideOn(next);
+            }}
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition mt-1 ${
+              guideOn ? "bg-brand-600" : "bg-slate-300"
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                guideOn ? "translate-x-5" : "translate-x-0.5"
+              }`}
+            />
+          </button>
+        </label>
+      </div>
 
       <NotificationsCard />
 

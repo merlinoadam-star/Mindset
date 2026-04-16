@@ -3,6 +3,7 @@ import {
   Smartphone,
   UserPlus,
   Users,
+  User,
   ChevronRight,
   Check,
   Share,
@@ -10,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "../lib/authContext";
+import { useStore } from "../lib/store";
 import { useInstallPrompt } from "../lib/useInstallPrompt";
 import { supabase } from "../lib/supabase";
 
@@ -27,9 +29,16 @@ import { supabase } from "../lib/supabase";
  * is now in standalone mode, user signed in, connection exists).
  */
 
-type TutorialStep = "install" | "account" | "connection" | "complete";
+type TutorialStep =
+  | "install"
+  | "account"
+  | "connection"
+  | "profile"
+  | "complete";
 
+const TOTAL_STEPS = 4;
 const STORAGE_KEY = "mindset-tutorial-v1";
+const GUIDE_ENABLED_KEY = "mindset-guide-enabled";
 
 interface TutorialState {
   dismissed: boolean;
@@ -50,13 +59,25 @@ function saveTutorialState(s: TutorialState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
 }
 
+/** Check if the guide is enabled (defaults to ON). */
+export function isGuideEnabled(): boolean {
+  return localStorage.getItem(GUIDE_ENABLED_KEY) !== "0";
+}
+
+/** Toggle the guide on/off. */
+export function setGuideEnabled(on: boolean): void {
+  localStorage.setItem(GUIDE_ENABLED_KEY, on ? "1" : "0");
+}
+
 export default function GuidedTutorial() {
   const { configured, account, user } = useAuth();
+  const { state } = useStore();
   const { isInstalled, isIos, canInstall, promptInstall } =
     useInstallPrompt();
   const [tutorialState, setTutorialState] = useState(loadTutorialState);
   const [hasConnection, setHasConnection] = useState(false);
   const [showIosSteps, setShowIosSteps] = useState(false);
+  const [guideOn] = useState(isGuideEnabled);
 
   // Check for connections
   useEffect(() => {
@@ -72,7 +93,7 @@ export default function GuidedTutorial() {
     })();
   }, [user]);
 
-  if (tutorialState.dismissed) return null;
+  if (tutorialState.dismissed || !guideOn) return null;
 
   // Determine current step based on what's actually done
   const installDone =
@@ -81,6 +102,20 @@ export default function GuidedTutorial() {
     Boolean(account) || tutorialState.skippedSteps.includes("account");
   const connectionDone =
     hasConnection || tutorialState.skippedSteps.includes("connection");
+
+  // Profile is "done enough" when they've filled in at least a couple
+  // key optional fields beyond the onboarding basics.
+  const p = state.profile;
+  const profileDone =
+    tutorialState.skippedSteps.includes("profile") ||
+    (p
+      ? Boolean(
+          (p.teamName || p.heightInches || p.weightLbs) &&
+            (p.sport === "wrestling"
+              ? p.weightClass || p.wrestlingStyles?.length
+              : p.primaryPosition)
+        )
+      : false);
 
   let currentStep: TutorialStep;
   let stepNumber: number;
@@ -93,9 +128,12 @@ export default function GuidedTutorial() {
   } else if (!connectionDone) {
     currentStep = "connection";
     stepNumber = 3;
+  } else if (!profileDone) {
+    currentStep = "profile";
+    stepNumber = 4;
   } else {
     currentStep = "complete";
-    stepNumber = 3;
+    stepNumber = 4;
   }
 
   // If all done, show brief success then auto-dismiss
@@ -163,11 +201,11 @@ export default function GuidedTutorial() {
         </div>
         <div className="flex-1" />
         <div className="text-[10px] text-slate-500 font-semibold">
-          Step {stepNumber} of 3
+          Step {stepNumber} of {TOTAL_STEPS}
         </div>
       </div>
       <div className="flex gap-1.5 mb-4">
-        {[1, 2, 3].map((i) => (
+        {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((i) => (
           <div
             key={i}
             className={`h-1.5 flex-1 rounded-full transition-all ${
@@ -329,6 +367,38 @@ export default function GuidedTutorial() {
             </a>
             <button
               onClick={() => skip("connection")}
+              className="mt-3 block text-[11px] text-slate-500 hover:text-slate-700 font-medium"
+            >
+              I&apos;ll do this later →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Complete profile */}
+      {currentStep === "profile" && (
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center flex-shrink-0">
+            <User size={18} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-slate-900">
+              Complete your athlete profile
+            </div>
+            <div className="text-xs text-slate-600 mt-0.5 leading-snug">
+              {state.profile?.sport === "wrestling"
+                ? "Add your team, weight class, wrestling style, and physical stats. Your coach sees this info on their dashboard."
+                : "Add your team, position, and physical stats. Your coach sees this info on their dashboard."}
+            </div>
+            <a
+              href="/profile"
+              className="btn-primary mt-3 !py-2 !px-4 !text-xs inline-flex items-center gap-1.5"
+            >
+              <User size={13} /> Go to Profile
+              <ChevronRight size={12} />
+            </a>
+            <button
+              onClick={() => skip("profile")}
               className="mt-3 block text-[11px] text-slate-500 hover:text-slate-700 font-medium"
             >
               I&apos;ll do this later →
