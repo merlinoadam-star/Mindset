@@ -41,6 +41,7 @@ const VoicePersonasPage = lazy(() => import("./pages/VoicePersonas"));
 const ExportReportPage = lazy(() => import("./pages/ExportReport"));
 const ProgressPage = lazy(() => import("./pages/Progress"));
 const AskCoachPage = lazy(() => import("./pages/AskCoach"));
+const AppFeedbackPage = lazy(() => import("./pages/AppFeedback"));
 
 function PageLoader() {
   return (
@@ -97,6 +98,7 @@ function AppShell() {
               <Route path="athlete/:id" element={<AthleteViewPage />} />
               <Route path="connections" element={<ConnectionsPage />} />
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="app-feedback" element={<AppFeedbackPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
@@ -139,6 +141,7 @@ function AppShell() {
             <Route path="export" element={<ExportReportPage />} />
             <Route path="progress" element={<ProgressPage />} />
             <Route path="ask" element={<AskCoachPage />} />
+          <Route path="app-feedback" element={<AppFeedbackPage />} />
             <Route path="connections" element={<ConnectionsPage />} />
             <Route path="feedback" element={<FeedbackInboxPage />} />
             <Route path="profile" element={<ProfilePage />} />

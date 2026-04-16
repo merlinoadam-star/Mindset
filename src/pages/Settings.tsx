@@ -12,6 +12,7 @@ import {
   LogIn,
   AlertTriangle,
   TrendingUp,
+  MessageCircle,
 } from "lucide-react";
 import { getPersona } from "../lib/speechPersonas";
 import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
@@ -303,6 +304,27 @@ export default function SettingsPage() {
           </div>
         </dl>
       </div>
+
+      {/* App feedback */}
+      {configured && account && (
+        <Link
+          to="/app-feedback"
+          className="card-interactive flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center flex-shrink-0">
+            <MessageCircle size={18} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-slate-900 dark:text-white">
+              Report a Bug or Idea
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Found something broken? Have an idea? Tell us right now.
+            </div>
+          </div>
+          <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+        </Link>
+      )}
 
       {/* Data export — for everyone, always available */}
       <div className="card">
