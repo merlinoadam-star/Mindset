@@ -22,6 +22,8 @@ interface FeedbackRow {
   text: string;
   page: string | null;
   created_at: string;
+  display_name: string | null;
+  role: string | null;
 }
 
 const TYPES: Array<{
@@ -72,10 +74,9 @@ export default function AppFeedbackPage() {
     }
     const { data } = await supabase
       .from("app_feedback")
-      .select("id, feedback_type, text, page, created_at")
-      .eq("account_id", user.id)
+      .select("id, feedback_type, text, page, created_at, display_name, role")
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(50);
     setHistory((data ?? []) as FeedbackRow[]);
     setLoadingHistory(false);
   }, [user]);
@@ -264,7 +265,7 @@ export default function AppFeedbackPage() {
         <div className="text-sm text-slate-400">Loading...</div>
       ) : history.length > 0 ? (
         <div>
-          <h2 className="section-label mb-2 px-1">Your submissions</h2>
+          <h2 className="section-label mb-2 px-1">All feedback</h2>
           <div className="space-y-2">
             {history.map((item) => (
               <div key={item.id} className="card !p-3">
@@ -282,6 +283,12 @@ export default function AppFeedbackPage() {
                       >
                         {item.feedback_type}
                       </span>
+                      {item.display_name && (
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">
+                          {item.display_name}
+                          {item.role ? ` (${item.role})` : ""}
+                        </span>
+                      )}
                       <span className="text-[10px] text-slate-400">
                         {new Date(item.created_at).toLocaleDateString()}
                       </span>

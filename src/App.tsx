@@ -6,6 +6,7 @@ import Layout from "./components/Layout";
 import CoachLayout from "./components/CoachLayout";
 import RewardToast from "./components/RewardToast";
 import ErrorBoundary from "./components/ErrorBoundary";
+import FeedbackFAB from "./components/FeedbackFAB";
 
 // Eager — needed before any route renders
 import Onboarding from "./pages/Onboarding";
@@ -161,6 +162,7 @@ export default function App() {
         <StoreProvider>
           <AppShell />
           <RewardToast />
+          <FeedbackFAB />
         </StoreProvider>
       </AuthProvider>
     </ErrorBoundary>
