@@ -46,6 +46,13 @@ export default function Onboarding() {
 
   function finish(): void {
     if (!name.trim() || !sport) return;
+    // Don't save yet — show the success screen first. The profile
+    // is committed when the user taps "Go to my dashboard".
+    setDone(true);
+  }
+
+  function commitAndGo(): void {
+    if (!name.trim() || !sport) return;
     setProfile({
       name: name.trim(),
       sport,
@@ -53,7 +60,6 @@ export default function Onboarding() {
       grade,
       createdAt: new Date().toISOString(),
     });
-    setDone(true);
   }
 
   return (
@@ -292,6 +298,7 @@ export default function Onboarding() {
                 icon={<CheckSquare size={18} />}
                 label="Check off today's habits"
                 desc="Start your streak — just tap what you did today."
+                onClick={commitAndGo}
                 href="/habits"
                 color="from-emerald-500 to-green-600"
               />
@@ -299,6 +306,7 @@ export default function Onboarding() {
                 icon={<Brain size={18} />}
                 label="Set today's goal"
                 desc="One thing to focus on right now."
+                onClick={commitAndGo}
                 href="/mindset"
                 color="from-purple-500 to-brand-600"
               />
@@ -306,6 +314,7 @@ export default function Onboarding() {
                 icon={<Swords size={18} />}
                 label="Log an upcoming match"
                 desc="We'll help you prep mentally before and reflect after."
+                onClick={commitAndGo}
                 href="/matches"
                 color="from-amber-500 to-orange-600"
               />
@@ -314,18 +323,19 @@ export default function Onboarding() {
                   icon={<Users size={18} />}
                   label="Connect with your coach or parent"
                   desc="They can cheer you on and set weekly focus areas."
+                  onClick={commitAndGo}
                   href="/auth"
                   color="from-sky-500 to-blue-600"
                 />
               )}
             </div>
 
-            <a
-              href="/"
-              className="mt-8 btn-primary w-full !py-4 !text-base text-center block"
+            <button
+              onClick={commitAndGo}
+              className="mt-8 btn-primary w-full !py-4 !text-base text-center"
             >
               Go to my dashboard
-            </a>
+            </button>
           </div>
         )}
 
@@ -377,17 +387,26 @@ function FirstAction({
   desc,
   href,
   color,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   desc: string;
   href: string;
   color: string;
+  onClick?: () => void;
 }) {
+  const handleClick = () => {
+    if (onClick) onClick();
+    // Small delay so the profile saves before navigation
+    window.setTimeout(() => {
+      window.location.href = href;
+    }, 50);
+  };
   return (
-    <a
-      href={href}
-      className="flex items-center gap-3 rounded-2xl bg-white/10 hover:bg-white/15 p-3.5 transition"
+    <button
+      onClick={handleClick}
+      className="w-full flex items-center gap-3 rounded-2xl bg-white/10 hover:bg-white/15 p-3.5 transition text-left"
     >
       <div
         className={`w-10 h-10 rounded-xl bg-gradient-to-br ${color} text-white flex items-center justify-center flex-shrink-0`}
@@ -399,6 +418,6 @@ function FirstAction({
         <div className="text-xs text-white/60 mt-0.5">{desc}</div>
       </div>
       <ChevronRight size={16} className="text-white/40 flex-shrink-0" />
-    </a>
+    </button>
   );
 }
