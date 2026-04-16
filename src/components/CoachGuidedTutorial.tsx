@@ -137,10 +137,8 @@ export default function CoachGuidedTutorial({
     }
   }, [state]);
 
-  if (!guideOn || !account) return null;
-
   const roleLabel =
-    account.role === "coach" ? "Coach" : "Parent";
+    account?.role === "coach" ? "Coach" : "Parent";
 
   // --- Setup steps ---
   const installDone =
@@ -151,6 +149,54 @@ export default function CoachGuidedTutorial({
     state.viewedAthlete || state.skippedSteps.includes("view");
 
   const setupComplete = installDone && connectDone && viewDone;
+
+  // --- Daily mode: contextual recommendations ---
+  // Must be computed before any early returns to keep hook count stable.
+  const dailyRec: Recommendation | null = useMemo(() => {
+    if (!setupComplete || !hasAcceptedAthletes) return null;
+
+    if (!hasFocusThisWeek && !isDailyDismissed("focus")) {
+      return {
+        key: "focus",
+        icon: <Target size={18} />,
+        iconColor: "from-amber-500 to-orange-600",
+        title: "Set this week's focus",
+        desc: "Give your athlete a concrete theme to work on. Tap into their profile to set it.",
+        href: athleteIds[0] ? `/athlete/${athleteIds[0]}` : undefined,
+        cta: "Open athlete",
+      };
+    }
+
+    if (!isDailyDismissed("cheer")) {
+      return {
+        key: "cheer",
+        icon: <Heart size={18} />,
+        iconColor: "from-pink-500 to-rose-600",
+        title: "Send a cheer",
+        desc: "A quick \"Proud of you!\" goes a long way. Tap into your athlete's page to send one.",
+        href: athleteIds[0] ? `/athlete/${athleteIds[0]}` : undefined,
+        cta: "Open athlete",
+      };
+    }
+
+    if (!isDailyDismissed("note")) {
+      return {
+        key: "note",
+        icon: <MessageSquare size={18} />,
+        iconColor: "from-brand-500 to-purple-600",
+        title: "Leave a note",
+        desc: "See a match or video your athlete posted? Leave feedback so they know you're watching.",
+        href: athleteIds[0] ? `/athlete/${athleteIds[0]}` : undefined,
+        cta: "Open athlete",
+      };
+    }
+
+    return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setupComplete, hasAcceptedAthletes, hasFocusThisWeek, athleteIds, dailyBump]);
+
+  // --- Early returns (AFTER all hooks) ---
+  if (!guideOn || !account) return null;
 
   const skip = (step: string) => {
     const next = {
@@ -302,53 +348,6 @@ export default function CoachGuidedTutorial({
       </div>
     );
   }
-
-  // --- Daily mode: contextual recommendations ---
-  const dailyRec: Recommendation | null = useMemo(() => {
-    if (!hasAcceptedAthletes) return null;
-
-    // 1. Set weekly focus (if not done this week)
-    if (!hasFocusThisWeek && !isDailyDismissed("focus")) {
-      return {
-        key: "focus",
-        icon: <Target size={18} />,
-        iconColor: "from-amber-500 to-orange-600",
-        title: "Set this week's focus",
-        desc: "Give your athlete a concrete theme to work on. Tap into their profile to set it.",
-        href: athleteIds[0] ? `/athlete/${athleteIds[0]}` : undefined,
-        cta: "Open athlete",
-      };
-    }
-
-    // 2. Send a cheer (generic nudge)
-    if (!isDailyDismissed("cheer")) {
-      return {
-        key: "cheer",
-        icon: <Heart size={18} />,
-        iconColor: "from-pink-500 to-rose-600",
-        title: "Send a cheer",
-        desc: "A quick \"Proud of you!\" goes a long way. Tap into your athlete's page to send one.",
-        href: athleteIds[0] ? `/athlete/${athleteIds[0]}` : undefined,
-        cta: "Open athlete",
-      };
-    }
-
-    // 3. Leave a note
-    if (!isDailyDismissed("note")) {
-      return {
-        key: "note",
-        icon: <MessageSquare size={18} />,
-        iconColor: "from-brand-500 to-purple-600",
-        title: "Leave a note",
-        desc: "See a match or video your athlete posted? Leave feedback so they know you're watching.",
-        href: athleteIds[0] ? `/athlete/${athleteIds[0]}` : undefined,
-        cta: "Open athlete",
-      };
-    }
-
-    return null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasAcceptedAthletes, hasFocusThisWeek, athleteIds, dailyBump]);
 
   if (!dailyRec) return null;
 
