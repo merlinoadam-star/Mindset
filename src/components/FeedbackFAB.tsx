@@ -12,7 +12,7 @@ export default function FeedbackFAB() {
     <a
       href="/app-feedback"
       aria-label="Report a bug or idea"
-      className="fixed bottom-20 right-4 z-50 w-12 h-12 rounded-full bg-red-600 hover:bg-red-700 shadow-lg hover:shadow-xl flex items-center justify-center transition active:scale-90 border-2 border-black"
+      className="fixed bottom-20 right-4 z-50 w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-600 shadow-lg hover:shadow-xl flex items-center justify-center transition active:scale-90 border-2 border-black"
     >
       <svg
         viewBox="0 0 40 40"
