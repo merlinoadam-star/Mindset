@@ -10,6 +10,7 @@ import UnreadFeedbackBanner from "../components/UnreadFeedbackBanner";
 import WeeklyFocusCard from "../components/WeeklyFocusCard";
 import ReminderBanner from "../components/ReminderBanner";
 import WeeklyWrapUpCard from "../components/WeeklyWrapUpCard";
+import DailyChallengeCard from "../components/DailyChallengeCard";
 import UpcomingMatchesCard from "../components/UpcomingMatchesCard";
 import { InstallBanner } from "../components/InstallAppCard";
 import GuidedTutorial from "../components/GuidedTutorial";
@@ -84,6 +85,8 @@ export default function Dashboard() {
       <UpcomingMatchesCard />
 
       <WeeklyFocusCard />
+
+      <DailyChallengeCard />
 
       {account && account.role === "athlete" && (
         <WeeklyWrapUpCard athleteId={account.id} />

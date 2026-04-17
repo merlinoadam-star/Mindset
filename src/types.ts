@@ -492,6 +492,8 @@ export interface AppState {
   unlockedBadges: UnlockedBadge[];
   lastActiveDate: string | null;
   lastQuoteClaimDate: string | null;
+  /** YYYY-MM-DD of the last day they claimed the daily challenge bonus. */
+  lastChallengeClaimDate?: string | null;
   streakFreezes: number; // unused freezes in the bank
   usedFreezeDates: string[]; // YYYY-MM-DD dates where a freeze saved the streak
   lastFreezeEarnedAt: string | null; // ISO timestamp of last earned freeze

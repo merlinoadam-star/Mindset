@@ -30,6 +30,7 @@ import {
 } from "./videoStorage";
 import { emptyState, loadState, saveState, clearState } from "./storage";
 import { habitsForSport, getHabit } from "./habits";
+import { todaysChallenge } from "./dailyChallenges";
 import {
   applyAutoFreezes,
   computeLevel,
@@ -115,6 +116,13 @@ interface StoreContextValue {
     newlyUnlocked: string[];
     alreadyClaimed: boolean;
   };
+  claimDailyChallenge: () => {
+    awardedXp: number;
+    newlyUnlocked: string[];
+    alreadyClaimed: boolean;
+    notDone: boolean;
+  };
+  hasClaimedChallengeToday: boolean;
   completeTriviaRound: (
     correctCount: number,
     totalQuestions: number
@@ -1009,6 +1017,51 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const claimDailyChallenge = useCallback(() => {
+    const today = todayISO();
+    let awardedXp = 0;
+    let newlyUnlocked: string[] = [];
+    let alreadyClaimed = false;
+    let notDone = false;
+
+    setState((prev) => {
+      if (prev.lastChallengeClaimDate === today) {
+        alreadyClaimed = true;
+        return prev;
+      }
+      const challenge = todaysChallenge(today);
+      const { done } = challenge.evaluate(prev, today);
+      if (!done) {
+        notDone = true;
+        return prev;
+      }
+      awardedXp = challenge.xp;
+      let next: AppState = {
+        ...prev,
+        xp: prev.xp + awardedXp,
+        lastActiveDate: today,
+        lastChallengeClaimDate: today,
+      };
+      const sportHabitCount = prev.profile
+        ? habitsForSport(prev.profile.sport).length
+        : 0;
+      newlyUnlocked = evaluateBadges(next, sportHabitCount);
+      if (newlyUnlocked.length > 0) {
+        const now = new Date().toISOString();
+        next = {
+          ...next,
+          unlockedBadges: [
+            ...next.unlockedBadges,
+            ...newlyUnlocked.map((id) => ({ id, unlockedAt: now })),
+          ],
+        };
+      }
+      return next;
+    });
+
+    return { awardedXp, newlyUnlocked, alreadyClaimed, notDone };
+  }, []);
+
   const completeTriviaRound = useCallback(
     (correctCount: number, totalQuestions: number) => {
       const isPerfect = correctCount === totalQuestions;
@@ -1649,6 +1702,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [state.lastQuoteClaimDate, today]
   );
 
+  const hasClaimedChallengeToday = useMemo(
+    () => state.lastChallengeClaimDate === today,
+    [state.lastChallengeClaimDate, today]
+  );
+
   const value: StoreContextValue = {
     state,
     setProfile,
@@ -1661,7 +1719,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setDailyGoal,
     hasCheckinToday,
     hasClaimedQuoteToday,
+    hasClaimedChallengeToday,
     claimDailyQuote,
+    claimDailyChallenge,
     completeTriviaRound,
     addMatch,
     updateMatch,

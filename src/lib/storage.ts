@@ -20,6 +20,7 @@ export const emptyState: AppState = {
   unlockedBadges: [],
   lastActiveDate: null,
   lastQuoteClaimDate: null,
+  lastChallengeClaimDate: null,
   streakFreezes: 0,
   usedFreezeDates: [],
   lastFreezeEarnedAt: null,
