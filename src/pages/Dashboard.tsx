@@ -17,6 +17,7 @@ import DailyChallengeCard from "../components/DailyChallengeCard";
 import ComboCard from "../components/ComboCard";
 import SpinWheelCard from "../components/SpinWheelCard";
 import UpcomingMatchesCard from "../components/UpcomingMatchesCard";
+import MatchDayCard from "../components/MatchDayCard";
 import { InstallBanner } from "../components/InstallAppCard";
 import GuidedTutorial from "../components/GuidedTutorial";
 import { useAuth } from "../lib/authContext";
@@ -100,6 +101,9 @@ export default function Dashboard() {
       <UnreadFeedbackBanner />
 
       <ReminderBanner />
+
+      {/* Match Day hero — surfaces only when a match is today/tomorrow */}
+      <MatchDayCard />
 
       {/* Morning check-in first — the start-of-day anchor */}
       <MorningCheckInCard />

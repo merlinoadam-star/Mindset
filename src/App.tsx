@@ -47,6 +47,7 @@ const ProgressPage = lazy(() => import("./pages/Progress"));
 const AskCoachPage = lazy(() => import("./pages/AskCoach"));
 const AppFeedbackPage = lazy(() => import("./pages/AppFeedback"));
 const SeasonGoalsPage = lazy(() => import("./pages/SeasonGoals"));
+const MatchDayPage = lazy(() => import("./pages/MatchDay"));
 
 function PageLoader() {
   return (
@@ -140,6 +141,7 @@ function AppShell() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="auth" element={<AuthPage />} />
+          <Route path="match-day" element={<MatchDayPage />} />
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="habits" element={<HabitsPage />} />
