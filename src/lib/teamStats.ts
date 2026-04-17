@@ -15,7 +15,20 @@ export interface AthleteStat {
   lastActiveDate: string | null; // YYYY-MM-DD
   currentStreak: number;
   activeToday: boolean;
+  activeDays7: number;
+  habitsDone7: number;
+  avgMood7: number | null;
+  moodTrend: "up" | "down" | "flat" | null;
+  daysSinceActive: number;
+  flags: AthleteFlag[];
 }
+
+export type AthleteFlag =
+  | "inactive"    // 3+ days no activity
+  | "mood-down"   // mood trending down week-over-week
+  | "streak-broke" // had a streak ≥3 but now at 0
+  | "low-activity" // ≤1 active day this week
+  | "on-fire";     // 6+ active days AND streak ≥5
 
 function isoDate(d: Date): string {
   const y = d.getFullYear();
@@ -68,10 +81,11 @@ export async function fetchTeamStats(
   const out = new Map<string, AthleteStat>();
   if (!supabase || athleteIds.length === 0) return out;
 
-  // Pull recent activity — last 60 days is enough for streak math.
   const since = isoDate(addDays(new Date(), -60));
+  const sevenAgo = isoDate(addDays(new Date(), -6));
+  const fourteenAgo = isoDate(addDays(new Date(), -13));
 
-  const [xpRes, habitsRes, practicesRes, checkinsRes, matchesRes] =
+  const [xpRes, habitsRes, practicesRes, checkinsRes, matchesRes, moodRes] =
     await Promise.all([
       supabase.from("athletes").select("id, xp").in("id", athleteIds),
       supabase
@@ -94,6 +108,11 @@ export async function fetchTeamStats(
         .select("athlete_id, date")
         .in("athlete_id", athleteIds)
         .gte("date", since),
+      supabase
+        .from("mental_checkins")
+        .select("athlete_id, date, mood")
+        .in("athlete_id", athleteIds)
+        .gte("date", fourteenAgo),
     ]);
 
   const today = isoDate(new Date());
@@ -112,21 +131,119 @@ export async function fetchTeamStats(
   bump(checkinsRes.data);
   bump(matchesRes.data);
 
+  // Bucket habits in last 7 days per athlete
+  const habits7 = new Map<string, number>();
+  for (const r of habitsRes.data ?? []) {
+    if (r.date && r.date >= sevenAgo) {
+      habits7.set(r.athlete_id, (habits7.get(r.athlete_id) ?? 0) + 1);
+    }
+  }
+
+  // Bucket moods per athlete for last 7 / previous 7
+  const moods7 = new Map<string, number[]>();
+  const moodsPrev7 = new Map<string, number[]>();
+  for (const r of moodRes.data ?? []) {
+    if (!r.mood || !r.date) continue;
+    if (r.date >= sevenAgo) {
+      if (!moods7.has(r.athlete_id)) moods7.set(r.athlete_id, []);
+      moods7.get(r.athlete_id)!.push(r.mood);
+    } else if (r.date >= fourteenAgo) {
+      if (!moodsPrev7.has(r.athlete_id)) moodsPrev7.set(r.athlete_id, []);
+      moodsPrev7.get(r.athlete_id)!.push(r.mood);
+    }
+  }
+
   for (const id of athleteIds) {
     const activeSet = dates.get(id) ?? new Set<string>();
     const sorted = [...activeSet].sort();
     const xp = (xpRes.data ?? []).find((a) => a.id === id)?.xp ?? 0;
+    const streak = streakFromDates(activeSet);
+    const lastActive = sorted.length > 0 ? sorted[sorted.length - 1] : null;
+    const isActiveToday = activeSet.has(today);
+
+    // Active days in last 7
+    let activeDays7 = 0;
+    for (let i = 0; i < 7; i++) {
+      if (activeSet.has(isoDate(addDays(new Date(), -i)))) activeDays7++;
+    }
+
+    // Days since last activity
+    let daysSinceActive = 999;
+    if (lastActive) {
+      const lastD = new Date(lastActive + "T12:00:00");
+      const todayD = new Date(today + "T12:00:00");
+      daysSinceActive = Math.round(
+        (todayD.getTime() - lastD.getTime()) / (1000 * 60 * 60 * 24)
+      );
+    }
+
+    // Mood average + trend
+    const m7 = moods7.get(id) ?? [];
+    const mp7 = moodsPrev7.get(id) ?? [];
+    const avgMood7 =
+      m7.length > 0 ? m7.reduce((a, b) => a + b, 0) / m7.length : null;
+    const prevAvg =
+      mp7.length > 0 ? mp7.reduce((a, b) => a + b, 0) / mp7.length : null;
+    let moodTrend: "up" | "down" | "flat" | null = null;
+    if (avgMood7 !== null && prevAvg !== null) {
+      const diff = avgMood7 - prevAvg;
+      if (diff > 0.3) moodTrend = "up";
+      else if (diff < -0.3) moodTrend = "down";
+      else moodTrend = "flat";
+    }
+
+    // Had a streak last week that's now gone?
+    let hadPriorStreak = false;
+    if (streak === 0) {
+      const weekAgoSet = new Set<string>();
+      for (let i = 3; i < 14; i++) {
+        if (activeSet.has(isoDate(addDays(new Date(), -i))))
+          weekAgoSet.add(isoDate(addDays(new Date(), -i)));
+      }
+      if (streakFromDatesRaw(weekAgoSet) >= 3) hadPriorStreak = true;
+    }
+
+    // Compute flags
+    const flags: AthleteFlag[] = [];
+    if (daysSinceActive >= 3) flags.push("inactive");
+    if (moodTrend === "down") flags.push("mood-down");
+    if (hadPriorStreak && streak === 0) flags.push("streak-broke");
+    if (activeDays7 <= 1 && daysSinceActive < 3) flags.push("low-activity");
+    if (activeDays7 >= 6 && streak >= 5) flags.push("on-fire");
+
     out.set(id, {
       athleteId: id,
       xp,
       level: levelFromXp(xp),
-      lastActiveDate: sorted.length > 0 ? sorted[sorted.length - 1] : null,
-      currentStreak: streakFromDates(activeSet),
-      activeToday: activeSet.has(today),
+      lastActiveDate: lastActive,
+      currentStreak: streak,
+      activeToday: isActiveToday,
+      activeDays7,
+      habitsDone7: habits7.get(id) ?? 0,
+      avgMood7,
+      moodTrend,
+      daysSinceActive,
+      flags,
     });
   }
 
   return out;
+}
+
+function streakFromDatesRaw(dates: Set<string>): number {
+  const sorted = [...dates].sort().reverse();
+  if (sorted.length === 0) return 0;
+  let streak = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1] + "T12:00:00");
+    const curr = new Date(sorted[i] + "T12:00:00");
+    const diff = Math.round(
+      (prev.getTime() - curr.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (diff === 1) streak++;
+    else break;
+  }
+  return streak;
 }
 
 /** Format a YYYY-MM-DD as "today" / "yesterday" / "3d ago" / "Apr 14". */

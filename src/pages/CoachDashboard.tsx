@@ -18,13 +18,17 @@ import {
   Sparkles,
   Flame,
   TrendingUp,
+  AlertTriangle,
+  ArrowUpDown,
+  Smile,
+  Activity,
 } from "lucide-react";
 import CoachGuidedTutorial from "../components/CoachGuidedTutorial";
 import TeamBulkActions from "../components/TeamBulkActions";
 import {
   fetchTeamStats,
-  formatLastActive,
   type AthleteStat,
+  type AthleteFlag,
 } from "../lib/teamStats";
 
 interface ConnectedAthlete {
@@ -127,20 +131,57 @@ export default function CoachDashboard() {
     fetchTeamStats(ids).then(setStats);
   }, [accepted]);
 
+  type SortKey = "name" | "streak" | "mood" | "active" | "xp";
+  const [sortBy, setSortBy] = useState<SortKey>("name");
+
   // Team aggregate numbers
   const teamAgg = useMemo(() => {
     const list = [...stats.values()];
     if (list.length === 0) {
-      return { activeToday: 0, avgStreak: 0, onFire: 0, total: 0 };
+      return { activeToday: 0, avgStreak: 0, onFire: 0, needsAttention: 0, total: 0 };
     }
     const activeToday = list.filter((s) => s.activeToday).length;
     const onFire = list.filter((s) => s.currentStreak >= 3).length;
+    const needsAttention = list.filter(
+      (s) => s.flags.some((f) => f !== "on-fire")
+    ).length;
     const avgStreak =
       Math.round(
         (list.reduce((sum, s) => sum + s.currentStreak, 0) / list.length) * 10
       ) / 10;
-    return { activeToday, avgStreak, onFire, total: list.length };
+    return { activeToday, avgStreak, onFire, needsAttention, total: list.length };
   }, [stats]);
+
+  // Athletes needing attention
+  const needsAttentionList = useMemo(() => {
+    return accepted.filter((a) => {
+      const s = stats.get(a.athleteAccountId);
+      return s && s.flags.some((f) => f !== "on-fire");
+    });
+  }, [accepted, stats]);
+
+  // Sorted roster
+  const sortedAthletes = useMemo(() => {
+    const copy = [...accepted];
+    copy.sort((a, b) => {
+      const sa = stats.get(a.athleteAccountId);
+      const sb = stats.get(b.athleteAccountId);
+      if (!sa || !sb) return 0;
+      switch (sortBy) {
+        case "streak":
+          return sa.currentStreak - sb.currentStreak;
+        case "mood":
+          return (sa.avgMood7 ?? 0) - (sb.avgMood7 ?? 0);
+        case "active":
+          return sa.activeDays7 - sb.activeDays7;
+        case "xp":
+          return sb.xp - sa.xp;
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+    return copy;
+  }, [accepted, stats, sortBy]);
 
   if (!account) return null;
   const greeting = new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening";
@@ -248,14 +289,14 @@ export default function CoachDashboard() {
         <>
           {/* Team overview strip */}
           {accepted.length >= 2 && (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <div className="card !p-3 text-center">
                 <div className="text-xl font-extrabold tabular-nums text-brand-700 dark:text-brand-400">
                   {teamAgg.activeToday}
                   <span className="text-slate-300">/{teamAgg.total}</span>
                 </div>
                 <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">
-                  Active today
+                  Active
                 </div>
               </div>
               <div className="card !p-3 text-center">
@@ -264,7 +305,7 @@ export default function CoachDashboard() {
                   {teamAgg.onFire}
                 </div>
                 <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">
-                  3+ day streak
+                  On fire
                 </div>
               </div>
               <div className="card !p-3 text-center">
@@ -275,7 +316,57 @@ export default function CoachDashboard() {
                   Avg streak
                 </div>
               </div>
+              <div className="card !p-3 text-center">
+                <div className={`text-xl font-extrabold tabular-nums ${teamAgg.needsAttention > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                  {teamAgg.needsAttention}
+                </div>
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">
+                  {teamAgg.needsAttention === 0 ? "All good" : "Watch"}
+                </div>
+              </div>
             </div>
+          )}
+
+          {/* Needs attention — flagged athletes */}
+          {needsAttentionList.length > 0 && (
+            <section className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950 dark:to-orange-950 border border-amber-200 dark:border-amber-800 p-3">
+              <div className="flex items-center gap-1.5 mb-2">
+                <AlertTriangle size={14} className="text-amber-600" />
+                <h2 className="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                  Needs attention
+                </h2>
+              </div>
+              <div className="space-y-1.5">
+                {needsAttentionList.map((a) => {
+                  const s = stats.get(a.athleteAccountId);
+                  if (!s) return null;
+                  return (
+                    <Link
+                      key={a.connectionId}
+                      to={`/athlete/${a.athleteAccountId}`}
+                      className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-amber-100 dark:border-amber-900"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center text-sm font-extrabold flex-shrink-0">
+                        {a.name[0]?.toUpperCase() ?? "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                          {a.name}
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-0.5">
+                          {s.flags
+                            .filter((f) => f !== "on-fire")
+                            .map((f) => (
+                              <FlagChip key={f} flag={f} />
+                            ))}
+                        </div>
+                      </div>
+                      <ChevronRight size={14} className="text-slate-300 flex-shrink-0" />
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
           )}
 
           {/* Bulk team actions */}
@@ -284,11 +375,29 @@ export default function CoachDashboard() {
           />
 
           <section>
-            <h2 className="section-label mb-2 px-1">
-              {accepted.length >= 2 ? "Your Team" : "Your Athletes"}
-            </h2>
+            <div className="flex items-center justify-between mb-2 px-1">
+              <h2 className="section-label">
+                {accepted.length >= 2 ? "Your Team" : "Your Athletes"}
+              </h2>
+              {accepted.length >= 2 && (
+                <div className="flex items-center gap-1">
+                  <ArrowUpDown size={11} className="text-slate-400" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortKey)}
+                    className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-transparent border-none outline-none cursor-pointer pr-1"
+                  >
+                    <option value="name">Name</option>
+                    <option value="streak">Streak ↑</option>
+                    <option value="mood">Mood ↑</option>
+                    <option value="active">Active days ↑</option>
+                    <option value="xp">XP ↓</option>
+                  </select>
+                </div>
+              )}
+            </div>
             <div className="space-y-2">
-              {accepted.map((a) => {
+              {sortedAthletes.map((a) => {
                 const s = stats.get(a.athleteAccountId);
                 const streakColor =
                   !s || s.currentStreak === 0
@@ -298,11 +407,17 @@ export default function CoachDashboard() {
                     : s.currentStreak >= 3
                     ? "text-orange-500"
                     : "text-slate-500";
+                const hasWarning =
+                  s && s.flags.some((f) => f !== "on-fire");
                 return (
                   <Link
                     key={a.connectionId}
                     to={`/athlete/${a.athleteAccountId}`}
-                    className="card-interactive flex items-center gap-3"
+                    className={`card-interactive flex items-center gap-3 ${
+                      hasWarning
+                        ? "border-amber-200 dark:border-amber-800"
+                        : ""
+                    }`}
                   >
                     <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center text-lg font-extrabold flex-shrink-0">
                       {a.name[0]?.toUpperCase() ?? "?"}
@@ -312,31 +427,57 @@ export default function CoachDashboard() {
                         <div className="font-bold text-slate-900 dark:text-white truncate">
                           {a.name}
                         </div>
-                        {s && s.activeToday && (
+                        {s?.flags.includes("on-fire") && (
+                          <span className="text-[9px] font-bold text-orange-700 bg-orange-100 dark:bg-orange-900 dark:text-orange-300 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                            🔥 On fire
+                          </span>
+                        )}
+                        {s && s.activeToday && !s.flags.includes("on-fire") && (
                           <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-900 dark:text-emerald-300 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
                             Active
                           </span>
                         )}
                       </div>
                       {s ? (
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5 flex-wrap">
                           <span className="inline-flex items-center gap-0.5">
                             <TrendingUp size={9} className="text-brand-500" />
                             Lvl {s.level}
                           </span>
-                          <span>·</span>
+                          <span className="text-slate-300">·</span>
                           <span
                             className={`inline-flex items-center gap-0.5 font-semibold ${streakColor}`}
                           >
                             <Flame size={9} />
-                            {s.currentStreak}d streak
+                            {s.currentStreak}d
                           </span>
-                          <span>·</span>
-                          <span>{formatLastActive(s.lastActiveDate)}</span>
+                          <span className="text-slate-300">·</span>
+                          <span className="inline-flex items-center gap-0.5">
+                            <Activity size={9} className="text-emerald-500" />
+                            {s.activeDays7}/7d
+                          </span>
+                          {s.avgMood7 !== null && (
+                            <>
+                              <span className="text-slate-300">·</span>
+                              <span className="inline-flex items-center gap-0.5">
+                                <Smile size={9} className="text-purple-500" />
+                                {s.avgMood7.toFixed(1)}
+                                {s.moodTrend === "up" && <span className="text-emerald-600">↑</span>}
+                                {s.moodTrend === "down" && <span className="text-red-500">↓</span>}
+                              </span>
+                            </>
+                          )}
                         </div>
                       ) : (
                         <div className="text-xs text-slate-400 dark:text-slate-500 truncate">
                           {a.email}
+                        </div>
+                      )}
+                      {s && s.flags.some((f) => f !== "on-fire") && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {s.flags.filter((f) => f !== "on-fire").map((f) => (
+                            <FlagChip key={f} flag={f} />
+                          ))}
                         </div>
                       )}
                     </div>
@@ -402,5 +543,28 @@ export default function CoachDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+const FLAG_CONFIG: Record<
+  AthleteFlag,
+  { label: string; color: string } | null
+> = {
+  inactive: { label: "Inactive 3d+", color: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300" },
+  "mood-down": { label: "Mood dipping", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
+  "streak-broke": { label: "Streak broke", color: "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300" },
+  "low-activity": { label: "Low activity", color: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300" },
+  "on-fire": null,
+};
+
+function FlagChip({ flag }: { flag: AthleteFlag }) {
+  const cfg = FLAG_CONFIG[flag];
+  if (!cfg) return null;
+  return (
+    <span
+      className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${cfg.color}`}
+    >
+      {cfg.label}
+    </span>
   );
 }
