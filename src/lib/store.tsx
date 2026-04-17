@@ -33,6 +33,7 @@ import { habitsForSport, getHabit } from "./habits";
 import { todaysChallenge } from "./dailyChallenges";
 import {
   applyAutoFreezes,
+  applyStreakXp,
   computeLevel,
   computeStreak,
   evaluateBadges,
@@ -749,10 +750,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             ),
           };
         } else {
-          awardedXp = habit.xp;
+          awardedXp = applyStreakXp(habit.xp, prev);
           next = {
             ...prev,
-            xp: prev.xp + habit.xp,
+            xp: prev.xp + awardedXp,
             lastActiveDate: today,
             habitCompletions: [
               ...prev.habitCompletions,
@@ -791,18 +792,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addPractice = useCallback(
     (p: Omit<PracticeEntry, "id" | "xpEarned">) => {
-      const xpEarned = xpForPractice(p.durationMin, p.intensity);
+      let xpEarned = xpForPractice(p.durationMin, p.intensity);
       let newlyUnlocked: string[] = [];
 
       setState((prev) => {
+        const boostedXp = applyStreakXp(xpEarned, prev);
+        xpEarned = boostedXp;
         const entry: PracticeEntry = {
           ...p,
           id: genId(),
-          xpEarned,
+          xpEarned: boostedXp,
         };
         let next: AppState = {
           ...prev,
-          xp: prev.xp + xpEarned,
+          xp: prev.xp + boostedXp,
           lastActiveDate: todayISO(),
           practices: [entry, ...prev.practices],
         };
@@ -845,7 +848,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           goalMet: goalChanged ? undefined : already?.goalMet,
           goalReviewNote: goalChanged ? undefined : already?.goalReviewNote,
           goalReviewedAt: goalChanged ? undefined : already?.goalReviewedAt,
-          xpEarned: already ? 0 : CHECKIN_XP,
+          xpEarned: already ? 0 : applyStreakXp(CHECKIN_XP, prev),
         };
         let next: AppState = {
           ...prev,
@@ -987,9 +990,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         alreadyClaimed = true;
         return prev;
       }
+      const boostedQuoteXp = applyStreakXp(QUOTE_XP, prev);
       let next: AppState = {
         ...prev,
-        xp: prev.xp + QUOTE_XP,
+        xp: prev.xp + boostedQuoteXp,
         lastActiveDate: today,
         lastQuoteClaimDate: today,
       };

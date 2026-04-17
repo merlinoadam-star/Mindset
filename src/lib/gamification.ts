@@ -205,6 +205,32 @@ export function shouldEarnNewFreeze(state: AppState): boolean {
 }
 
 // -----------------------------------------------------------------------------
+// Streak multiplier — rewards consistency with more XP per action
+// -----------------------------------------------------------------------------
+
+export interface StreakMultiplier {
+  multiplier: number;
+  label: string; // "1x", "1.5x", etc.
+  tier: "base" | "warm" | "hot" | "blazing";
+  nextAt: number | null; // streak length to reach next tier
+}
+
+export function getStreakMultiplier(streak: number): StreakMultiplier {
+  if (streak >= 14) return { multiplier: 2.5, label: "2.5x", tier: "blazing", nextAt: null };
+  if (streak >= 7) return { multiplier: 2, label: "2x", tier: "hot", nextAt: 14 };
+  if (streak >= 3) return { multiplier: 1.5, label: "1.5x", tier: "warm", nextAt: 7 };
+  return { multiplier: 1, label: "1x", tier: "base", nextAt: 3 };
+}
+
+/** Apply the streak multiplier to a base XP amount. */
+export function applyStreakXp(baseXp: number, state: AppState): number {
+  if (baseXp <= 0) return baseXp;
+  const streak = computeStreak(state);
+  const { multiplier } = getStreakMultiplier(streak);
+  return Math.round(baseXp * multiplier);
+}
+
+// -----------------------------------------------------------------------------
 // Badges
 // -----------------------------------------------------------------------------
 
