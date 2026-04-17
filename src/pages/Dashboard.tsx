@@ -6,6 +6,7 @@ import XPBar from "../components/XPBar";
 import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
 import MorningCheckInCard from "../components/MorningCheckInCard";
+import MascotCard from "../components/MascotCard";
 import UnreadFeedbackBanner from "../components/UnreadFeedbackBanner";
 import WeeklyFocusCard from "../components/WeeklyFocusCard";
 import ReminderBanner from "../components/ReminderBanner";
@@ -86,6 +87,8 @@ export default function Dashboard() {
 
       {/* Morning check-in first — the start-of-day anchor */}
       <MorningCheckInCard />
+
+      <MascotCard />
 
       <UpcomingMatchesCard />
 
