@@ -78,7 +78,10 @@ export const CHALLENGES: DailyChallenge[] = [
       const yesterday = (() => {
         const d = new Date(today + "T12:00:00");
         d.setDate(d.getDate() - 1);
-        return d.toISOString().slice(0, 10);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
       })();
       const todayCheckin = state.checkins.find((c) => c.date === today);
       const yCheckin = state.checkins.find((c) => c.date === yesterday);

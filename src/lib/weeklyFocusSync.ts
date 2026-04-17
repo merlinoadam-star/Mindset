@@ -41,7 +41,11 @@ export function mondayOf(date: Date = new Date()): string {
   const day = d.getDay(); // 0 = Sun, 1 = Mon, ...
   const diff = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + diff);
-  return d.toISOString().slice(0, 10);
+  // Use local-time components so the week is anchored to local Monday
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
 }
 
 /** Fetch the focus for a specific week (or this week by default). */

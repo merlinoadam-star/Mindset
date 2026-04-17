@@ -55,7 +55,11 @@ function saveState(s: TutorialState) {
 }
 
 function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function isDailyDismissed(key: string): boolean {
@@ -114,7 +118,10 @@ export default function CoachGuidedTutorial({
       const day = d.getDay();
       const diff = day === 0 ? -6 : 1 - day;
       d.setDate(d.getDate() + diff);
-      return d.toISOString().slice(0, 10);
+      const yy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${yy}-${mm}-${dd}`;
     })();
     (async () => {
       const { count } = await supabase

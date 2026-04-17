@@ -70,8 +70,13 @@ export function computeLevel(xp: number, sport: Sport): LevelInfo {
 // Streak
 // -----------------------------------------------------------------------------
 
+/** YYYY-MM-DD in the device's LOCAL timezone (not UTC) — so "today" rolls
+ * over at the user's local midnight instead of 00:00 UTC. */
 function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export function todayISO(): string {
