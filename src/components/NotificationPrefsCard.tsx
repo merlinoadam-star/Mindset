@@ -43,6 +43,11 @@ const LABELS_ATHLETE: Array<{
     title: "Match-day reminders",
     desc: "Get a push the evening before and the morning of a scheduled match.",
   },
+  {
+    key: "smartNudges",
+    title: "Smart nudges",
+    desc: "Streak-saver pings and personalized reminders based on your usual check-in time.",
+  },
 ];
 
 const LABELS_COACH_PARENT: Array<{
