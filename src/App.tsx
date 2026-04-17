@@ -114,6 +114,23 @@ function AppShell() {
   // --- Athlete routing ---
   // (Also the default for anyone NOT signed in — Phase 1 continues working.)
   if (!state.profile) {
+    // Allow direct navigation to /auth so returning users can sign in
+    // without being forced through onboarding first.
+    if (
+      typeof window !== "undefined" &&
+      window.location.pathname === "/auth"
+    ) {
+      return (
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="*" element={<Navigate to="/auth" replace />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      );
+    }
     return <Onboarding />;
   }
 
