@@ -22,7 +22,9 @@ import {
   VOLLEYBALL_POSITION_LABELS,
   VOLLEYBALL_POSITION_ORDER,
 } from "../lib/profileOptions";
-import { ArrowLeft, Brain, Target, Trophy, Sparkles, Trash2, Sword } from "lucide-react";
+import { ArrowLeft, Brain, Target, Trophy, Sparkles, Trash2, Sword, Swords, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { todayISO } from "../lib/gamification";
 import SpeakButton from "./SpeakButton";
 
 interface Props {
@@ -62,6 +64,37 @@ export default function MatchDetail({ match, onBack }: Props) {
 
       {phase === "overview" && (
         <>
+          {/* Match Day mode — only for upcoming / today matches that
+              haven't been post-reflected yet. */}
+          {!postReflected && match.date >= todayISO() && (
+            <Link
+              to={`/match-day?id=${match.id}`}
+              className="block relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-brand-900 to-purple-900 text-white p-4 shadow-elevated group"
+            >
+              <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-brand-500/30 blur-2xl" />
+              <div className="relative flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center flex-shrink-0">
+                  <Swords size={20} className="text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/60">
+                    {match.date === todayISO() ? "Today" : "Upcoming"}
+                  </div>
+                  <div className="text-lg font-extrabold tracking-tight leading-tight">
+                    {prePrepared ? "Run Match Day Again" : "Run Match Day Mode"}
+                  </div>
+                  <div className="text-[11px] text-white/60 mt-0.5">
+                    Focus · visualize · breathe · lock in
+                  </div>
+                </div>
+                <ArrowRight
+                  size={18}
+                  className="text-white/70 flex-shrink-0 group-active:translate-x-0.5 transition"
+                />
+              </div>
+            </Link>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => setPhase("pre")}
