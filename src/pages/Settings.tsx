@@ -306,7 +306,7 @@ export default function SettingsPage() {
       </div>
 
       {/* App feedback */}
-      {configured && account && (
+      {configured && (
         <Link
           to="/app-feedback"
           className="card-interactive flex items-center gap-3"

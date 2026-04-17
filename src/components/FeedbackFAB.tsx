@@ -7,8 +7,8 @@ import { useAuth } from "../lib/authContext";
  * Links to /app-feedback.
  */
 export default function FeedbackFAB() {
-  const { user, configured } = useAuth();
-  if (!configured || !user) return null;
+  const { configured } = useAuth();
+  if (!configured) return null;
 
   return (
     <a
