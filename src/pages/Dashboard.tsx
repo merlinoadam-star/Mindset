@@ -7,6 +7,8 @@ import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
 import MorningCheckInCard from "../components/MorningCheckInCard";
 import MascotCard from "../components/MascotCard";
+import AvatarPicker, { AvatarCircle } from "../components/AvatarPicker";
+import { useState } from "react";
 import UnreadFeedbackBanner from "../components/UnreadFeedbackBanner";
 import WeeklyFocusCard from "../components/WeeklyFocusCard";
 import ReminderBanner from "../components/ReminderBanner";
@@ -24,6 +26,7 @@ import { currentWeekMondayISO } from "../lib/gamification";
 export default function Dashboard() {
   const { state, hasCheckinToday } = useStore();
   const { account } = useAuth();
+  const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   if (!state.profile) return null;
 
   const info = computeLevel(state.xp, state.profile.sport);
@@ -52,21 +55,34 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-4 animate-slide-up">
+      <AvatarPicker
+        open={avatarPickerOpen}
+        onClose={() => setAvatarPickerOpen(false)}
+      />
+
       {/* Header */}
       <header className="pt-4 pb-1 flex items-center justify-between">
-        <Link to="/profile" className="flex items-center gap-3 group">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center text-lg font-extrabold shadow-card group-hover:shadow-card-hover transition">
-            {state.profile.name.charAt(0).toUpperCase()}
-          </div>
-          <div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setAvatarPickerOpen(true)}
+            className="flex-shrink-0 transition active:scale-95"
+            aria-label="Change avatar"
+          >
+            <AvatarCircle
+              emoji={account?.avatarEmoji}
+              initial={state.profile.name}
+              size={44}
+            />
+          </button>
+          <Link to="/profile" className="group">
             <div className="text-xs text-slate-400 font-medium">
               {greeting},
             </div>
             <div className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight truncate max-w-[180px]">
               {state.profile.name}
             </div>
-          </div>
-        </Link>
+          </Link>
+        </div>
         <Link
           to="/settings"
           className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-card flex items-center justify-center text-slate-400 hover:text-slate-600 transition"

@@ -32,6 +32,7 @@ interface AuthContextValue {
   sendMagicLink: (email: string) => Promise<{ error?: string }>;
   sendPasswordReset: (email: string) => Promise<{ error?: string }>;
   updatePassword: (newPassword: string) => Promise<{ error?: string }>;
+  updateAvatar: (emoji: string | null) => Promise<{ error?: string }>;
   refreshAccount: () => Promise<void>;
 }
 
@@ -186,6 +187,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const updateAvatar = useCallback(
+    async (emoji: string | null): Promise<{ error?: string }> => {
+      if (!supabase || !user) return { error: "Not signed in." };
+      const { error } = await supabase
+        .from("accounts")
+        .update({ avatar_emoji: emoji })
+        .eq("id", user.id);
+      if (error) return { error: error.message };
+      setAccount((prev) =>
+        prev ? { ...prev, avatarEmoji: emoji ?? undefined } : prev
+      );
+      return {};
+    },
+    [user]
+  );
+
   const refreshAccount = useCallback(async () => {
     if (user) await loadAccount(user);
   }, [user, loadAccount]);
@@ -202,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sendMagicLink,
     sendPasswordReset,
     updatePassword,
+    updateAvatar,
     refreshAccount,
   };
 
