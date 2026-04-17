@@ -500,6 +500,8 @@ export interface AppState {
   comboTiersClaimed?: number;
   /** YYYY-MM-DD of the last login bonus awarded. */
   lastLoginBonusDate?: string | null;
+  /** YYYY-MM-DD of the last daily spin. */
+  lastSpinDate?: string | null;
   streakFreezes: number; // unused freezes in the bank
   usedFreezeDates: string[]; // YYYY-MM-DD dates where a freeze saved the streak
   lastFreezeEarnedAt: string | null; // ISO timestamp of last earned freeze

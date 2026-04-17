@@ -24,6 +24,7 @@ export const emptyState: AppState = {
   lastComboDate: null,
   comboTiersClaimed: 0,
   lastLoginBonusDate: null,
+  lastSpinDate: null,
   streakFreezes: 0,
   usedFreezeDates: [],
   lastFreezeEarnedAt: null,

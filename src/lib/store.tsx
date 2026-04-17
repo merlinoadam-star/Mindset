@@ -32,6 +32,7 @@ import { emptyState, loadState, saveState, clearState } from "./storage";
 import { habitsForSport, getHabit } from "./habits";
 import { todaysChallenge } from "./dailyChallenges";
 import { comboLabel, unclaimedComboXp } from "./combos";
+import { SPIN_SLICES } from "./spinWheel";
 import { showReward } from "../components/RewardToast";
 import {
   applyAutoFreezes,
@@ -126,6 +127,10 @@ interface StoreContextValue {
     notDone: boolean;
   };
   hasClaimedChallengeToday: boolean;
+  claimDailySpin: (
+    sliceIndex: number,
+    mysteryXp?: number
+  ) => { xpAwarded: number };
   completeTriviaRound: (
     correctCount: number,
     totalQuestions: number
@@ -1121,6 +1126,39 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return { awardedXp, newlyUnlocked, alreadyClaimed, notDone };
   }, []);
 
+  const claimDailySpin = useCallback(
+    (sliceIndex: number, mysteryXp?: number): { xpAwarded: number } => {
+      const today = todayISO();
+      const slice = SPIN_SLICES[sliceIndex];
+      if (!slice) return { xpAwarded: 0 };
+      let xpAwarded = 0;
+      setState((prev) => {
+        if (prev.lastSpinDate === today) return prev;
+        let xp = prev.xp;
+        let streakFreezes = prev.streakFreezes ?? 0;
+        if (slice.type === "xp" && slice.xp) {
+          xpAwarded = slice.xp;
+          xp += slice.xp;
+        } else if (slice.type === "mystery" && mysteryXp) {
+          xpAwarded = mysteryXp;
+          xp += mysteryXp;
+        } else if (slice.type === "freeze") {
+          streakFreezes = Math.min(2, streakFreezes + 1);
+          xpAwarded = 0;
+        }
+        return {
+          ...prev,
+          xp,
+          streakFreezes,
+          lastSpinDate: today,
+          lastActiveDate: today,
+        };
+      });
+      return { xpAwarded };
+    },
+    []
+  );
+
   const completeTriviaRound = useCallback(
     (correctCount: number, totalQuestions: number) => {
       const isPerfect = correctCount === totalQuestions;
@@ -1781,6 +1819,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     hasClaimedChallengeToday,
     claimDailyQuote,
     claimDailyChallenge,
+    claimDailySpin,
     completeTriviaRound,
     addMatch,
     updateMatch,
