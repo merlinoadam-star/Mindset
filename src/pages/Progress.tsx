@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, TrendingUp, Flame, CheckSquare, Trophy } from "lucide-react";
+import { ArrowLeft, TrendingUp, Flame, CheckSquare, Trophy, Sparkles } from "lucide-react";
 import { useStore } from "../lib/store";
 import { computeLevel, computeStreak } from "../lib/gamification";
 import { summary } from "../lib/progressAnalytics";
@@ -100,6 +100,34 @@ export default function ProgressPage() {
           tint="purple"
         />
       </div>
+
+      {/* Highlight Reel — animated recap */}
+      <Link
+        to="/highlight-reel?window=30days"
+        className="block relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-brand-900 to-purple-900 text-white p-4 shadow-elevated group"
+      >
+        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-brand-500/30 blur-2xl" />
+        <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-purple-500/30 blur-2xl" />
+        <div className="relative flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center flex-shrink-0">
+            <Sparkles size={20} className="text-amber-300" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/70">
+              New — Your Reel
+            </div>
+            <div className="text-lg font-extrabold tracking-tight leading-tight">
+              Watch your 30-day highlights
+            </div>
+            <div className="text-[11px] text-white/60 mt-0.5">
+              XP · streaks · wins · badges · mood
+            </div>
+          </div>
+          <div className="flex-shrink-0 text-white/70 group-active:translate-x-0.5 transition">
+            →
+          </div>
+        </div>
+      </Link>
 
       {/* Share row — create shareable cards for level and streak */}
       <div className="flex gap-2">

@@ -48,6 +48,7 @@ const AskCoachPage = lazy(() => import("./pages/AskCoach"));
 const AppFeedbackPage = lazy(() => import("./pages/AppFeedback"));
 const SeasonGoalsPage = lazy(() => import("./pages/SeasonGoals"));
 const MatchDayPage = lazy(() => import("./pages/MatchDay"));
+const HighlightReelPage = lazy(() => import("./pages/HighlightReel"));
 
 function PageLoader() {
   return (
@@ -142,6 +143,7 @@ function AppShell() {
         <Routes>
           <Route path="auth" element={<AuthPage />} />
           <Route path="match-day" element={<MatchDayPage />} />
+          <Route path="highlight-reel" element={<HighlightReelPage />} />
           <Route element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="habits" element={<HabitsPage />} />
