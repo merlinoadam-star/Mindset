@@ -204,6 +204,7 @@ function xpForPractice(durationMin: number, intensity: number): number {
   return 10 + Math.round(durationMin) + intensity * 4;
 }
 
+const LOGIN_BONUS_XP = 5;
 const CHECKIN_XP = 15;
 const GOAL_REVIEW_XP = 10;
 const GOAL_SET_XP = 5;
@@ -632,6 +633,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     state.recoveryCheckins?.length,
     state.nutritionLogs?.length,
   ]);
+
+  // Login bonus — auto-award once per day on first render. Delayed
+  // slightly so it feels intentional rather than a page-load glitch.
+  useEffect(() => {
+    if (!state.profile || !cloudHydrated) return;
+    const today = todayISO();
+    if (state.lastLoginBonusDate === today) return;
+    const timeout = window.setTimeout(() => {
+      setState((prev) => {
+        if (prev.lastLoginBonusDate === today) return prev;
+        const bonus = applyStreakXp(LOGIN_BONUS_XP, prev);
+        return {
+          ...prev,
+          xp: prev.xp + bonus,
+          lastActiveDate: today,
+          lastLoginBonusDate: today,
+        };
+      });
+      const bonus = applyStreakXp(LOGIN_BONUS_XP, state);
+      showReward(bonus, ["__combo__Welcome back!"]);
+      hapticMedium();
+    }, 1200);
+    return () => window.clearTimeout(timeout);
+    // Only fire once on mount + when hydration completes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cloudHydrated, state.profile?.name]);
 
   // Phase 3A.3 — milestone alerts. When the athlete crosses a level-up
   // or a streak milestone, push a congrats to every connected coach /
