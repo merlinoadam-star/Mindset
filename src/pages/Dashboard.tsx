@@ -16,7 +16,7 @@ import UpcomingMatchesCard from "../components/UpcomingMatchesCard";
 import { InstallBanner } from "../components/InstallAppCard";
 import GuidedTutorial from "../components/GuidedTutorial";
 import { useAuth } from "../lib/authContext";
-import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles, Video as VideoIcon, Users } from "lucide-react";
+import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles, Video as VideoIcon, Users, Target } from "lucide-react";
 import { currentWeekMondayISO } from "../lib/gamification";
 
 export default function Dashboard() {
@@ -149,6 +149,12 @@ export default function Dashboard() {
             icon={<Dumbbell size={18} />}
             label="Log a practice"
             color="emerald"
+          />
+          <QuickAction
+            to="/season-goals"
+            icon={<Target size={18} />}
+            label="Season goals — track your targets"
+            color="amber"
           />
           <QuickAction
             to="/matches"
