@@ -24,6 +24,7 @@ import {
   isGuideEnabled,
   setGuideEnabled,
 } from "../components/GuidedTutorial";
+import { resetTour as resetWeekOneTour } from "../lib/weekOneTour";
 import { deleteMyAccount } from "../lib/accountLifecycle";
 import {
   exportAthleteData,
@@ -241,6 +242,27 @@ export default function SettingsPage() {
             />
           </button>
         </label>
+
+        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold text-slate-900 dark:text-white">
+              Week 1 tour
+            </div>
+            <div className="text-xs text-slate-500 mt-0.5">
+              Replay the 7-day feature intros from the beginning.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              resetWeekOneTour();
+              alert("Week 1 tour reset — check your dashboard.");
+            }}
+            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
+          >
+            Restart
+          </button>
+        </div>
       </div>
 
       <NotificationsCard />

@@ -18,6 +18,7 @@ import ComboCard from "../components/ComboCard";
 import SpinWheelCard from "../components/SpinWheelCard";
 import UpcomingMatchesCard from "../components/UpcomingMatchesCard";
 import MatchDayCard from "../components/MatchDayCard";
+import WeekOneTourCard from "../components/WeekOneTourCard";
 import { InstallBanner } from "../components/InstallAppCard";
 import GuidedTutorial from "../components/GuidedTutorial";
 import { useAuth } from "../lib/authContext";
@@ -101,6 +102,9 @@ export default function Dashboard() {
       <UnreadFeedbackBanner />
 
       <ReminderBanner />
+
+      {/* Week 1 tour — one feature per day for new athletes */}
+      <WeekOneTourCard />
 
       {/* Match Day hero — surfaces only when a match is today/tomorrow */}
       <MatchDayCard />
