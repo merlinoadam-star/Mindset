@@ -17,6 +17,7 @@ export interface WeeklyFocusRow {
   author_role: AccountRole;
   week_start_date: string; // YYYY-MM-DD (Monday)
   text: string;
+  skill_id: string | null;
   created_at: string;
   updated_at: string | null;
   // Enriched client-side
@@ -92,6 +93,7 @@ export async function setWeeklyFocus(params: {
   authorId: string;
   authorRole: AccountRole;
   text: string;
+  skillId?: string | null;
   weekStartDate?: string; // defaults to this Monday
 }): Promise<{ row?: WeeklyFocusRow; error?: string }> {
   if (!supabase) return { error: "Sync not configured." };
@@ -109,6 +111,7 @@ export async function setWeeklyFocus(params: {
         author_role: params.authorRole,
         week_start_date: week,
         text,
+        skill_id: params.skillId ?? null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "athlete_id,week_start_date" }
