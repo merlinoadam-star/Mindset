@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -16,6 +16,7 @@ import { useStore } from "../lib/store";
 import { computeLevel, computeStreak, todayISO } from "../lib/gamification";
 import { fireConfetti } from "../components/Confetti";
 import { hapticSuccess, hapticLight } from "../lib/haptics";
+import { useSpeech } from "../lib/useSpeech";
 import type { Mood } from "../types";
 
 /**
@@ -380,10 +381,40 @@ function FocusStep({
 
 function VisualizeStep() {
   const [idx, setIdx] = useState(0);
+  const [narrate, setNarrate] = useState(true);
+  const { speak, stop, supported } = useSpeech();
+
+  // Speak each prompt when it changes.
+  useEffect(() => {
+    if (!narrate || !supported) return;
+    speak(VISUALIZATION_PROMPTS[idx], {
+      plain: true,
+      rate: 0.82,
+      volume: 0.95,
+    });
+  }, [idx, narrate, supported, speak]);
+
+  useEffect(() => {
+    return () => stop();
+  }, [stop]);
+
   return (
     <div className="pt-8 animate-slide-up">
-      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[10px] uppercase tracking-[0.15em] font-bold text-white/70 mb-4">
-        <Eye size={11} /> Step 2
+      <div className="flex items-center justify-between mb-4">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[10px] uppercase tracking-[0.15em] font-bold text-white/70">
+          <Eye size={11} /> Step 2
+        </div>
+        {supported && (
+          <button
+            onClick={() => {
+              if (narrate) stop();
+              setNarrate((v) => !v);
+            }}
+            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/80 bg-white/10 hover:bg-white/20 rounded-full px-2.5 py-1"
+          >
+            {narrate ? "🔊 Voice" : "🔇 Silent"}
+          </button>
+        )}
       </div>
       <h2 className="text-3xl font-extrabold tracking-tight leading-tight mb-2">
         See it first.
@@ -433,6 +464,24 @@ function BreatheStep() {
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [tick, setTick] = useState(BOX_SECONDS);
   const [done, setDone] = useState(false);
+  const [narrate, setNarrate] = useState(true);
+  const { speak, stop, supported } = useSpeech();
+  const spokenRef = useRef("");
+
+  // Speak phase label when phase changes (once per phase).
+  useEffect(() => {
+    if (!narrate || !supported || !running || done) return;
+    const key = `${cycle}-${phaseIdx}`;
+    if (spokenRef.current === key) return;
+    if (tick === BOX_SECONDS) {
+      spokenRef.current = key;
+      speak(PHASES[phaseIdx], { plain: true, rate: 0.85, volume: 0.9 });
+    }
+  }, [cycle, phaseIdx, tick, narrate, supported, running, done, speak]);
+
+  useEffect(() => {
+    return () => stop();
+  }, [stop]);
 
   useEffect(() => {
     if (!running) return;
@@ -472,8 +521,21 @@ function BreatheStep() {
 
   return (
     <div className="pt-8 animate-slide-up">
-      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[10px] uppercase tracking-[0.15em] font-bold text-white/70 mb-4">
-        <Wind size={11} /> Step 3
+      <div className="flex items-center justify-between mb-4">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[10px] uppercase tracking-[0.15em] font-bold text-white/70">
+          <Wind size={11} /> Step 3
+        </div>
+        {supported && (
+          <button
+            onClick={() => {
+              if (narrate) stop();
+              setNarrate((v) => !v);
+            }}
+            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/80 bg-white/10 hover:bg-white/20 rounded-full px-2.5 py-1"
+          >
+            {narrate ? "🔊 Voice" : "🔇 Silent"}
+          </button>
+        )}
       </div>
       <h2 className="text-3xl font-extrabold tracking-tight leading-tight mb-2">
         Settle.

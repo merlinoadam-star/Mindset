@@ -8,6 +8,14 @@ import {
 } from "../lib/visualizations";
 import { showReward } from "../components/RewardToast";
 import { ArrowLeft, Eye, Play, Check, Volume2, VolumeX } from "lucide-react";
+import {
+  startAmbient,
+  stopAmbient,
+  nextAmbientMode,
+  AMBIENT_EMOJI,
+  AMBIENT_LABELS,
+  type AmbientMode,
+} from "../lib/ambientAudio";
 
 export default function VisualizePage() {
   const { state } = useStore();
@@ -124,6 +132,14 @@ function VisualizationPlayer({
   // User chooses "Read to me" before starting. Defaults to on if supported.
   const [started, setStarted] = useState(false);
   const [narrate, setNarrate] = useState(ttsSupported);
+  const [ambient, setAmbient] = useState<AmbientMode>("off");
+
+  // Stop ambient on unmount — never leave it running after the player closes.
+  useEffect(() => {
+    return () => {
+      stopAmbient();
+    };
+  }, []);
 
   const [stepIdx, setStepIdx] = useState(0);
   const [stepElapsed, setStepElapsed] = useState(0);
@@ -325,6 +341,19 @@ function VisualizationPlayer({
           Exit
         </button>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              const next = nextAmbientMode(ambient);
+              setAmbient(next);
+              startAmbient(next);
+            }}
+            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-white/80 bg-white/10 hover:bg-white/20 rounded-full px-2.5 py-1"
+            aria-label={`Ambient: ${AMBIENT_LABELS[ambient]}`}
+            title={`Ambient: ${AMBIENT_LABELS[ambient]}`}
+          >
+            <span>{AMBIENT_EMOJI[ambient]}</span>
+            <span className="hidden sm:inline">{AMBIENT_LABELS[ambient]}</span>
+          </button>
           {ttsSupported && (
             <button
               onClick={() => {

@@ -1,8 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { showReward } from "../components/RewardToast";
-import { ArrowLeft, Wind, Play, Check } from "lucide-react";
+import { ArrowLeft, Wind, Play, Check, Volume2, VolumeX } from "lucide-react";
+import { useSpeech } from "../lib/useSpeech";
+import {
+  startAmbient,
+  stopAmbient,
+  nextAmbientMode,
+  AMBIENT_EMOJI,
+  AMBIENT_LABELS,
+  type AmbientMode,
+} from "../lib/ambientAudio";
 
 interface BreathingExercise {
   id: string;
@@ -174,24 +183,63 @@ function BreathingPlayer({
   exercise: BreathingExercise;
   onClose: () => void;
 }) {
-  const { completeMentalSession } = useStore();
+  const { state, completeMentalSession } = useStore();
   const [cycleIdx, setCycleIdx] = useState(0);
   const [phaseIdx, setPhaseIdx] = useState(0);
   const [phaseSecond, setPhaseSecond] = useState(0);
   const [running, setRunning] = useState(true);
   const [done, setDone] = useState(false);
+  const [narrate, setNarrate] = useState(true);
+  const [ambient, setAmbient] = useState<AmbientMode>("off");
+  const spokeForPhaseRef = useRef<string>("");
 
   const phase = exercise.pattern[phaseIdx];
+  const { speak, stop: stopSpeech, supported: speechSupported } = useSpeech(
+    state.voicePersonaId ?? "natural"
+  );
+
+  // Speak the phase label at the start of each new phase.
+  useEffect(() => {
+    if (!narrate || !speechSupported || done || !running) return;
+    const key = `${cycleIdx}-${phaseIdx}`;
+    if (spokeForPhaseRef.current === key) return;
+    spokeForPhaseRef.current = key;
+    if (phaseSecond === 0) {
+      speak(phase.label, { plain: true, rate: 0.85, volume: 0.9 });
+    }
+  }, [
+    cycleIdx,
+    phaseIdx,
+    phaseSecond,
+    phase.label,
+    narrate,
+    speechSupported,
+    done,
+    running,
+    speak,
+  ]);
+
+  // Cleanup speech + ambient on unmount
+  useEffect(() => {
+    return () => {
+      stopSpeech();
+      stopAmbient();
+    };
+  }, [stopSpeech]);
+
+  const toggleAmbient = () => {
+    const next = nextAmbientMode(ambient);
+    setAmbient(next);
+    startAmbient(next);
+  };
 
   useEffect(() => {
     if (!running || done) return;
     const id = window.setInterval(() => {
       setPhaseSecond((s) => {
         if (s + 1 >= phase.seconds) {
-          // advance phase
           setPhaseIdx((pi) => {
             if (pi + 1 >= exercise.pattern.length) {
-              // advance cycle
               setCycleIdx((c) => {
                 if (c + 1 >= exercise.cycles) {
                   setDone(true);
@@ -242,8 +290,33 @@ function BreathingPlayer({
         <button onClick={onClose} className="text-sm text-white/70 hover:text-white">
           Exit
         </button>
-        <div className="text-xs font-bold uppercase tracking-wider text-white/70">
-          Cycle {Math.min(cycleIdx + 1, exercise.cycles)} / {exercise.cycles}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleAmbient}
+            className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-white/80 bg-white/10 hover:bg-white/20 rounded-full px-2.5 py-1"
+            title={`Ambient: ${AMBIENT_LABELS[ambient]}`}
+          >
+            <span>{AMBIENT_EMOJI[ambient]}</span>
+            <span className="hidden sm:inline">{AMBIENT_LABELS[ambient]}</span>
+          </button>
+          {speechSupported && (
+            <button
+              onClick={() => {
+                setNarrate((v) => !v);
+                if (narrate) stopSpeech();
+              }}
+              className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-white/80 bg-white/10 hover:bg-white/20 rounded-full px-2.5 py-1"
+              title={narrate ? "Narration on" : "Narration off"}
+            >
+              {narrate ? <Volume2 size={12} /> : <VolumeX size={12} />}
+              <span className="hidden sm:inline">
+                {narrate ? "Voice" : "Silent"}
+              </span>
+            </button>
+          )}
+          <div className="text-xs font-bold uppercase tracking-wider text-white/70">
+            {Math.min(cycleIdx + 1, exercise.cycles)}/{exercise.cycles}
+          </div>
         </div>
       </div>
 
