@@ -372,23 +372,59 @@ function InviteForm({
       }
 
       // 3. Insert the connection
-      const { error: insertErr } = await supabase.from("connections").insert({
+      const newRow = {
         athlete_account_id: athleteId,
         other_account_id: otherId,
         initiated_by: myRole,
         connected_role: connectedRole,
         status: "pending",
         note: note.trim() || null,
-      });
+      };
+      let { error: insertErr } = await supabase
+        .from("connections")
+        .insert(newRow);
+
+      if (insertErr?.code === "23505") {
+        // Unique-constraint hit. Find out what's already there and either
+        // clean it up (declined/revoked → delete and retry) or surface a
+        // more specific message (pending/accepted → explain).
+        const { data: existing } = await supabase
+          .from("connections")
+          .select("id, status")
+          .eq("athlete_account_id", athleteId)
+          .eq("other_account_id", otherId)
+          .eq("connected_role", connectedRole)
+          .maybeSingle();
+
+        if (
+          existing &&
+          (existing.status === "declined" || existing.status === "revoked")
+        ) {
+          // Stale row — remove it and retry the invite.
+          await supabase.from("connections").delete().eq("id", existing.id);
+          const retry = await supabase.from("connections").insert(newRow);
+          insertErr = retry.error ?? null;
+        } else if (existing?.status === "pending") {
+          setError(
+            "An invite to this person is already pending — check the outgoing/incoming list."
+          );
+          setSending(false);
+          return;
+        } else if (existing?.status === "accepted") {
+          setError("You're already connected with this person.");
+          setSending(false);
+          return;
+        } else {
+          setError(
+            "A connection already exists in an unknown state — refresh and try again."
+          );
+          setSending(false);
+          return;
+        }
+      }
 
       if (insertErr) {
-        if (insertErr.code === "23505") {
-          setError(
-            "A connection with this person already exists (check your accepted or pending invites)."
-          );
-        } else {
-          setError(insertErr.message);
-        }
+        setError(insertErr.message);
         setSending(false);
         return;
       }
