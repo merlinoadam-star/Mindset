@@ -16,8 +16,16 @@ import {
   ChevronRight,
   Clock,
   Sparkles,
+  Flame,
+  TrendingUp,
 } from "lucide-react";
 import CoachGuidedTutorial from "../components/CoachGuidedTutorial";
+import TeamBulkActions from "../components/TeamBulkActions";
+import {
+  fetchTeamStats,
+  formatLastActive,
+  type AthleteStat,
+} from "../lib/teamStats";
 
 interface ConnectedAthlete {
   connectionId: string;
@@ -107,6 +115,32 @@ export default function CoachDashboard() {
     () => athletes.filter((a) => a.status === "pending"),
     [athletes]
   );
+
+  // Fetch per-athlete stats (streak, level, last active)
+  const [stats, setStats] = useState<Map<string, AthleteStat>>(new Map());
+  useEffect(() => {
+    const ids = accepted.map((a) => a.athleteAccountId);
+    if (ids.length === 0) {
+      setStats(new Map());
+      return;
+    }
+    fetchTeamStats(ids).then(setStats);
+  }, [accepted]);
+
+  // Team aggregate numbers
+  const teamAgg = useMemo(() => {
+    const list = [...stats.values()];
+    if (list.length === 0) {
+      return { activeToday: 0, avgStreak: 0, onFire: 0, total: 0 };
+    }
+    const activeToday = list.filter((s) => s.activeToday).length;
+    const onFire = list.filter((s) => s.currentStreak >= 3).length;
+    const avgStreak =
+      Math.round(
+        (list.reduce((sum, s) => sum + s.currentStreak, 0) / list.length) * 10
+      ) / 10;
+    return { activeToday, avgStreak, onFire, total: list.length };
+  }, [stats]);
 
   if (!account) return null;
   const greeting = new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening";
@@ -211,34 +245,111 @@ export default function CoachDashboard() {
           </Link>
         </div>
       ) : (
-        <section>
-          <h2 className="section-label mb-2 px-1">Your Athletes</h2>
-          <div className="space-y-2">
-            {accepted.map((a) => (
-              <Link
-                key={a.connectionId}
-                to={`/athlete/${a.athleteAccountId}`}
-                className="card-interactive flex items-center gap-3"
-              >
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center text-lg font-extrabold">
-                  {a.name[0]?.toUpperCase() ?? "?"}
+        <>
+          {/* Team overview strip */}
+          {accepted.length >= 2 && (
+            <div className="grid grid-cols-3 gap-2">
+              <div className="card !p-3 text-center">
+                <div className="text-xl font-extrabold tabular-nums text-brand-700 dark:text-brand-400">
+                  {teamAgg.activeToday}
+                  <span className="text-slate-300">/{teamAgg.total}</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-slate-900 truncate">
-                    {a.name}
-                  </div>
-                  <div className="text-xs text-slate-500 truncate">
-                    {a.email}
-                  </div>
-                  <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-700 mt-0.5 flex items-center gap-1">
-                    Connected as {ACCOUNT_ROLE_LABELS[a.connectedRole]}
-                  </div>
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">
+                  Active today
                 </div>
-                <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
-              </Link>
-            ))}
-          </div>
-        </section>
+              </div>
+              <div className="card !p-3 text-center">
+                <div className="text-xl font-extrabold tabular-nums text-amber-600 dark:text-amber-400 flex items-center justify-center gap-0.5">
+                  <Flame size={16} className="text-amber-500" />
+                  {teamAgg.onFire}
+                </div>
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">
+                  3+ day streak
+                </div>
+              </div>
+              <div className="card !p-3 text-center">
+                <div className="text-xl font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400">
+                  {teamAgg.avgStreak}
+                </div>
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">
+                  Avg streak
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bulk team actions */}
+          <TeamBulkActions
+            athleteIds={accepted.map((a) => a.athleteAccountId)}
+          />
+
+          <section>
+            <h2 className="section-label mb-2 px-1">
+              {accepted.length >= 2 ? "Your Team" : "Your Athletes"}
+            </h2>
+            <div className="space-y-2">
+              {accepted.map((a) => {
+                const s = stats.get(a.athleteAccountId);
+                const streakColor =
+                  !s || s.currentStreak === 0
+                    ? "text-slate-400"
+                    : s.currentStreak >= 7
+                    ? "text-amber-600 dark:text-amber-400"
+                    : s.currentStreak >= 3
+                    ? "text-orange-500"
+                    : "text-slate-500";
+                return (
+                  <Link
+                    key={a.connectionId}
+                    to={`/athlete/${a.athleteAccountId}`}
+                    className="card-interactive flex items-center gap-3"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center text-lg font-extrabold flex-shrink-0">
+                      {a.name[0]?.toUpperCase() ?? "?"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <div className="font-bold text-slate-900 dark:text-white truncate">
+                          {a.name}
+                        </div>
+                        {s && s.activeToday && (
+                          <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-900 dark:text-emerald-300 px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      {s ? (
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                          <span className="inline-flex items-center gap-0.5">
+                            <TrendingUp size={9} className="text-brand-500" />
+                            Lvl {s.level}
+                          </span>
+                          <span>·</span>
+                          <span
+                            className={`inline-flex items-center gap-0.5 font-semibold ${streakColor}`}
+                          >
+                            <Flame size={9} />
+                            {s.currentStreak}d streak
+                          </span>
+                          <span>·</span>
+                          <span>{formatLastActive(s.lastActiveDate)}</span>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-slate-400 dark:text-slate-500 truncate">
+                          {a.email}
+                        </div>
+                      )}
+                    </div>
+                    <ChevronRight
+                      size={16}
+                      className="text-slate-300 flex-shrink-0"
+                    />
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        </>
       )}
 
       {/* Pending invites you sent (out) */}
