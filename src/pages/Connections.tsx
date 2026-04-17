@@ -203,6 +203,7 @@ export default function ConnectionsPage() {
         <InviteForm
           myRole={account.role}
           myId={user.id}
+          myDisplayName={account.displayName}
           onClose={() => setShowInvite(false)}
           onSent={(msg) => {
             setShowInvite(false);
@@ -289,11 +290,13 @@ export default function ConnectionsPage() {
 function InviteForm({
   myRole,
   myId,
+  myDisplayName,
   onClose,
   onSent,
 }: {
   myRole: AccountRole;
   myId: string;
+  myDisplayName?: string;
   onClose: () => void;
   onSent: (msg: string) => void;
 }) {
@@ -388,6 +391,37 @@ function InviteForm({
         }
         setSending(false);
         return;
+      }
+
+      // Notify the recipient with a push. Fire-and-forget — the invite
+      // is already saved; push is best-effort.
+      const recipientId = athleteId === myId ? otherId : athleteId;
+      const inviterName = myDisplayName?.trim() || "Someone";
+      const roleLabel =
+        myRole === "coach"
+          ? "coach"
+          : myRole === "parent"
+          ? "parent"
+          : "athlete";
+      try {
+        supabase.functions
+          .invoke("send-push", {
+            body: {
+              toAccountId: recipientId,
+              title: `New Mindset invite`,
+              body: `${inviterName} (${roleLabel}) wants to connect.${
+                note.trim() ? ` "${note.trim().slice(0, 80)}"` : ""
+              }`,
+              url: "/connections",
+              tag: `invite-${recipientId}`,
+            },
+          })
+          .then(
+            () => {},
+            () => {}
+          );
+      } catch {
+        /* best-effort */
       }
 
       onSent("Invite sent! They'll see it in their Connections tab.");

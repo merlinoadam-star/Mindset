@@ -14,8 +14,10 @@
   html.dark body {
     @apply from-slate-950 to-slate-900 text-slate-100;
   }
-  /* Prevent mobile password managers from masking inputs as passwords */
-  input:not([type="password"]):not([type="email"]):not([type="number"]) {
+  /* Prevent mobile password managers from masking inputs as passwords.
+     Include email/number too — some browsers mask type="email" by
+     default, which breaks invite forms. */
+  input:not([type="password"]) {
     -webkit-text-security: none;
   }
 }
