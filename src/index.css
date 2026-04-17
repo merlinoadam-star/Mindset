@@ -20,6 +20,37 @@
   input:not([type="password"]) {
     -webkit-text-security: none;
   }
+
+  /* Dark-mode defaults for form fields. Many screens only style inputs
+     with light-mode colors; without this, typing in dark mode renders
+     dark text on a dark background and becomes invisible. Any component
+     that explicitly sets dark: utility classes on its inputs will
+     still win because utilities land in a later layer. */
+  html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  html.dark textarea,
+  html.dark select {
+    @apply bg-slate-800 text-white border-slate-700;
+  }
+  html.dark input::placeholder,
+  html.dark textarea::placeholder {
+    @apply text-slate-400;
+  }
+
+  /* Chrome/Safari autofill paints its own pale-yellow bg + dark text.
+     Neutralise it in both modes so autofilled emails/passwords remain
+     readable. */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: inherit;
+    transition: background-color 5000s ease-in-out 0s;
+    box-shadow: 0 0 0 1000px transparent inset;
+  }
+  html.dark input:-webkit-autofill,
+  html.dark input:-webkit-autofill:hover,
+  html.dark input:-webkit-autofill:focus {
+    -webkit-text-fill-color: white;
+  }
 }
 
 @layer components {
