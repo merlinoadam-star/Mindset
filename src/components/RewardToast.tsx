@@ -56,9 +56,14 @@ export default function RewardToast() {
             <span className="text-amber-300">
               {r.badges
                 .map((id) => {
+                  // Special prefix for non-badge messages (combos, etc.)
+                  if (id.startsWith("__combo__")) {
+                    return `🔥 ${id.slice(9)}`;
+                  }
                   const b = getBadge(id);
                   return b ? `${b.emoji} ${b.name}` : "";
                 })
+                .filter(Boolean)
                 .join(" · ")}
             </span>
           )}

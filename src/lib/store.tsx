@@ -31,6 +31,8 @@ import {
 import { emptyState, loadState, saveState, clearState } from "./storage";
 import { habitsForSport, getHabit } from "./habits";
 import { todaysChallenge } from "./dailyChallenges";
+import { comboLabel, unclaimedComboXp } from "./combos";
+import { showReward } from "../components/RewardToast";
 import {
   applyAutoFreezes,
   applyStreakXp,
@@ -603,6 +605,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     state.checkins.length,
     state.mentalSessions?.length,
     state.recoveryCheckins?.length,
+  ]);
+
+  // Combo bonus — auto-award bonus XP when the athlete reaches a new
+  // combo tier (new activity type added in the same day).
+  useEffect(() => {
+    const today = todayISO();
+    const { amount, newTier } = unclaimedComboXp(state, today);
+    if (amount <= 0) return;
+    setState((prev) => ({
+      ...prev,
+      xp: prev.xp + amount,
+      lastComboDate: today,
+      comboTiersClaimed: newTier,
+    }));
+    // Small delay so it doesn't pile on top of the action's own toast
+    window.setTimeout(() => {
+      const label = comboLabel(newTier);
+      showReward(amount, [`__combo__${label}`]);
+    }, 400);
+  }, [
+    state.habitCompletions.length,
+    state.practices.length,
+    state.checkins.length,
+    state.mentalSessions?.length,
+    state.recoveryCheckins?.length,
+    state.nutritionLogs?.length,
   ]);
 
   // Phase 3A.3 — milestone alerts. When the athlete crosses a level-up

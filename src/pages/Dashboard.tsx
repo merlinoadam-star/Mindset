@@ -11,6 +11,7 @@ import WeeklyFocusCard from "../components/WeeklyFocusCard";
 import ReminderBanner from "../components/ReminderBanner";
 import WeeklyWrapUpCard from "../components/WeeklyWrapUpCard";
 import DailyChallengeCard from "../components/DailyChallengeCard";
+import ComboCard from "../components/ComboCard";
 import UpcomingMatchesCard from "../components/UpcomingMatchesCard";
 import { InstallBanner } from "../components/InstallAppCard";
 import GuidedTutorial from "../components/GuidedTutorial";
@@ -87,6 +88,8 @@ export default function Dashboard() {
       <WeeklyFocusCard />
 
       <DailyChallengeCard />
+
+      <ComboCard />
 
       {account && account.role === "athlete" && (
         <WeeklyWrapUpCard athleteId={account.id} />
