@@ -5,7 +5,7 @@ import { habitsForSport } from "../lib/habits";
 import XPBar from "../components/XPBar";
 import StreakBadge from "../components/StreakBadge";
 import QuoteOfTheDay from "../components/QuoteOfTheDay";
-import DailyGoalCard from "../components/DailyGoalCard";
+import MorningCheckInCard from "../components/MorningCheckInCard";
 import UnreadFeedbackBanner from "../components/UnreadFeedbackBanner";
 import WeeklyFocusCard from "../components/WeeklyFocusCard";
 import ReminderBanner from "../components/ReminderBanner";
@@ -84,6 +84,9 @@ export default function Dashboard() {
 
       <ReminderBanner />
 
+      {/* Morning check-in first — the start-of-day anchor */}
+      <MorningCheckInCard />
+
       <UpcomingMatchesCard />
 
       <WeeklyFocusCard />
@@ -97,8 +100,6 @@ export default function Dashboard() {
       {account && account.role === "athlete" && (
         <WeeklyWrapUpCard athleteId={account.id} />
       )}
-
-      <DailyGoalCard />
 
       <QuoteOfTheDay />
 
