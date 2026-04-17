@@ -5,6 +5,10 @@ import { useStore } from "../lib/store";
 import { computeLevel, computeStreak } from "../lib/gamification";
 import { summary } from "../lib/progressAnalytics";
 import ActivityHeatmap from "../components/charts/ActivityHeatmap";
+import ShareWinModal from "../components/ShareWinModal";
+import type { ShareWinData } from "../lib/shareWins";
+import { Share2 } from "lucide-react";
+import { useState } from "react";
 import XpLineChart from "../components/charts/XpLineChart";
 import WeekdayChart from "../components/charts/WeekdayChart";
 import MatchStatsCard from "../components/charts/MatchStatsCard";
@@ -16,6 +20,7 @@ import MatchStatsCard from "../components/charts/MatchStatsCard";
 export default function ProgressPage() {
   const { state } = useStore();
   const stats = useMemo(() => summary(state), [state]);
+  const [shareData, setShareData] = useState<ShareWinData | null>(null);
 
   if (!state.profile) return null;
 
@@ -96,6 +101,37 @@ export default function ProgressPage() {
         />
       </div>
 
+      {/* Share row — create shareable cards for level and streak */}
+      <div className="flex gap-2">
+        <button
+          onClick={() =>
+            setShareData({
+              type: "level-up",
+              athleteName: state.profile!.name,
+              level: level.level,
+              title: level.title,
+            })
+          }
+          className="flex-1 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-bold text-brand-700 dark:text-brand-400 inline-flex items-center justify-center gap-1.5 hover:bg-brand-50 dark:hover:bg-slate-700"
+        >
+          <Share2 size={12} /> Share Level {level.level}
+        </button>
+        {streak >= 3 && (
+          <button
+            onClick={() =>
+              setShareData({
+                type: "streak",
+                athleteName: state.profile!.name,
+                days: streak,
+              })
+            }
+            className="flex-1 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 text-xs font-bold text-orange-700 dark:text-orange-400 inline-flex items-center justify-center gap-1.5 hover:bg-orange-50 dark:hover:bg-slate-700"
+          >
+            <Share2 size={12} /> Share {streak}-day 🔥
+          </button>
+        )}
+      </div>
+
       <ActivityHeatmap state={state} weeks={13} />
 
       <XpLineChart state={state} days={30} />
@@ -109,6 +145,8 @@ export default function ProgressPage() {
       </div>
       </>
       )}
+
+      <ShareWinModal data={shareData} onClose={() => setShareData(null)} />
     </div>
   );
 }

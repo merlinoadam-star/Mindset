@@ -5,6 +5,9 @@ import { isUuid } from "../lib/store";
 import { showReward } from "./RewardToast";
 import FeedbackThread from "./FeedbackThread";
 import MatchReflectionPrompts from "./MatchReflectionPrompts";
+import ShareWinModal from "./ShareWinModal";
+import type { ShareWinData } from "../lib/shareWins";
+import { Share2 } from "lucide-react";
 import {
   WRESTLING_WIN_TYPE_LABELS,
   type MatchEntry,
@@ -33,6 +36,7 @@ export default function MatchDetail({ match, onBack }: Props) {
   const { state, updateMatch, deleteMatch } = useStore();
   const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>("overview");
+  const [shareData, setShareData] = useState<ShareWinData | null>(null);
 
   if (!state.profile) return null;
 
@@ -141,9 +145,30 @@ export default function MatchDetail({ match, onBack }: Props) {
                 </h2>
               </div>
               {match.result && (
-                <div className="mb-2 flex items-center gap-2">
+                <div className="mb-2 flex items-center gap-2 flex-wrap">
                   <ResultBadge result={match.result} />
                   <ScoreText match={match} />
+                  {match.result === "win" && (
+                    <button
+                      onClick={() =>
+                        setShareData({
+                          type: "match",
+                          athleteName: state.profile!.name,
+                          opponent: match.opponent ?? "opponent",
+                          result: "W",
+                          myScore: match.wrestling?.myScore,
+                          theirScore: match.wrestling?.theirScore,
+                          winType: match.wrestling?.winType
+                            ? (match.wrestling.winType as string)
+                                .replace(/-/g, " ")
+                            : undefined,
+                        })
+                      }
+                      className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 text-xs font-bold hover:bg-emerald-200"
+                    >
+                      <Share2 size={12} /> Share win
+                    </button>
+                  )}
                 </div>
               )}
               {match.wentWell && (
@@ -226,6 +251,8 @@ export default function MatchDetail({ match, onBack }: Props) {
           }}
         />
       )}
+
+      <ShareWinModal data={shareData} onClose={() => setShareData(null)} />
     </div>
   );
 }
