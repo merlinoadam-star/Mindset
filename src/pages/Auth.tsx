@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/authContext";
 import type { AccountRole } from "../types";
 import { ACCOUNT_ROLE_EMOJIS, ACCOUNT_ROLE_LABELS } from "../types";
@@ -17,7 +17,16 @@ export default function AuthPage() {
     sendPasswordReset,
   } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>("signin");
+  const [params] = useSearchParams();
+
+  const initialMode = params.get("mode") === "signup" ? "signup" : "signin";
+  const initialRole = (["athlete", "coach", "parent"] as AccountRole[]).includes(
+    params.get("role") as AccountRole
+  )
+    ? (params.get("role") as AccountRole)
+    : "athlete";
+
+  const [mode, setMode] = useState<Mode>(initialMode);
 
   // If we're already signed in (or just became signed in), bounce home.
   useEffect(() => {
@@ -28,7 +37,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [role, setRole] = useState<AccountRole>("athlete");
+  const [role, setRole] = useState<AccountRole>(initialRole);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

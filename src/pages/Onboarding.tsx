@@ -100,12 +100,20 @@ export default function Onboarding() {
                 Get started
               </button>
               {configured && (
-                <a
-                  href="/auth"
-                  className="block text-center text-sm text-white/60 hover:text-white/90 font-medium"
-                >
-                  Already have an account? Sign in
-                </a>
+                <>
+                  <a
+                    href="/auth"
+                    className="block text-center text-sm text-white/60 hover:text-white/90 font-medium"
+                  >
+                    Already have an account? Sign in
+                  </a>
+                  <a
+                    href="/auth?mode=signup&role=coach"
+                    className="block text-center text-sm text-white/40 hover:text-white/70 font-medium"
+                  >
+                    I'm a coach or parent →
+                  </a>
+                </>
               )}
             </div>
           </div>
