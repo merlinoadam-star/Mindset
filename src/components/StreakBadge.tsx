@@ -1,5 +1,6 @@
 import { Flame, Snowflake, Zap } from "lucide-react";
 import { getStreakMultiplier } from "../lib/gamification";
+import { useTapEasterEgg } from "./EasterEggs";
 
 interface Props {
   streak: number;
@@ -11,10 +12,12 @@ export default function StreakBadge({ streak, alive, freezes = 0 }: Props) {
   const active = alive && streak > 0;
   const mult = getStreakMultiplier(streak);
   const showMultiplier = mult.multiplier > 1;
+  const { onTap } = useTapEasterEgg(5, 2000);
 
   return (
     <div
-      className={`card flex items-center gap-3 ${
+      onClick={onTap}
+      className={`card flex items-center gap-3 cursor-pointer select-none ${
         active
           ? "!bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950 dark:to-amber-950 border-orange-200 dark:border-orange-800 shadow-glow-amber"
           : ""

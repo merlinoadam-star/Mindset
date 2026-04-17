@@ -9,6 +9,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import FeedbackFAB from "./components/FeedbackFAB";
 import OfflineBanner from "./components/OfflineBanner";
 import Confetti from "./components/Confetti";
+import EasterEggs from "./components/EasterEggs";
 
 // Eager — needed before any route renders
 import Onboarding from "./pages/Onboarding";
@@ -185,6 +186,7 @@ export default function App() {
           <AppShell />
           <RewardToast />
           <Confetti />
+          <EasterEggs />
           <FeedbackFAB />
         </StoreProvider>
       </AuthProvider>
