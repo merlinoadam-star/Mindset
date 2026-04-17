@@ -24,7 +24,7 @@ import {
 type Phase = "intro" | "playing" | "result";
 
 export default function ScenariosPage() {
-  const { state, completeTriviaRound } = useStore();
+  const { state, completeMentalSession } = useStore();
   const [phase, setPhase] = useState<Phase>("intro");
   const [cards, setCards] = useState<ScenarioCard[]>([]);
   const [current, setCurrent] = useState(0);
@@ -34,18 +34,21 @@ export default function ScenariosPage() {
 
   if (!state.profile) return null;
 
+  // Count prior scenario sessions — seeds deterministic shuffle so
+  // rounds don't repeat immediately.
+  const scenariosPlayed = state.mentalSessions.filter(
+    (s) => s.kind === "scenarios"
+  ).length;
+
   const start = useCallback(() => {
-    const round = pickScenarioRound(
-      state.profile!.sport,
-      state.triviaRoundsPlayed
-    );
+    const round = pickScenarioRound(state.profile!.sport, scenariosPlayed);
     setCards(round);
     setCurrent(0);
     setSelected(null);
     setLocked(false);
     setCorrectCount(0);
     setPhase("playing");
-  }, [state.profile, state.triviaRoundsPlayed]);
+  }, [state.profile, scenariosPlayed]);
 
   function pick(idx: number) {
     if (locked) return;
@@ -66,10 +69,12 @@ export default function ScenariosPage() {
       const xp =
         correctCount * XP_PER_CORRECT_SCENARIO +
         (perfect ? PERFECT_SCENARIO_ROUND_BONUS : 0);
-      // Re-use the trivia XP pipeline — scenario correctness maps directly
-      const { awardedXp, newlyUnlocked } = completeTriviaRound(
-        correctCount,
-        SCENARIO_ROUND_SIZE
+      // Log as a "scenarios" mental session — separate counter from trivia.
+      const refId = `scenarios-round-${scenariosPlayed + 1}`;
+      const { awardedXp, newlyUnlocked } = completeMentalSession(
+        "scenarios",
+        refId,
+        xp
       );
       showReward(awardedXp || xp, newlyUnlocked);
       setPhase("result");

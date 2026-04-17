@@ -343,8 +343,8 @@ export interface UnlockedBadge {
 
 export interface MentalSession {
   id: string;
-  kind: "visualization" | "breathing" | "lesson";
-  refId: string; // id of the visualization / breathing exercise / lesson
+  kind: "visualization" | "breathing" | "lesson" | "scenarios";
+  refId: string; // id of the visualization / breathing exercise / lesson / scenario round
   date: string; // YYYY-MM-DD
   completedAt: string; // ISO
   xpEarned: number;
