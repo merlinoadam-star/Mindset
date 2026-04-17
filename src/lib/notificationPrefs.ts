@@ -15,7 +15,8 @@ export type PrefKey =
   | "milestones"
   | "dailyReminder"
   | "matchReminders"
-  | "smartNudges";
+  | "smartNudges"
+  | "weeklyDigest";
 
 export type NotificationPrefs = Record<PrefKey, boolean>;
 
@@ -27,6 +28,7 @@ export const DEFAULT_PREFS: NotificationPrefs = {
   dailyReminder: true,
   matchReminders: true,
   smartNudges: true,
+  weeklyDigest: true,
 };
 
 export async function fetchNotificationPrefs(

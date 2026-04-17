@@ -60,6 +60,11 @@ const LABELS_COACH_PARENT: Array<{
     title: "Athlete milestones",
     desc: "Level-ups and streak milestones from athletes you're connected to.",
   },
+  {
+    key: "weeklyDigest",
+    title: "Weekly email digest",
+    desc: "Sunday evening email summarizing each of your athletes' week — XP, streak, matches, mood.",
+  },
 ];
 
 export default function NotificationPrefsCard() {
