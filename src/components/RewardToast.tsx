@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { getBadge } from "../lib/gamification";
+import { hapticSuccess, hapticLight } from "../lib/haptics";
+import { fireConfetti } from "./Confetti";
 
 interface Reward {
   id: number;
@@ -21,6 +23,13 @@ export default function RewardToast() {
     push = (r) => {
       const id = nextId++;
       setItems((prev) => [...prev, { ...r, id }]);
+      // Haptic based on what happened
+      if (r.badges.length > 0) {
+        hapticSuccess();
+        fireConfetti(50); // badge unlock gets a small burst
+      } else if (r.xp > 0) {
+        hapticLight();
+      }
       setTimeout(() => {
         setItems((prev) => prev.filter((x) => x.id !== id));
       }, 2800);

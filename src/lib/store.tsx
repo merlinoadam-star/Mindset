@@ -42,6 +42,8 @@ import {
   notifyConnectionsOfLevelUp,
   notifyConnectionsOfStreak,
 } from "./milestoneAlerts";
+import { fireConfetti } from "../components/Confetti";
+import { hapticCelebrate, hapticMedium } from "./haptics";
 import { useAuth } from "./authContext";
 import {
   fetchAthleteProfile,
@@ -627,6 +629,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         level,
         title
       );
+      // Celebrate on the athlete's own device
+      fireConfetti(80);
+      hapticCelebrate();
     }
     prevLevelRef.current = level;
   }, [
@@ -668,6 +673,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         current > prevStreakMilestoneRef.current)
     ) {
       notifyConnectionsOfStreak(account.id, state.profile.name, current);
+      fireConfetti(80);
+      hapticCelebrate();
     }
     prevStreakMilestoneRef.current = current;
     // state is intentionally omitted from deps — we key on the activity
@@ -712,6 +719,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const habit = getHabit(habitId);
       if (!habit) return { awardedXp: 0, newlyUnlocked: [] };
       const today = todayISO();
+
+      hapticMedium();
 
       let awardedXp = 0;
       let newlyUnlocked: string[] = [];
