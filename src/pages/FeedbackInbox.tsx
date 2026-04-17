@@ -181,8 +181,8 @@ export default function FeedbackInboxPage() {
                     <p
                       className={`mt-1.5 whitespace-pre-wrap leading-snug ${
                         isCheer
-                          ? "text-base font-semibold text-slate-800"
-                          : "text-sm text-slate-800"
+                          ? "text-base font-semibold text-slate-800 dark:text-slate-200"
+                          : "text-sm text-slate-800 dark:text-slate-200"
                       }`}
                     >
                       {it.text}

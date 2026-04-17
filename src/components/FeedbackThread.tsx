@@ -175,7 +175,7 @@ export default function FeedbackThread({
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-slate-800 mt-1 whitespace-pre-wrap leading-snug">
+                    <p className="text-sm text-slate-800 dark:text-slate-200 mt-1 whitespace-pre-wrap leading-snug">
                       {it.text}
                     </p>
                   </div>
@@ -198,6 +198,8 @@ export default function FeedbackThread({
       {canCompose && (
         <form onSubmit={submit} className="flex gap-2">
           <input
+            type="text"
+            autoComplete="off"
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={
@@ -205,7 +207,7 @@ export default function FeedbackThread({
                 ? "Your thoughts..."
                 : "Leave a note for your athlete..."
             }
-            className="flex-1 rounded-xl border-2 border-slate-200 px-3 py-2 text-sm focus:border-brand-500 outline-none bg-white"
+            className="flex-1 rounded-xl border-2 border-slate-200 dark:border-slate-700 px-3 py-2 text-sm focus:border-brand-500 outline-none bg-white dark:bg-slate-800 dark:text-white"
           />
           <button
             type="submit"
