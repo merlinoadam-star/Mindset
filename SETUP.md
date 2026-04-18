@@ -90,6 +90,7 @@ As the project evolved, new migrations were added alongside the main
 - `supabase/ai_conversations.sql` — AI Coach Q&A history (Phase 4F.3)
 - `supabase/loss_recovery.sql` — loss-recovery flow columns on matches
 - `supabase/personal_records.sql` — personal records table + RLS
+- `supabase/adult_chats.sql` — coach↔parent private chats table + RLS
 
 ## Push notifications (optional, Phase 2E)
 

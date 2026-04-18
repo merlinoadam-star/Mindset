@@ -21,6 +21,7 @@ import {
 import FeedbackThread from "../components/FeedbackThread";
 import CoachWeeklyFocusCard from "../components/CoachWeeklyFocusCard";
 import CheerButtons from "../components/CheerButtons";
+import PrivateChatsSection from "../components/PrivateChatsSection";
 import AthleteGlanceCard from "../components/AthleteGlanceCard";
 import WeeklyWrapUpCard from "../components/WeeklyWrapUpCard";
 import CoachVideoUpload from "../components/CoachVideoUpload";
@@ -279,6 +280,12 @@ export default function AthleteViewPage() {
         matches={matches}
         extra={extra}
       />
+
+      {/* Private coach↔parent chats — hidden from athletes via RLS and
+          a role guard on the page itself. */}
+      {id && (
+        <PrivateChatsSection athleteId={id} athleteName={profile.name} />
+      )}
 
       {/* About */}
       {(profile.heightInches ||
