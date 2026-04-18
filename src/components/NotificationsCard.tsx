@@ -126,7 +126,7 @@ export default function NotificationsCard() {
           disabled={busy}
           className={`mt-3 w-full py-2.5 rounded-xl font-bold text-sm transition disabled:opacity-40 ${
             subscribed
-              ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
               : "bg-gradient-to-r from-purple-600 to-brand-600 text-white"
           }`}
         >
