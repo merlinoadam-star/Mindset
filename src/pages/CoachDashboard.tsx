@@ -24,6 +24,7 @@ import {
   Activity,
 } from "lucide-react";
 import CoachGuidedTutorial from "../components/CoachGuidedTutorial";
+import ParentCheckInCard from "../components/ParentCheckInCard";
 import TeamBulkActions from "../components/TeamBulkActions";
 import {
   fetchTeamStats,
@@ -243,6 +244,13 @@ export default function CoachDashboard() {
           </div>
         </div>
       )}
+
+      {/* Parent-only: weekly conversation starter. Parents are the audience
+          that currently has the fewest active tools — this gives them a
+          concrete thing to ask after practice. */}
+      {accepted.length > 0 &&
+        account?.role === "parent" &&
+        user && <ParentCheckInCard accountId={user.id} />}
 
       {/* Pending invites (incoming) */}
       {pending.filter((p) => p.pendingIncoming).length > 0 && (
