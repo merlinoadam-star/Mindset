@@ -1,3 +1,4 @@
+import * as tus from "tus-js-client";
 import { supabase } from "./supabase";
 import { isUuid } from "./store";
 import type { VideoEntry } from "../types";
@@ -15,6 +16,54 @@ import type { VideoEntry } from "../types";
  */
 
 const BUCKET = "videos";
+
+/**
+ * Resumable (tus) upload to Supabase Storage. Bypasses the project's
+ * standard-upload size ceiling by streaming in 6MB chunks. Supabase
+ * requires exactly 6MB chunks except for the final one.
+ */
+async function resumableUpload(
+  path: string,
+  blob: Blob,
+  contentType: string,
+  upsert: boolean
+): Promise<void> {
+  const client = supabase!;
+  const { data: { session } } = await client.auth.getSession();
+  if (!session) throw new Error("Not signed in.");
+
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+
+  await new Promise<void>((resolve, reject) => {
+    const upload = new tus.Upload(blob, {
+      endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      headers: {
+        authorization: `Bearer ${session.access_token}`,
+        "x-upsert": upsert ? "true" : "false",
+      },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      metadata: {
+        bucketName: BUCKET,
+        objectName: path,
+        contentType,
+        cacheControl: "3600",
+      },
+      chunkSize: 6 * 1024 * 1024,
+      onError: (err) => reject(err),
+      onSuccess: () => resolve(),
+    });
+
+    upload.findPreviousUploads().then(
+      (prev) => {
+        if (prev.length > 0) upload.resumeFromPreviousUpload(prev[0]);
+        upload.start();
+      },
+      () => upload.start()
+    );
+  });
+}
 
 function extFromMime(mime: string): string {
   if (!mime) return "mp4";
@@ -47,13 +96,14 @@ export async function uploadVideoToCloud(
 
   const path = storagePathFor(athleteId, video);
 
-  const { error: uploadErr } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, blob, {
-      contentType: video.mimeType || "video/mp4",
-      upsert: true,
-    });
-  if (uploadErr) {
+  try {
+    await resumableUpload(
+      path,
+      blob,
+      video.mimeType || "video/mp4",
+      true
+    );
+  } catch (uploadErr) {
     console.error("Video upload failed", uploadErr);
     return null;
   }
@@ -209,14 +259,13 @@ export async function uploadVideoAsCoach(params: {
   const ext = mime.split("/")[1]?.split(";")[0] ?? "mp4";
   const path = `${params.athleteId}/${videoId}.${ext}`;
 
-  // 1. Upload blob to Storage
-  const { error: uploadErr } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, params.blob, {
-      contentType: mime,
-      upsert: false,
-    });
-  if (uploadErr) return { error: `Upload failed: ${uploadErr.message}` };
+  // 1. Upload blob to Storage (resumable — bypasses project upload-size cap)
+  try {
+    await resumableUpload(path, params.blob, mime, false);
+  } catch (uploadErr) {
+    const msg = uploadErr instanceof Error ? uploadErr.message : String(uploadErr);
+    return { error: `Upload failed: ${msg}` };
+  }
 
   // 2. Insert metadata row
   const { error: rowErr } = await supabase.from("videos").insert({
