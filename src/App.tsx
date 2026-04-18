@@ -51,6 +51,7 @@ const MatchDayPage = lazy(() => import("./pages/MatchDay"));
 const HighlightReelPage = lazy(() => import("./pages/HighlightReel"));
 const RecordsPage = lazy(() => import("./pages/Records"));
 const TimelinePage = lazy(() => import("./pages/Timeline"));
+const AdultChatPage = lazy(() => import("./pages/AdultChat"));
 
 function PageLoader() {
   return (
@@ -105,6 +106,10 @@ function AppShell() {
             <Route element={<CoachLayout />}>
               <Route index element={<CoachDashboard />} />
               <Route path="athlete/:id" element={<AthleteViewPage />} />
+              <Route
+                path="chat/:athleteId/:otherId"
+                element={<AdultChatPage />}
+              />
               <Route path="connections" element={<ConnectionsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="app-feedback" element={<AppFeedbackPage />} />
