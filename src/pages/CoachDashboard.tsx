@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import CoachGuidedTutorial from "../components/CoachGuidedTutorial";
 import ParentCheckInCard from "../components/ParentCheckInCard";
+import ParentPlaybookCard from "../components/ParentPlaybookCard";
 import TeamBulkActions from "../components/TeamBulkActions";
 import {
   fetchTeamStats,
@@ -244,6 +245,23 @@ export default function CoachDashboard() {
           </div>
         </div>
       )}
+
+      {/* Parent-only: daily Playbook — 1-3 contextual actions derived
+          from each athlete's recent data. One card per accepted athlete
+          so parents of multiple kids still get the nudges they need. */}
+      {account?.role === "parent" &&
+        user &&
+        accepted.length > 0 && (
+          <div className="space-y-3">
+            {accepted.map((a) => (
+              <ParentPlaybookCard
+                key={a.athleteAccountId}
+                parentAccountId={user.id}
+                athleteId={a.athleteAccountId}
+              />
+            ))}
+          </div>
+        )}
 
       {/* Parent-only: weekly conversation starter. Parents are the audience
           that currently has the fewest active tools — this gives them a
