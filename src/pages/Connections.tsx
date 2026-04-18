@@ -35,6 +35,7 @@ export default function ConnectionsPage() {
   const [loading, setLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchConnections = useCallback(async () => {
     if (!supabase || !user) return;
@@ -117,16 +118,29 @@ export default function ConnectionsPage() {
 
   async function respond(id: string, status: ConnectionStatus) {
     if (!supabase) return;
-    await supabase
+    setActionError(null);
+    const { error } = await supabase
       .from("connections")
       .update({ status, responded_at: new Date().toISOString() })
       .eq("id", id);
+    if (error) {
+      setActionError(`Couldn't update invite: ${error.message}`);
+      return;
+    }
     fetchConnections();
   }
 
   async function revoke(id: string) {
     if (!supabase) return;
-    await supabase.from("connections").delete().eq("id", id);
+    setActionError(null);
+    const { error } = await supabase
+      .from("connections")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      setActionError(`Couldn't remove connection: ${error.message}`);
+      return;
+    }
     fetchConnections();
   }
 
@@ -214,11 +228,23 @@ export default function ConnectionsPage() {
       )}
 
       {notice && (
-        <div className="card bg-emerald-50 border-emerald-200 text-emerald-900 text-sm">
+        <div className="card bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-sm">
           {notice}
           <button
             onClick={() => setNotice(null)}
-            className="float-right text-emerald-700 font-bold"
+            className="float-right text-emerald-700 dark:text-emerald-300 font-bold"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="card bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800 text-red-900 dark:text-red-200 text-sm">
+          {actionError}
+          <button
+            onClick={() => setActionError(null)}
+            className="float-right text-red-700 dark:text-red-300 font-bold"
           >
             ×
           </button>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { X, Share2, Check } from "lucide-react";
 import { renderShareCardDataUrl, shareWin, type ShareWinData } from "../lib/shareWins";
 import { hapticSuccess } from "../lib/haptics";
@@ -18,6 +18,7 @@ export default function ShareWinModal({
   const [preview, setPreview] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [done, setDone] = useState<"shared" | "downloaded" | null>(null);
+  const titleId = useId();
 
   useEffect(() => {
     if (!data) {
@@ -27,6 +28,20 @@ export default function ShareWinModal({
     }
     setPreview(renderShareCardDataUrl(data));
   }, [data]);
+
+  useEffect(() => {
+    if (!data) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !sharing) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [data, onClose, sharing]);
 
   if (!data) return null;
 
@@ -44,18 +59,24 @@ export default function ShareWinModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+    >
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-5 shadow-elevated relative animate-pop-in">
         <button
           onClick={onClose}
           disabled={sharing}
-          className="absolute top-3 right-3 w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center disabled:opacity-40"
+          aria-label="Close share dialog"
+          className="absolute top-3 right-3 w-9 h-9 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:outline-none"
         >
           <X size={16} />
         </button>
 
         <div className="text-center mb-3">
-          <div className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <div id={titleId} className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Share your win!
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">

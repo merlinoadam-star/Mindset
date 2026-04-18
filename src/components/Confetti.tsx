@@ -30,8 +30,14 @@ const COLORS = [
 let nextBurstId = 1;
 let trigger: ((count: number) => void) | null = null;
 
+function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 /** Fire confetti from outside the component tree. */
 export function fireConfetti(count = 60): void {
+  if (prefersReducedMotion()) return;
   if (trigger) trigger(count);
 }
 

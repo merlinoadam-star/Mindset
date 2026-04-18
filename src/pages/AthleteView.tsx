@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import {
@@ -62,10 +62,16 @@ export default function AthleteViewPage() {
   const [videos, setVideos] = useState<DbVideoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Tracks the most recently issued fetch so stale completions can't clobber
+  // newer state (e.g., id changed mid-fetch, or a realtime refresh raced the
+  // initial load).
+  const requestSeq = useRef(0);
 
   const loadAll = useCallback(
     async (showSpinner: boolean) => {
       if (!id) return;
+      const seq = ++requestSeq.current;
+      const fetchedId = id;
       if (showSpinner) setLoading(true);
       setError(null);
       try {
@@ -75,6 +81,7 @@ export default function AthleteViewPage() {
           fetchAllAthleteData(id),
           fetchVideosForAthlete(id),
         ]);
+        if (seq !== requestSeq.current) return;
         if (!athleteRow) {
           setError(
             "Couldn't find this athlete's profile. They may not have finished setup yet."
@@ -91,14 +98,16 @@ export default function AthleteViewPage() {
           const { data: acct } = await supabase
             .from("accounts")
             .select("email")
-            .eq("id", id)
+            .eq("id", fetchedId)
             .maybeSingle();
+          if (seq !== requestSeq.current) return;
           setEmail(acct?.email ?? null);
         }
       } catch (e) {
-        setError((e as Error).message);
+        if (seq !== requestSeq.current) return;
+        setError(e instanceof Error ? e.message : String(e));
       } finally {
-        if (showSpinner) setLoading(false);
+        if (seq === requestSeq.current && showSpinner) setLoading(false);
       }
     },
     [id]

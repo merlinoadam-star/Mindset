@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { X, Check } from "lucide-react";
 import { useAuth } from "../lib/authContext";
 import { hapticLight, hapticSuccess } from "../lib/haptics";
@@ -38,6 +38,21 @@ export default function AvatarPicker({
   const { account, updateAvatar } = useAuth();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const titleId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !saving) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [open, onClose, saving]);
 
   if (!open || !account) return null;
 
@@ -58,18 +73,24 @@ export default function AvatarPicker({
   };
 
   return (
-    <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+    >
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-5 shadow-elevated relative animate-pop-in max-h-[80vh] overflow-y-auto">
         <button
           onClick={onClose}
           disabled={saving}
-          className="absolute top-3 right-3 w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center disabled:opacity-40"
+          aria-label="Close avatar picker"
+          className="absolute top-3 right-3 w-9 h-9 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:outline-none"
         >
           <X size={16} />
         </button>
 
         <div className="text-center mb-4">
-          <div className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <div id={titleId} className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Pick your avatar
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">

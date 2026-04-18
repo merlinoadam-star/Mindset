@@ -87,7 +87,8 @@ export default function Dashboard() {
         </div>
         <Link
           to="/settings"
-          className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-card flex items-center justify-center text-slate-400 hover:text-slate-600 transition"
+          aria-label="Settings"
+          className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-card flex items-center justify-center text-slate-400 hover:text-slate-600 dark:text-slate-300 dark:hover:text-slate-100 transition focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:outline-none"
         >
           <Settings size={18} />
         </Link>

@@ -38,11 +38,15 @@ export default function AskCoachPage() {
 
   // Only athletes can see this right now (simpler scope for F.3)
   const athleteId = user?.id;
+  // Bumped on each refresh; stale completions check this and bail.
+  const refreshSeq = useRef(0);
 
   const refresh = useCallback(async () => {
     if (!athleteId) return;
+    const seq = ++refreshSeq.current;
     setLoading(true);
     const rows = await fetchConversations(athleteId);
+    if (seq !== refreshSeq.current) return;
     setConversations(rows);
     setLoading(false);
   }, [athleteId]);

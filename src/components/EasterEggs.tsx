@@ -127,6 +127,13 @@ export default function EasterEggs() {
   const activateRainbow = () => {
     fireConfetti(150);
     hapticCelebrate();
+    // Skip the screen-wide hue-rotate shimmer if the user prefers
+    // reduced motion — it can be disorienting.
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
     setRainbow(true);
     window.setTimeout(() => setRainbow(false), 5000);
   };

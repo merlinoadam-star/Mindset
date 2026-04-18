@@ -212,7 +212,8 @@ export default function FeedbackThread({
           <button
             type="submit"
             disabled={sending || !text.trim()}
-            className="px-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white font-bold text-sm disabled:opacity-40 flex items-center gap-1"
+            aria-label="Send note"
+            className="px-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white font-bold text-sm disabled:opacity-40 flex items-center gap-1 focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             <Send size={14} />
           </button>
