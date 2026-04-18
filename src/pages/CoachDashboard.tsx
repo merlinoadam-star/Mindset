@@ -208,7 +208,7 @@ export default function CoachDashboard() {
         </div>
         <Link
           to="/settings"
-          className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-card flex items-center justify-center text-slate-400 hover:text-slate-600 transition"
+          className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-card flex items-center justify-center text-slate-400 dark:text-slate-300 hover:text-slate-600 dark:hover:text-white transition"
         >
           <Settings size={18} />
         </Link>
@@ -221,9 +221,9 @@ export default function CoachDashboard() {
 
       {/* Welcome tip — only when they have athletes */}
       {accepted.length > 0 && (
-        <div className="rounded-2xl bg-gradient-to-br from-brand-50 to-purple-50 border border-brand-100 p-3 flex items-start gap-2">
-          <Sparkles size={14} className="text-brand-600 mt-0.5 flex-shrink-0" />
-          <div className="text-xs text-slate-700 leading-relaxed">
+        <div className="rounded-2xl bg-gradient-to-br from-brand-50 to-purple-50 dark:from-brand-950/50 dark:to-purple-950/50 border border-brand-100 dark:border-brand-900 p-3 flex items-start gap-2">
+          <Sparkles size={14} className="text-brand-600 dark:text-brand-400 mt-0.5 flex-shrink-0" />
+          <div className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed">
             Tap any athlete to see their full profile, match log, progress
             charts, AI weekly recap, and more. You can set a weekly focus, send
             cheers, and leave notes from their page.
@@ -241,7 +241,7 @@ export default function CoachDashboard() {
               .map((a) => (
                 <div
                   key={a.connectionId}
-                  className="card bg-gradient-to-br from-amber-50 to-white border-amber-200"
+                  className="card bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/40 dark:to-slate-900 border-amber-200 dark:border-amber-800"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-extrabold">
