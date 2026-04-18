@@ -31,13 +31,17 @@ const VAPID_SUBJECT =
   Deno.env.get("VAPID_SUBJECT") || "mailto:admin@example.com";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// Required: a shared secret that the pg_cron job sends in the
+// `x-cron-secret` header. Without this, anyone who knows the function
+// URL can trigger a reminder fan-out and spam every athlete.
+const CRON_SECRET = Deno.env.get("CRON_SECRET") || null;
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-cron-secret",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
@@ -297,6 +301,20 @@ Deno.serve(async (req: Request) => {
       status: 405,
       headers: corsHeaders,
     });
+  }
+
+  // Require the cron shared secret. Configure CRON_SECRET in the
+  // function secrets and include it in the pg_cron Authorization
+  // header (see daily_reminders_cron.sql).
+  if (!CRON_SECRET) {
+    return new Response("CRON_SECRET not configured", {
+      status: 500,
+      headers: corsHeaders,
+    });
+  }
+  const provided = req.headers.get("x-cron-secret");
+  if (provided !== CRON_SECRET) {
+    return new Response("Forbidden", { status: 403, headers: corsHeaders });
   }
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);

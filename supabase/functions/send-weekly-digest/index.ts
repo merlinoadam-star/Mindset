@@ -25,6 +25,10 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const DIGEST_FROM =
   Deno.env.get("DIGEST_FROM") || "Mindset <onboarding@resend.dev>";
+// Required: shared secret sent in `x-cron-secret` by the pg_cron job.
+// Without this, the function URL is publicly invokable and an attacker
+// could spam coach/parent inboxes with weekly summaries.
+const CRON_SECRET = Deno.env.get("CRON_SECRET") || null;
 
 // Target local hour for the weekly send. 19 = 7pm — after dinner, before
 // bed for most adults. Athletes' timezones are used if the coach/parent
@@ -35,7 +39,7 @@ const TARGET_WEEKDAY = 0; // Sunday (0 = Sunday in JS conventions)
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-cron-secret",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
@@ -478,6 +482,19 @@ Deno.serve(async (req: Request) => {
       status: 405,
       headers: corsHeaders,
     });
+  }
+
+  // Require the cron shared secret. The pg_cron job sends it in the
+  // x-cron-secret header (see weekly_digest_cron.sql).
+  if (!CRON_SECRET) {
+    return new Response("CRON_SECRET not configured", {
+      status: 500,
+      headers: corsHeaders,
+    });
+  }
+  const provided = req.headers.get("x-cron-secret");
+  if (provided !== CRON_SECRET) {
+    return new Response("Forbidden", { status: 403, headers: corsHeaders });
   }
 
   // Optional override query params for manual testing:

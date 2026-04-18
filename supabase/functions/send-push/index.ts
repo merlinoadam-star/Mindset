@@ -1,15 +1,27 @@
 // Supabase Edge Function: send-push
 // Deploy via Supabase Dashboard → Edge Functions → New function → paste this file.
 // Required function secrets (Dashboard → Project Settings → Edge Functions → Secrets):
-//   VAPID_PUBLIC_KEY   — same value as the client-side VITE_VAPID_PUBLIC_KEY
-//   VAPID_PRIVATE_KEY  — from `npx web-push generate-vapid-keys`
-//   VAPID_SUBJECT      — a mailto: or https:// URL identifying you
-//                        (e.g. "mailto:you@email.com")
+//   VAPID_PUBLIC_KEY        — same value as the client-side VITE_VAPID_PUBLIC_KEY
+//   VAPID_PRIVATE_KEY       — from `npx web-push generate-vapid-keys`
+//   VAPID_SUBJECT           — a mailto: or https:// URL identifying you
+//                             (e.g. "mailto:you@email.com")
+//   APP_OWNER_ACCOUNT_ID    — optional; the account uuid that receives
+//                             user feedback notifications. Senders are
+//                             allowed to push to this id even without
+//                             a connection row.
 //
 // Called from the client with the Supabase-js SDK:
 //   await supabase.functions.invoke("send-push", {
 //     body: { toAccountId, title, body, url, tag }
 //   });
+//
+// Auth model: the caller's JWT is verified, and the call is rejected
+// unless one of the following is true:
+//   - caller is pushing to themselves (self-push)
+//   - caller and target share a `connections` row (any status)
+//   - target equals APP_OWNER_ACCOUNT_ID
+// This prevents an authenticated user from spamming push notifications
+// to arbitrary other accounts.
 
 // @ts-expect-error — Deno-style jsr import resolved at runtime on Supabase
 import webpush from "https://esm.sh/web-push@3.6.7";
@@ -24,6 +36,14 @@ const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY")!;
 const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") || "mailto:admin@example.com";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const APP_OWNER_ACCOUNT_ID = Deno.env.get("APP_OWNER_ACCOUNT_ID") || null;
+
+// Caps on user-supplied strings to prevent oversized payloads from
+// being sent through the push pipeline.
+const MAX_TITLE = 120;
+const MAX_BODY = 500;
+const MAX_URL = 500;
+const MAX_TAG = 120;
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
@@ -65,6 +85,28 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  // Verify the caller's JWT before doing anything else. Without this,
+  // any authenticated user could blast notifications at any other account.
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response("Missing authorization", {
+      status: 401,
+      headers: corsHeaders,
+    });
+  }
+  const jwt = authHeader.replace(/^Bearer\s+/i, "");
+
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
+  if (userErr || !userData?.user) {
+    return new Response("Invalid session", {
+      status: 401,
+      headers: corsHeaders,
+    });
+  }
+  const callerId = userData.user.id;
+
   let payload: Payload;
   try {
     payload = await req.json();
@@ -79,8 +121,40 @@ Deno.serve(async (req: Request) => {
       headers: corsHeaders,
     });
   }
+  // Reject anything that doesn't look like a uuid before interpolating
+  // it into a database query. Malformed input would otherwise produce
+  // a 500 on the OR filter below.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_RE.test(toAccountId)) {
+    return new Response("Invalid toAccountId", {
+      status: 400,
+      headers: corsHeaders,
+    });
+  }
 
-  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  // Authorize: caller may push to themselves, the app-owner inbox, or
+  // anyone they share a connections row with (any status — pending
+  // covers the invite flow, accepted covers ongoing comms).
+  const isSelfPush = callerId === toAccountId;
+  const isAppOwnerPush =
+    APP_OWNER_ACCOUNT_ID !== null && toAccountId === APP_OWNER_ACCOUNT_ID;
+  if (!isSelfPush && !isAppOwnerPush) {
+    const { count, error: connErr } = await admin
+      .from("connections")
+      .select("id", { head: true, count: "exact" })
+      .or(
+        `and(athlete_account_id.eq.${callerId},other_account_id.eq.${toAccountId}),and(athlete_account_id.eq.${toAccountId},other_account_id.eq.${callerId})`
+      );
+    if (connErr) {
+      return new Response(`DB error: ${connErr.message}`, {
+        status: 500,
+        headers: corsHeaders,
+      });
+    }
+    if (!count || count === 0) {
+      return new Response("Forbidden", { status: 403, headers: corsHeaders });
+    }
+  }
 
   // Notification preferences check — if the recipient has explicitly
   // disabled this pref key, return a 200 without sending. Missing key
@@ -125,10 +199,10 @@ Deno.serve(async (req: Request) => {
   }
 
   const notificationPayload = JSON.stringify({
-    title,
-    body,
-    url: url || "/",
-    tag,
+    title: String(title).slice(0, MAX_TITLE),
+    body: body ? String(body).slice(0, MAX_BODY) : "",
+    url: (url ? String(url).slice(0, MAX_URL) : "") || "/",
+    tag: tag ? String(tag).slice(0, MAX_TAG) : undefined,
   });
 
   const results = await Promise.all(
