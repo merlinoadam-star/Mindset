@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useStore, isUuid } from "../lib/store";
 import { useAuth } from "../lib/authContext";
 import { showReward } from "../components/RewardToast";
 import FeedbackThread from "../components/FeedbackThread";
 import VideoReviewCard from "../components/VideoReviewCard";
 import { loadVideoBlob, formatBytes, formatDuration } from "../lib/videoStorage";
+import {
+  fetchVideosForAthlete,
+  getVideoSignedUrl,
+  type DbVideoRow,
+} from "../lib/videoSync";
 import {
   VIDEO_TAG_EMOJIS,
   VIDEO_TAG_LABELS,
@@ -38,24 +43,63 @@ const TAG_ORDER: VideoTag[] = [
 
 export default function VideoLibraryPage() {
   const { state } = useStore();
+  const { account } = useAuth();
+  const [params, setParams] = useSearchParams();
   const [showAdd, setShowAdd] = useState(false);
   const [openVideoId, setOpenVideoId] = useState<string | null>(null);
   const [filterTag, setFilterTag] = useState<VideoTag | "all">("all");
+  const [cloudVideos, setCloudVideos] = useState<VideoEntry[]>([]);
+
+  // Pull cloud videos (coach/parent uploads land here, not in IndexedDB).
+  useEffect(() => {
+    if (!account || account.role !== "athlete") return;
+    let cancelled = false;
+    (async () => {
+      const rows = await fetchVideosForAthlete(account.id);
+      if (cancelled) return;
+      setCloudVideos(rows.map(dbRowToVideoEntry));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [account]);
+
+  // Merge: local wins on duplicate ids so athlete's own uploads keep their
+  // IndexedDB blobKey for instant offline playback.
+  const allVideos = useMemo(() => {
+    const localIds = new Set(state.videos.map((v) => v.id));
+    return [
+      ...state.videos,
+      ...cloudVideos.filter((v) => !localIds.has(v.id)),
+    ];
+  }, [state.videos, cloudVideos]);
+
+  // Deep-link from push notification: /videos?v=<id>
+  useEffect(() => {
+    const wantedId = params.get("v");
+    if (!wantedId) return;
+    if (allVideos.some((v) => v.id === wantedId)) {
+      setOpenVideoId(wantedId);
+      const next = new URLSearchParams(params);
+      next.delete("v");
+      setParams(next, { replace: true });
+    }
+  }, [params, allVideos, setParams]);
 
   if (!state.profile) return null;
 
   const filtered = useMemo(() => {
     const list =
       filterTag === "all"
-        ? state.videos
-        : state.videos.filter((v) => v.tag === filterTag);
+        ? allVideos
+        : allVideos.filter((v) => v.tag === filterTag);
     return [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  }, [state.videos, filterTag]);
+  }, [allVideos, filterTag]);
 
-  const totalSize = state.videos.reduce((a, v) => a + v.sizeBytes, 0);
+  const totalSize = allVideos.reduce((a, v) => a + v.sizeBytes, 0);
 
   if (openVideoId) {
-    const video = state.videos.find((v) => v.id === openVideoId);
+    const video = allVideos.find((v) => v.id === openVideoId);
     if (video) {
       return (
         <VideoDetail video={video} onBack={() => setOpenVideoId(null)} />
@@ -81,8 +125,8 @@ export default function VideoLibraryPage() {
               <h1 className="page-title">Video Library</h1>
             </div>
             <p className="page-subtitle">
-              {state.videos.length} video
-              {state.videos.length === 1 ? "" : "s"} ·{" "}
+              {allVideos.length} video
+              {allVideos.length === 1 ? "" : "s"} ·{" "}
               {formatBytes(totalSize)}
             </p>
           </div>
@@ -106,7 +150,7 @@ export default function VideoLibraryPage() {
       </div>
 
       {/* Filter */}
-      {state.videos.length > 0 && (
+      {allVideos.length > 0 && (
         <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
           <FilterChip
             label="All"
@@ -114,7 +158,7 @@ export default function VideoLibraryPage() {
             onClick={() => setFilterTag("all")}
           />
           {TAG_ORDER.map((t) => {
-            const count = state.videos.filter((v) => v.tag === t).length;
+            const count = allVideos.filter((v) => v.tag === t).length;
             if (count === 0) return null;
             return (
               <FilterChip
@@ -130,7 +174,7 @@ export default function VideoLibraryPage() {
 
       {showAdd && <AddVideoForm onClose={() => setShowAdd(false)} />}
 
-      {state.videos.length === 0 && !showAdd ? (
+      {allVideos.length === 0 && !showAdd ? (
         <div className="card text-center py-10">
           <VideoIcon size={40} className="mx-auto text-slate-300" />
           <h3 className="font-bold mt-3 text-slate-900">No videos yet</h3>
@@ -158,6 +202,31 @@ export default function VideoLibraryPage() {
       )}
     </div>
   );
+}
+
+// -----------------------------------------------------------------------------
+// Cloud-row → display-entry mapper
+// -----------------------------------------------------------------------------
+function dbRowToVideoEntry(r: DbVideoRow): VideoEntry {
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description ?? undefined,
+    createdAt: r.created_at,
+    tag: (r.tag as VideoTag) ?? "other",
+    durationSec: r.duration_sec ?? undefined,
+    thumbnailDataUrl: r.thumbnail_data_url ?? undefined,
+    blobKey: "", // no IndexedDB blob — will stream via storagePath
+    storagePath: r.storage_path ?? undefined,
+    mimeType: r.mime_type,
+    sizeBytes: r.size_bytes,
+    author: (r.author as VideoEntry["author"]) ?? undefined,
+    audience: (r.audience as VideoAudience) ?? undefined,
+    selfNotes: r.self_notes ?? undefined,
+    markedForReview: r.marked_for_review ?? undefined,
+    reviewedAt: r.reviewed_at ?? undefined,
+    reviewerNotes: r.reviewer_notes ?? undefined,
+  };
 }
 
 // -----------------------------------------------------------------------------
@@ -491,11 +560,23 @@ function VideoDetail({
     let cancelled = false;
     (async () => {
       try {
-        const blob = await loadVideoBlob(video.blobKey);
-        if (cancelled || !blob) return;
-        const url = URL.createObjectURL(blob);
-        urlRef.current = url;
-        setSrc(url);
+        // 1. Try the local IndexedDB blob first (athlete's own uploads).
+        if (video.blobKey) {
+          const blob = await loadVideoBlob(video.blobKey);
+          if (cancelled) return;
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            urlRef.current = url;
+            setSrc(url);
+            return;
+          }
+        }
+        // 2. Fall back to cloud signed URL (coach/parent uploads).
+        if (video.storagePath) {
+          const url = await getVideoSignedUrl(video.storagePath);
+          if (cancelled) return;
+          if (url) setSrc(url);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -507,7 +588,7 @@ function VideoDetail({
         urlRef.current = null;
       }
     };
-  }, [video.blobKey]);
+  }, [video.blobKey, video.storagePath]);
 
   function saveMeta() {
     updateVideo(video.id, {

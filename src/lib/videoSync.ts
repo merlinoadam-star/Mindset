@@ -293,7 +293,7 @@ export async function uploadVideoAsCoach(params: {
           toAccountId: params.athleteId,
           title: `New video from your ${roleLabel}`,
           body: params.title,
-          url: "/videos",
+          url: `/videos?v=${videoId}`,
           tag: `video-upload-${videoId}`,
           prefKey: "notes",
         },
