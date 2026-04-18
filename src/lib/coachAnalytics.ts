@@ -71,6 +71,7 @@ export function buildAppStateFromCloud(
     triviaXpEarned: 0,
     gameBestScores: {},
     gameXpEarned: {},
+    gamePlaysCount: {},
   };
 }
 
