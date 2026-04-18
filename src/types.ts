@@ -510,4 +510,5 @@ export interface AppState {
   // Mini-game high scores (per game)
   gameBestScores: Record<string, number>;
   gameXpEarned: Record<string, number>;
+  gamePlaysCount: Record<string, number>;
 }

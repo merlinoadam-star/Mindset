@@ -1527,6 +1527,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             ...(prev.gameXpEarned ?? {}),
             [gameId]: (prev.gameXpEarned?.[gameId] ?? 0) + xp,
           },
+          gamePlaysCount: {
+            ...(prev.gamePlaysCount ?? {}),
+            [gameId]: (prev.gamePlaysCount?.[gameId] ?? 0) + 1,
+          },
         };
         const sportHabitCount = prev.profile
           ? habitsForSport(prev.profile.sport).length

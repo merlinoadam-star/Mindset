@@ -32,6 +32,7 @@ export const emptyState: AppState = {
   triviaXpEarned: 0,
   gameBestScores: {},
   gameXpEarned: {},
+  gamePlaysCount: {},
 };
 
 export function loadState(): AppState {

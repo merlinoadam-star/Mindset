@@ -18,7 +18,7 @@ export const WRESTLING_TRIVIA: TriviaQuestion[] = [
   { question: "What is it called when you hold your opponent's shoulders to the mat for 2 seconds?", choices: ["Near fall", "Pin", "Takedown", "Technical fall"], answer: 1, fact: "A pin (or fall) immediately ends the match." },
   { question: "How many periods are in a standard high school wrestling match?", choices: ["2", "3", "4", "5"], answer: 1 },
   { question: "How long is each period in high school wrestling?", choices: ["1 minute", "2 minutes", "3 minutes", "4 minutes"], answer: 1 },
-  { question: "What is a 'near fall' worth?", choices: ["1 point", "2 or 3 points", "4 points", "5 points"], answer: 1, fact: "2 points for holding near-fall 2 seconds, 3 points for 5 seconds." },
+  { question: "What is a 'near fall' worth?", choices: ["1 point", "2, 3, or 4 points", "5 points", "6 points"], answer: 1, fact: "Under current NFHS folkstyle rules: 2 pts for 2 seconds, 3 pts for 5 seconds, and 4 pts added for longer/controlled near-fall." },
   { question: "What happens if no one gets a takedown in overtime?", choices: ["Coin toss", "Both wrestlers lose", "Riding time decides", "Sudden victory continues"], answer: 2, fact: "In college, the first tiebreaker is a sudden-victory period, then riding time can factor in." },
   { question: "What is a 'technical fall'?", choices: ["Coach throws in towel", "15-point lead", "Wrestler is injured", "Time runs out"], answer: 1, fact: "When a wrestler leads by 15 or more points, the match ends in a technical fall." },
 

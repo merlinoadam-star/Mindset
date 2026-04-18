@@ -95,7 +95,12 @@ export default function GamesPage() {
       <div className="grid grid-cols-3 gap-2">
         <StatTile
           label="Plays"
-          value={state.triviaRoundsPlayed + countGamePlays(state.gameXpEarned ?? {})}
+          value={
+            state.triviaRoundsPlayed +
+            (state.mentalSessions ?? []).filter((s) => s.kind === "scenarios")
+              .length +
+            Object.values(state.gamePlaysCount ?? {}).reduce((a, b) => a + b, 0)
+          }
         />
         <StatTile
           label="Game XP"
@@ -117,7 +122,7 @@ export default function GamesPage() {
       <div className="space-y-3">
         {GAMES.map((g) => {
           const best = state.gameBestScores?.[g.id];
-          const trivia = g.id === "trivia" ? state.triviaRoundsPlayed : undefined;
+          const rounds = roundsForGame(state, g.id);
           return (
             <Link
               key={g.id}
@@ -143,9 +148,9 @@ export default function GamesPage() {
                       {g.bestLabel ?? "Best"}: {best}
                     </span>
                   )}
-                  {trivia != null && trivia > 0 && (
+                  {rounds > 0 && (
                     <span className="text-[10px] font-bold text-white bg-slate-700 px-2 py-0.5 rounded-full">
-                      {trivia} rounds
+                      {rounds} {rounds === 1 ? "round" : "rounds"}
                     </span>
                   )}
                 </div>
@@ -170,9 +175,14 @@ function StatTile({ label, value }: { label: string; value: number }) {
   );
 }
 
-function countGamePlays(map: Record<string, number>): number {
-  // Each 10 XP earned ≈ a play, rough heuristic to show play count
-  return Object.values(map).reduce((a, b) => a + b, 0) > 0
-    ? Object.keys(map).length
-    : 0;
+function roundsForGame(
+  state: ReturnType<typeof useStore>["state"],
+  gameId: string
+): number {
+  if (gameId === "trivia") return state.triviaRoundsPlayed;
+  if (gameId === "scenarios") {
+    return (state.mentalSessions ?? []).filter((s) => s.kind === "scenarios")
+      .length;
+  }
+  return state.gamePlaysCount?.[gameId] ?? 0;
 }
