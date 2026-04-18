@@ -1,7 +1,10 @@
-import * as tus from "tus-js-client";
 import { supabase } from "./supabase";
 import { isUuid } from "./store";
 import type { VideoEntry } from "../types";
+
+// tus-js-client is heavy (~40kb / 15kb gzip) and only needed when
+// the user actually uploads a video. Pulled in via dynamic import
+// inside `resumableUpload` so it stays out of the initial bundle.
 
 /**
  * Phase 2B.6 — video sync.
@@ -33,6 +36,7 @@ async function resumableUpload(
   if (!session) throw new Error("Not signed in.");
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+  const tus = await import("tus-js-client");
 
   await new Promise<void>((resolve, reject) => {
     const upload = new tus.Upload(blob, {
