@@ -114,14 +114,6 @@ export default function SettingsPage() {
             </span>
             <ChevronRight size={14} className="text-slate-300 dark:text-slate-500" />
           </Link>
-          {account.role === "athlete" && (
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-3 leading-snug px-1">
-              Heads up: your parents and coaches may message each other
-              privately about how to support you. You can&apos;t see those
-              chats, and they can&apos;t see anything you haven&apos;t
-              shared with them.
-            </p>
-          )}
         </div>
       ) : configured ? (
         <Link
