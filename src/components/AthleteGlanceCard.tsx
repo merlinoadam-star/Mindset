@@ -122,10 +122,10 @@ function StatTile({
 function InsightRow({ insight }: { insight: Insight }) {
   const bg =
     insight.tone === "positive"
-      ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+      ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200"
       : insight.tone === "warning"
-      ? "bg-amber-50 border-amber-200 text-amber-900"
-      : "bg-slate-50 border-slate-200 text-slate-700";
+      ? "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200"
+      : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200";
   return (
     <div
       className={`flex items-start gap-2 rounded-xl border px-3 py-2 text-xs leading-snug ${bg}`}

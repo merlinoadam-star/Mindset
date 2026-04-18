@@ -128,7 +128,13 @@ export default function CoachDashboard() {
       setStats(new Map());
       return;
     }
-    fetchTeamStats(ids).then(setStats);
+    let cancelled = false;
+    fetchTeamStats(ids).then((next) => {
+      if (!cancelled) setStats(next);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [accepted]);
 
   type SortKey = "name" | "streak" | "mood" | "active" | "xp";

@@ -247,24 +247,24 @@ export default function ScenariosPage() {
           </div>
           <SpeakButton text={c.situation} size="sm" rate={0.95} />
         </div>
-        <p className="text-base text-slate-900 font-semibold leading-snug">
+        <p className="text-base text-slate-900 dark:text-slate-100 font-semibold leading-snug">
           {c.situation}
         </p>
 
         <div className="mt-4 space-y-2">
           {c.options.map((opt, idx) => {
             let style =
-              "bg-white border-slate-200 text-slate-800 hover:border-indigo-300";
+              "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-indigo-300 dark:hover:border-indigo-500";
             if (locked) {
               if (idx === c.bestIndex) {
-                style = "bg-green-50 border-green-400 text-green-900";
+                style = "bg-green-50 dark:bg-green-950/40 border-green-400 dark:border-green-700 text-green-900 dark:text-green-200";
               } else if (idx === selected && !isCorrect) {
-                style = "bg-red-50 border-red-400 text-red-900";
+                style = "bg-red-50 dark:bg-red-950/40 border-red-400 dark:border-red-700 text-red-900 dark:text-red-200";
               } else {
-                style = "bg-slate-50 border-slate-200 text-slate-400";
+                style = "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500";
               }
             } else if (idx === selected) {
-              style = "bg-indigo-50 border-indigo-500 text-indigo-800";
+              style = "bg-indigo-50 dark:bg-indigo-950/40 border-indigo-500 text-indigo-800 dark:text-indigo-200";
             }
             return (
               <button
@@ -293,8 +293,8 @@ export default function ScenariosPage() {
             <div
               className={`rounded-xl px-4 py-3 text-sm font-bold flex items-center gap-2 ${
                 isCorrect
-                  ? "bg-green-50 text-green-800"
-                  : "bg-amber-50 text-amber-900"
+                  ? "bg-green-50 dark:bg-green-950/40 text-green-800 dark:text-green-200"
+                  : "bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200"
               }`}
             >
               <Target size={16} />
@@ -302,11 +302,11 @@ export default function ScenariosPage() {
                 ? `Champion's call! +${XP_PER_CORRECT_SCENARIO} XP`
                 : "Different approach. Here's why:"}
             </div>
-            <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-4 py-3">
-              <div className="text-[10px] uppercase tracking-wider font-bold text-indigo-600 mb-1">
+            <div className="rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800 px-4 py-3">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-indigo-600 dark:text-indigo-300 mb-1">
                 The Reasoning
               </div>
-              <p className="text-sm text-slate-700 leading-relaxed">
+              <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                 {c.explanation}
               </p>
               <div className="mt-2 flex justify-end">

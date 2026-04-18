@@ -221,17 +221,17 @@ export default function TriviaPage() {
         <div className="mt-4 space-y-2">
           {q.choices.map((choice, idx) => {
             let style =
-              "bg-white border-slate-200 text-slate-800 hover:border-brand-300";
+              "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-brand-300 dark:hover:border-brand-500";
             if (locked) {
               if (idx === q.answer) {
-                style = "bg-green-50 border-green-400 text-green-900";
+                style = "bg-green-50 dark:bg-green-950/40 border-green-400 dark:border-green-700 text-green-900 dark:text-green-200";
               } else if (idx === selected && !isCorrect) {
-                style = "bg-red-50 border-red-400 text-red-900";
+                style = "bg-red-50 dark:bg-red-950/40 border-red-400 dark:border-red-700 text-red-900 dark:text-red-200";
               } else {
-                style = "bg-slate-50 border-slate-200 text-slate-400";
+                style = "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500";
               }
             } else if (idx === selected) {
-              style = "bg-brand-50 border-brand-500 text-brand-800";
+              style = "bg-brand-50 dark:bg-brand-950/40 border-brand-500 text-brand-800 dark:text-brand-200";
             }
 
             return (
@@ -262,14 +262,14 @@ export default function TriviaPage() {
             <div
               className={`rounded-xl px-4 py-3 text-sm font-semibold ${
                 isCorrect
-                  ? "bg-green-50 text-green-800"
-                  : "bg-red-50 text-red-800"
+                  ? "bg-green-50 dark:bg-green-950/40 text-green-800 dark:text-green-200"
+                  : "bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200"
               }`}
             >
               {isCorrect ? "Correct! +10 XP" : `Incorrect — the answer is: ${q.choices[q.answer]}`}
             </div>
             {q.fact && locked && (
-              <p className="mt-2 text-xs text-slate-600 italic px-1">
+              <p className="mt-2 text-xs text-slate-600 dark:text-slate-300 italic px-1">
                 {q.fact}
               </p>
             )}

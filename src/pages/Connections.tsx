@@ -520,7 +520,7 @@ function InviteForm({
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="coach@email.com"
-            className="w-full rounded-xl border-2 border-slate-200 pl-9 pr-3 py-2.5 text-sm focus:border-brand-500 outline-none"
+            className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-9 pr-3 py-2.5 text-sm focus:border-brand-500 dark:focus:border-brand-400 outline-none"
           />
         </div>
         <p className="text-[11px] text-slate-500 mt-1">
@@ -537,12 +537,12 @@ function InviteForm({
           onChange={(e) => setNote(e.target.value)}
           rows={2}
           placeholder="Short message for them"
-          className="w-full rounded-xl border-2 border-slate-200 px-3 py-2 text-sm focus:border-brand-500 outline-none resize-none"
+          className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-sm focus:border-brand-500 dark:focus:border-brand-400 outline-none resize-none"
         />
       </div>
 
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm">
+        <div className="rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-200 px-3 py-2 text-sm">
           {error}
         </div>
       )}
@@ -592,13 +592,13 @@ function IncomingCard({
   onDecline: () => void;
 }) {
   return (
-    <div className="card bg-gradient-to-br from-amber-50 to-white border-amber-200">
+    <div className="card bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/30 dark:to-slate-900 border-amber-200 dark:border-amber-800">
       <div className="flex items-start gap-3">
         <div className="text-3xl">{ACCOUNT_ROLE_EMOJIS[row.otherRole]}</div>
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-slate-900">{row.otherName}</div>
-          <div className="text-xs text-slate-500">{row.otherEmail}</div>
-          <div className="text-xs text-slate-600 mt-1">
+          <div className="font-bold text-slate-900 dark:text-slate-100">{row.otherName}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">{row.otherEmail}</div>
+          <div className="text-xs text-slate-600 dark:text-slate-300 mt-1">
             Wants to connect as{" "}
             <span className="font-bold">
               {ACCOUNT_ROLE_LABELS[row.connectedRole].toLowerCase()}

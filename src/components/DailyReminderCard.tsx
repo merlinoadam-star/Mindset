@@ -108,8 +108,8 @@ export default function DailyReminderCard() {
                       disabled={saving}
                       className={`py-2 rounded-xl border-2 text-xs font-bold transition ${
                         settings.hour === h
-                          ? "border-amber-500 bg-amber-50 text-amber-800"
-                          : "border-slate-200 text-slate-600 hover:border-slate-300"
+                          ? "border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200"
+                          : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"
                       }`}
                     >
                       {formatHour(h)}

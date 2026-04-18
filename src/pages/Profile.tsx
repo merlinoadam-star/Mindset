@@ -372,7 +372,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
         {label}
       </label>
       {children}
@@ -381,7 +381,7 @@ function Field({
 }
 
 const inputCls =
-  "w-full rounded-xl border-2 border-slate-200 px-3 py-2.5 text-sm focus:border-brand-500 outline-none transition";
+  "w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2.5 text-sm focus:border-brand-500 dark:focus:border-brand-400 outline-none transition";
 
 // -----------------------------------------------------------------------------
 // About modal
@@ -1425,12 +1425,12 @@ function GoalsModal({ onClose }: { onClose: () => void }) {
     >
       <div className="space-y-5">
         {/* Process goals */}
-        <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 p-4 space-y-3">
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-slate-900 border border-emerald-100 dark:border-emerald-900 p-4 space-y-3">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-emerald-700">
+            <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-emerald-700 dark:text-emerald-400">
               Process Goals
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               What you&apos;ll <strong>do</strong>. You control these every day.
             </p>
           </div>
@@ -1453,12 +1453,12 @@ function GoalsModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Outcome goals */}
-        <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-white border border-amber-100 p-4 space-y-3">
+        <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/30 dark:to-slate-900 border border-amber-100 dark:border-amber-900 p-4 space-y-3">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-amber-700">
+            <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-amber-700 dark:text-amber-400">
               Outcome Goals
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               What you want to <strong>achieve</strong>. Results follow process.
             </p>
           </div>
@@ -1481,8 +1481,8 @@ function GoalsModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Self-reflection */}
-        <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 space-y-3">
-          <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-slate-500">
+        <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 p-4 space-y-3">
+          <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400">
             Self-Reflection
           </div>
           <Field label="My Strengths">

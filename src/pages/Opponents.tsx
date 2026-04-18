@@ -177,8 +177,8 @@ export default function OpponentsPage() {
 
       {/* Unlinked names from matches */}
       {unlinkedNames.length > 0 && !showAdd && !query && (
-        <div className="card bg-gradient-to-br from-amber-50 to-white border-amber-100">
-          <div className="text-[11px] uppercase tracking-wider text-amber-700 font-bold mb-2">
+        <div className="card bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/30 dark:to-slate-900 border-amber-100 dark:border-amber-900">
+          <div className="text-[11px] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-bold mb-2">
             Opponents from your matches
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -186,7 +186,7 @@ export default function OpponentsPage() {
               <button
                 key={name}
                 onClick={() => importFromMatches(name)}
-                className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white border border-amber-200 text-slate-700 hover:bg-amber-50"
+                className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-800 text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/40"
               >
                 <Plus size={10} className="inline mr-0.5" />
                 {name}

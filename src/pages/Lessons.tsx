@@ -160,10 +160,10 @@ function LessonReader({
       </header>
 
       <div className="card space-y-5">
-        {lesson.sections.map((s, i) => (
-          <div key={i}>
+        {lesson.sections.map((s) => (
+          <div key={s.heading}>
             <div className="flex items-start justify-between gap-2">
-              <h2 className="font-bold text-slate-900 text-base mb-1.5">
+              <h2 className="font-bold text-slate-900 dark:text-slate-100 text-base mb-1.5">
                 {s.heading}
               </h2>
               <SpeakButton
@@ -172,16 +172,16 @@ function LessonReader({
                 rate={0.95}
               />
             </div>
-            <p className="text-sm text-slate-700 leading-relaxed">{s.body}</p>
+            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">{s.body}</p>
           </div>
         ))}
       </div>
 
-      <div className="card bg-gradient-to-br from-amber-50 to-white border-amber-100">
-        <div className="text-xs uppercase tracking-wider font-bold text-amber-700 mb-2">
+      <div className="card bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/30 dark:to-slate-900 border-amber-100 dark:border-amber-900">
+        <div className="text-xs uppercase tracking-wider font-bold text-amber-700 dark:text-amber-300 mb-2">
           Reflection
         </div>
-        <p className="text-sm text-slate-800 font-semibold mb-3">
+        <p className="text-sm text-slate-800 dark:text-slate-100 font-semibold mb-3">
           {lesson.reflectionPrompt}
         </p>
         <textarea
@@ -189,7 +189,7 @@ function LessonReader({
           onChange={(e) => setReflection(e.target.value)}
           rows={3}
           placeholder="Type your answer here..."
-          className="w-full rounded-xl border-2 border-slate-200 px-3 py-2.5 text-sm focus:border-brand-500 outline-none"
+          className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2.5 text-sm focus:border-brand-500 dark:focus:border-brand-400 outline-none"
         />
       </div>
 
