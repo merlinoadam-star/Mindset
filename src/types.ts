@@ -324,9 +324,34 @@ export interface MatchEntry {
   lessonLearned?: string;
   postMatchCompletedAt?: string; // ISO — null until filled
 
+  // Loss-recovery flow — only offered when result === "loss". A short
+  // 3-step ritual (feel it → name it → carry one thing forward) that
+  // gives the athlete a structured way to process a tough match
+  // instead of ruminating.
+  lossRecoveryFeeling?: LossRecoveryFeeling;
+  lossRecoveryLesson?: string;
+  lossRecoveryCarryType?: LossRecoveryCarryType;
+  lossRecoveryCarry?: string;
+  lossRecoveryCompletedAt?: string; // ISO — null until filled
+
   xpEarned: number;
   createdAt: string; // ISO
 }
+
+export type LossRecoveryFeeling =
+  | "frustrated"
+  | "disappointed"
+  | "angry"
+  | "sad"
+  | "numb"
+  | "embarrassed"
+  | "proud-anyway"
+  | "other";
+
+export type LossRecoveryCarryType =
+  | "did-well"
+  | "do-different"
+  | "phrase";
 
 export interface BadgeDefinition {
   id: string;

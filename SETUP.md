@@ -88,6 +88,7 @@ As the project evolved, new migrations were added alongside the main
 - `supabase/daily_reminders.sql` — daily reminder columns (Phase 3C.4)
 - `supabase/ai_insights.sql` — AI insights cache table (Phase 4F.1)
 - `supabase/ai_conversations.sql` — AI Coach Q&A history (Phase 4F.3)
+- `supabase/loss_recovery.sql` — loss-recovery flow columns on matches
 
 ## Push notifications (optional, Phase 2E)
 

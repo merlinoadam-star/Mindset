@@ -954,23 +954,53 @@ function MatchRow({
 
       {/* Mini reflection: Well / Better / Next when present */}
       {(match.wentWell || match.couldBeBetter || match.nextFocus) && (
-        <div className="mt-2 pt-2 border-t border-slate-100 space-y-1 text-xs">
+        <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 space-y-1 text-xs">
           {match.wentWell && (
             <div>
-              <span className="font-bold text-emerald-700">✓ Well: </span>
-              <span className="text-slate-700">{match.wentWell}</span>
+              <span className="font-bold text-emerald-700 dark:text-emerald-300">✓ Well: </span>
+              <span className="text-slate-700 dark:text-slate-200">{match.wentWell}</span>
             </div>
           )}
           {match.couldBeBetter && (
             <div>
-              <span className="font-bold text-amber-700">🔧 Better: </span>
-              <span className="text-slate-700">{match.couldBeBetter}</span>
+              <span className="font-bold text-amber-700 dark:text-amber-300">🔧 Better: </span>
+              <span className="text-slate-700 dark:text-slate-200">{match.couldBeBetter}</span>
             </div>
           )}
           {match.nextFocus && (
             <div>
-              <span className="font-bold text-brand-700">➡️ Next: </span>
-              <span className="text-slate-700">{match.nextFocus}</span>
+              <span className="font-bold text-brand-700 dark:text-brand-300">➡️ Next: </span>
+              <span className="text-slate-700 dark:text-slate-200">{match.nextFocus}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Loss-recovery — coach-visible read-only summary so the coach
+          can respond to the athlete's processing of a tough match. */}
+      {match.lossRecoveryCompletedAt && (
+        <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 text-xs">
+          <div className="font-bold text-indigo-700 dark:text-indigo-300 mb-1">
+            💜 Worked through this loss
+          </div>
+          {match.lossRecoveryLesson && (
+            <div className="mb-1">
+              <span className="font-semibold text-slate-600 dark:text-slate-300">
+                Lesson:{" "}
+              </span>
+              <span className="text-slate-700 dark:text-slate-200">
+                {match.lossRecoveryLesson}
+              </span>
+            </div>
+          )}
+          {match.lossRecoveryCarry && (
+            <div>
+              <span className="font-semibold text-slate-600 dark:text-slate-300">
+                Taking forward:{" "}
+              </span>
+              <span className="text-slate-700 dark:text-slate-200">
+                {match.lossRecoveryCarry}
+              </span>
             </div>
           )}
         </div>

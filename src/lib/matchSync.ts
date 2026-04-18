@@ -1,6 +1,10 @@
 import { supabase } from "./supabase";
 import { isUuid } from "./store";
-import type { MatchEntry } from "../types";
+import type {
+  LossRecoveryCarryType,
+  LossRecoveryFeeling,
+  MatchEntry,
+} from "../types";
 
 /**
  * Phase 2B.4 — match log sync.
@@ -37,6 +41,11 @@ function matchToRow(athleteId: string, m: MatchEntry) {
     gratitude: m.gratitude ?? null,
     lesson_learned: m.lessonLearned ?? null,
     post_match_completed_at: m.postMatchCompletedAt ?? null,
+    loss_recovery_feeling: m.lossRecoveryFeeling ?? null,
+    loss_recovery_lesson: m.lossRecoveryLesson ?? null,
+    loss_recovery_carry_type: m.lossRecoveryCarryType ?? null,
+    loss_recovery_carry: m.lossRecoveryCarry ?? null,
+    loss_recovery_completed_at: m.lossRecoveryCompletedAt ?? null,
     xp_earned: m.xpEarned,
     created_at: m.createdAt,
   };
@@ -118,6 +127,11 @@ export interface DbMatchRow {
   gratitude: string | null;
   lesson_learned: string | null;
   post_match_completed_at: string | null;
+  loss_recovery_feeling: string | null;
+  loss_recovery_lesson: string | null;
+  loss_recovery_carry_type: string | null;
+  loss_recovery_carry: string | null;
+  loss_recovery_completed_at: string | null;
   xp_earned: number;
   created_at: string;
 }
@@ -164,6 +178,15 @@ export function rowToMatch(row: DbMatchRow): MatchEntry {
     gratitude: row.gratitude ?? undefined,
     lessonLearned: row.lesson_learned ?? undefined,
     postMatchCompletedAt: row.post_match_completed_at ?? undefined,
+    lossRecoveryFeeling:
+      (row.loss_recovery_feeling ?? undefined) as LossRecoveryFeeling | undefined,
+    lossRecoveryLesson: row.loss_recovery_lesson ?? undefined,
+    lossRecoveryCarryType:
+      (row.loss_recovery_carry_type ?? undefined) as
+        | LossRecoveryCarryType
+        | undefined,
+    lossRecoveryCarry: row.loss_recovery_carry ?? undefined,
+    lossRecoveryCompletedAt: row.loss_recovery_completed_at ?? undefined,
     xpEarned: row.xp_earned,
     createdAt: row.created_at,
   };

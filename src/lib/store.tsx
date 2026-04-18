@@ -218,6 +218,7 @@ const PRE_MATCH_XP = 15;
 const POST_MATCH_XP = 30;
 const FULL_FRAMEWORK_BONUS = 10;
 const WIN_BONUS = 5;
+const LOSS_RECOVERY_XP = 20;
 const WEEKLY_REVIEW_XP = 50;
 const POWER_PHRASE_CREATE_XP = 10;
 const RECOVERY_CHECKIN_XP = 15;
@@ -1240,6 +1241,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           (updates.postMatchCompletedAt ||
             (updates.result && !existing.result));
 
+        const becameLossRecovery =
+          !existing.lossRecoveryCompletedAt &&
+          !!updates.lossRecoveryCompletedAt;
+
         let newXp = 0;
         if (becamePreMatch) newXp += PRE_MATCH_XP;
         if (becamePostMatch) {
@@ -1253,6 +1258,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             newXp += WIN_BONUS;
           }
         }
+        // Working through a loss is real, undervalued work — reward it.
+        if (becameLossRecovery) newXp += LOSS_RECOVERY_XP;
 
         const merged: MatchEntry = {
           ...existing,
