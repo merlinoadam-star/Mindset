@@ -63,7 +63,9 @@ export default function SettingsPage() {
     }
   };
 
-  if (!state.profile) return null;
+  if (!state.profile && !account) return null;
+
+  const isAthlete = Boolean(state.profile);
 
   return (
     <div className="space-y-4">
@@ -79,44 +81,44 @@ export default function SettingsPage() {
 
       {/* Account / Sync */}
       {configured && account ? (
-        <div className="card bg-gradient-to-br from-brand-50 to-white border-brand-100">
+        <div className="card bg-gradient-to-br from-brand-50 to-white dark:from-brand-950/40 dark:to-slate-900 border-brand-100 dark:border-brand-900">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[10px] uppercase tracking-wider font-bold text-brand-700">
+              <div className="text-[10px] uppercase tracking-wider font-bold text-brand-700 dark:text-brand-300">
                 Signed in
               </div>
-              <div className="font-bold text-slate-900 mt-0.5">
+              <div className="font-bold text-slate-900 dark:text-white mt-0.5">
                 {ACCOUNT_ROLE_EMOJIS[account.role]} {account.displayName}
-                <span className="text-xs text-slate-500 font-normal ml-1">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-normal ml-1">
                   ({ACCOUNT_ROLE_LABELS[account.role]})
                 </span>
               </div>
-              <div className="text-xs text-slate-500 truncate">
+              <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
                 {account.email}
               </div>
             </div>
             <button
               onClick={signOut}
-              className="text-xs text-slate-500 hover:text-red-600 font-semibold flex items-center gap-1"
+              className="text-xs text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 font-semibold flex items-center gap-1"
             >
               <LogOut size={12} /> Sign out
             </button>
           </div>
           <Link
             to="/connections"
-            className="mt-3 flex items-center gap-2 py-2.5 px-3 rounded-xl bg-white border border-slate-200 hover:border-brand-300 transition"
+            className="mt-3 flex items-center gap-2 py-2.5 px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700 transition"
           >
-            <Users size={16} className="text-brand-600" />
-            <span className="text-sm font-bold text-slate-900 flex-1">
+            <Users size={16} className="text-brand-600 dark:text-brand-400" />
+            <span className="text-sm font-bold text-slate-900 dark:text-white flex-1">
               Connections
             </span>
-            <ChevronRight size={14} className="text-slate-300" />
+            <ChevronRight size={14} className="text-slate-300 dark:text-slate-500" />
           </Link>
         </div>
       ) : configured ? (
         <Link
           to="/auth"
-          className="card-interactive flex items-center gap-3 bg-gradient-to-br from-brand-50 to-white border-brand-100"
+          className="card-interactive flex items-center gap-3 bg-gradient-to-br from-brand-50 to-white dark:from-brand-950/40 dark:to-slate-900 border-brand-100 dark:border-brand-900"
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
             <LogIn size={18} />
@@ -131,21 +133,23 @@ export default function SettingsPage() {
         </Link>
       ) : null}
 
-      <Link
-        to="/progress"
-        className="card-interactive flex items-center gap-3"
-      >
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
-          <TrendingUp size={18} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-bold text-slate-900">Your Progress</div>
-          <div className="text-xs text-slate-500 mt-0.5">
-            Charts, streaks, match stats — all your data visualized
+      {isAthlete && (
+        <Link
+          to="/progress"
+          className="card-interactive flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
+            <TrendingUp size={18} />
           </div>
-        </div>
-        <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
-      </Link>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-slate-900">Your Progress</div>
+            <div className="text-xs text-slate-500 mt-0.5">
+              Charts, streaks, match stats — all your data visualized
+            </div>
+          </div>
+          <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+        </Link>
+      )}
 
       <Link
         to="/export"
@@ -163,24 +167,26 @@ export default function SettingsPage() {
         <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
       </Link>
 
-      <Link
-        to="/voice"
-        className="card-interactive flex items-center gap-3"
-      >
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
-          <Mic2 size={18} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="font-bold text-slate-900">Voice Persona</div>
-          <div className="text-xs text-slate-500 mt-0.5">
-            {(() => {
-              const p = getPersona(state.voicePersonaId ?? "natural");
-              return `${p.emoji} ${p.name} — ${p.description}`;
-            })()}
+      {isAthlete && (
+        <Link
+          to="/voice"
+          className="card-interactive flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
+            <Mic2 size={18} />
           </div>
-        </div>
-        <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
-      </Link>
+          <div className="flex-1 min-w-0">
+            <div className="font-bold text-slate-900">Voice Persona</div>
+            <div className="text-xs text-slate-500 mt-0.5">
+              {(() => {
+                const p = getPersona(state.voicePersonaId ?? "natural");
+                return `${p.emoji} ${p.name} — ${p.description}`;
+              })()}
+            </div>
+          </div>
+          <ChevronRight size={16} className="text-slate-300 flex-shrink-0" />
+        </Link>
+      )}
 
       {/* Theme */}
       <div className="card">
@@ -243,26 +249,28 @@ export default function SettingsPage() {
           </button>
         </label>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold text-slate-900 dark:text-white">
-              Week 1 tour
+        {isAthlete && (
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-slate-900 dark:text-white">
+                Week 1 tour
+              </div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                Replay the 7-day feature intros from the beginning.
+              </div>
             </div>
-            <div className="text-xs text-slate-500 mt-0.5">
-              Replay the 7-day feature intros from the beginning.
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                resetWeekOneTour();
+                alert("Week 1 tour reset — check your dashboard.");
+              }}
+              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
+            >
+              Restart
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              resetWeekOneTour();
-              alert("Week 1 tour reset — check your dashboard.");
-            }}
-            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 flex-shrink-0"
-          >
-            Restart
-          </button>
-        </div>
+        )}
       </div>
 
       <NotificationsCard />
@@ -271,28 +279,31 @@ export default function SettingsPage() {
 
       <DailyReminderCard />
 
-      <div className="card">
-        <h2 className="font-bold mb-3">Profile</h2>
-        <dl className="text-sm space-y-2">
-          <div className="flex justify-between">
-            <dt className="text-slate-500">Name</dt>
-            <dd className="font-semibold">{state.profile.name}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-slate-500">Sport</dt>
-            <dd className="font-semibold capitalize">{state.profile.sport}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-slate-500">Age</dt>
-            <dd className="font-semibold">{state.profile.age}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-slate-500">Grade</dt>
-            <dd className="font-semibold">{state.profile.grade}</dd>
-          </div>
-        </dl>
-      </div>
+      {state.profile && (
+        <div className="card">
+          <h2 className="font-bold mb-3">Profile</h2>
+          <dl className="text-sm space-y-2">
+            <div className="flex justify-between">
+              <dt className="text-slate-500">Name</dt>
+              <dd className="font-semibold">{state.profile.name}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-slate-500">Sport</dt>
+              <dd className="font-semibold capitalize">{state.profile.sport}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-slate-500">Age</dt>
+              <dd className="font-semibold">{state.profile.age}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-slate-500">Grade</dt>
+              <dd className="font-semibold">{state.profile.grade}</dd>
+            </div>
+          </dl>
+        </div>
+      )}
 
+      {isAthlete && (
       <div className="card">
         <h2 className="font-bold mb-3">Your Totals</h2>
         <dl className="text-sm space-y-2">
@@ -326,6 +337,7 @@ export default function SettingsPage() {
           </div>
         </dl>
       </div>
+      )}
 
       {/* App feedback */}
       {configured && (
