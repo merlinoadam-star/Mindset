@@ -130,9 +130,15 @@ In Supabase → **Project Settings** → **Edge Functions** → **Secrets**:
 | `VAPID_PUBLIC_KEY` | same public key |
 | `VAPID_PRIVATE_KEY` | the private key from step A |
 | `VAPID_SUBJECT` | `mailto:your-email@example.com` |
+| `APP_OWNER_ACCOUNT_ID` | _optional_ — your account UUID, so users can push the in-app feedback notifications to you |
 
 Supabase auto-injects `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` so
 you don't need to set those.
+
+The function verifies the caller's JWT and only allows pushes to:
+the caller themselves, an account they share a `connections` row with,
+or `APP_OWNER_ACCOUNT_ID`. This prevents one signed-in user from
+spamming notifications to arbitrary other users.
 
 ### E. Turn it on in the app
 
@@ -159,6 +165,24 @@ Function:
 
 No secrets to add — the function uses the auto-injected
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+
+## Cron-driven edge functions (`send-reminders`, `send-weekly-digest`)
+
+Both scheduled functions require a shared secret so that only your
+pg_cron job can trigger them — without it, anyone who knows the
+function URL could spam notifications or weekly emails.
+
+1. Generate a long random string. Example:
+   ```
+   openssl rand -hex 32
+   ```
+2. Supabase → **Project Settings** → **Edge Functions** → **Secrets**.
+   Add the same value as `CRON_SECRET` for **both** `send-reminders`
+   and `send-weekly-digest`.
+3. In `supabase/daily_reminders_cron.sql` and `supabase/weekly_digest_cron.sql`,
+   replace `<YOUR-CRON-SECRET>` with the same value before running them.
+
+Calls without a matching `x-cron-secret` header return `403 Forbidden`.
 
 ## Password reset (Phase 3B.1)
 

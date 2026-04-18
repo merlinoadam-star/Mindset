@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { cloneElement, useEffect, useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
 import {
@@ -325,18 +325,38 @@ function Modal({
   onSave?: () => void;
   children: React.ReactNode;
 }) {
+  const titleId = useId();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
   return (
-    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4"
+    >
       <div
         className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
         onClick={onClose}
+        aria-hidden="true"
       />
-      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white rounded-t-3xl sm:rounded-3xl shadow-elevated p-5 animate-slide-up">
-        <div className="flex items-center justify-between sticky top-0 bg-white pb-3 -mx-5 px-5 border-b border-slate-100 z-10">
-          <h2 className="font-extrabold text-lg text-slate-900">{title}</h2>
+      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-elevated p-5 animate-slide-up">
+        <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-slate-900 pb-3 -mx-5 px-5 border-b border-slate-100 dark:border-slate-800 z-10">
+          <h2 id={titleId} className="font-extrabold text-lg text-slate-900 dark:text-slate-100">{title}</h2>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200"
+            aria-label="Close dialog"
+            className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:outline-none"
           >
             <X size={18} />
           </button>
@@ -370,18 +390,37 @@ function Field({
   label: string;
   children: React.ReactNode;
 }) {
+  const generatedId = useId();
+  // If there's a single React element child, inject the id so the label
+  // associates with the underlying input/textarea/select. Multi-child
+  // groups (e.g. button-pickers) just get a descriptive label.
+  let labeled: React.ReactNode = children;
+  let labelId: string | undefined;
+  if (
+    Array.isArray(children) === false &&
+    typeof children === "object" &&
+    children !== null &&
+    "props" in (children as object)
+  ) {
+    const el = children as React.ReactElement<{ id?: string }>;
+    labelId = el.props.id ?? generatedId;
+    labeled = el.props.id ? el : cloneElement(el, { id: labelId });
+  }
   return (
     <div>
-      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+      <label
+        htmlFor={labelId}
+        className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5"
+      >
         {label}
       </label>
-      {children}
+      {labeled}
     </div>
   );
 }
 
 const inputCls =
-  "w-full rounded-xl border-2 border-slate-200 px-3 py-2.5 text-sm focus:border-brand-500 outline-none transition";
+  "w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2.5 text-sm focus:border-brand-500 dark:focus:border-brand-400 outline-none transition";
 
 // -----------------------------------------------------------------------------
 // About modal
@@ -1067,7 +1106,8 @@ function TournamentsModal({ onClose }: { onClose: () => void }) {
                 </div>
                 <button
                   onClick={() => remove(t.id)}
-                  className="w-7 h-7 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center"
+                  aria-label={`Remove ${t.name}`}
+                  className="w-9 h-9 rounded-lg text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
                 >
                   <X size={14} />
                 </button>
@@ -1278,7 +1318,8 @@ function AwardsModal({ onClose }: { onClose: () => void }) {
               </div>
               <button
                 onClick={() => remove(a.id)}
-                className="w-7 h-7 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center"
+                aria-label={`Remove ${a.name}`}
+                className="w-9 h-9 rounded-lg text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
               >
                 <X size={14} />
               </button>
@@ -1425,12 +1466,12 @@ function GoalsModal({ onClose }: { onClose: () => void }) {
     >
       <div className="space-y-5">
         {/* Process goals */}
-        <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 p-4 space-y-3">
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/30 dark:to-slate-900 border border-emerald-100 dark:border-emerald-900 p-4 space-y-3">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-emerald-700">
+            <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-emerald-700 dark:text-emerald-400">
               Process Goals
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               What you&apos;ll <strong>do</strong>. You control these every day.
             </p>
           </div>
@@ -1453,12 +1494,12 @@ function GoalsModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Outcome goals */}
-        <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-white border border-amber-100 p-4 space-y-3">
+        <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-white dark:from-amber-950/30 dark:to-slate-900 border border-amber-100 dark:border-amber-900 p-4 space-y-3">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-amber-700">
+            <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-amber-700 dark:text-amber-400">
               Outcome Goals
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               What you want to <strong>achieve</strong>. Results follow process.
             </p>
           </div>
@@ -1481,8 +1522,8 @@ function GoalsModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Self-reflection */}
-        <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 space-y-3">
-          <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-slate-500">
+        <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 p-4 space-y-3">
+          <div className="text-[11px] uppercase tracking-[0.15em] font-bold text-slate-500 dark:text-slate-400">
             Self-Reflection
           </div>
           <Field label="My Strengths">

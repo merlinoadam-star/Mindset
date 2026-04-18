@@ -66,17 +66,24 @@ export default function AppFeedbackPage() {
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<FeedbackRow[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   const loadHistory = useCallback(async () => {
     if (!supabase || !user) {
       setLoadingHistory(false);
       return;
     }
-    const { data } = await supabase
+    const { data, error: loadErr } = await supabase
       .from("app_feedback")
       .select("id, feedback_type, text, page, created_at, display_name, role")
       .order("created_at", { ascending: false })
       .limit(50);
+    if (loadErr) {
+      setHistoryError(loadErr.message);
+      setLoadingHistory(false);
+      return;
+    }
+    setHistoryError(null);
     setHistory((data ?? []) as FeedbackRow[]);
     setLoadingHistory(false);
   }, [user]);
@@ -132,7 +139,14 @@ export default function AppFeedbackPage() {
 
   const deleteFeedback = async (id: string) => {
     if (!supabase) return;
-    await supabase.from("app_feedback").delete().eq("id", id);
+    const { error: delErr } = await supabase
+      .from("app_feedback")
+      .delete()
+      .eq("id", id);
+    if (delErr) {
+      setHistoryError(`Couldn't delete: ${delErr.message}`);
+      return;
+    }
     loadHistory();
   };
 
@@ -261,8 +275,19 @@ export default function AppFeedbackPage() {
       </div>
 
       {/* Previous submissions */}
+      {historyError && (
+        <div className="card bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800 text-sm text-red-800 dark:text-red-200 flex items-start justify-between gap-3">
+          <div>{historyError}</div>
+          <button
+            onClick={() => setHistoryError(null)}
+            className="text-xs font-bold underline shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       {loadingHistory ? (
-        <div className="text-sm text-slate-400">Loading...</div>
+        <div className="text-sm text-slate-400 dark:text-slate-500">Loading...</div>
       ) : history.length > 0 ? (
         <div>
           <h2 className="section-label mb-2 px-1">All feedback</h2>

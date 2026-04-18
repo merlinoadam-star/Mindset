@@ -367,8 +367,8 @@ export default function SettingsPage() {
             <Download size={18} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-bold text-slate-900">Save my season</div>
-            <div className="text-xs text-slate-500 mt-0.5 leading-snug">
+            <div className="font-bold text-slate-900 dark:text-slate-100">Save my season</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
               {account && (account.role === "coach" || account.role === "parent")
                 ? "Back up your notes, cheers, focuses, and connections to your device."
                 : "Back up everything you've built — profile, matches, habits, and more."}
@@ -381,7 +381,7 @@ export default function SettingsPage() {
               {exporting ? "Preparing..." : "Download JSON"}
             </button>
             {exportErr && (
-              <div className="text-xs text-red-600 mt-2 font-medium">
+              <div className="text-xs text-red-600 dark:text-red-400 mt-2 font-medium">
                 {exportErr}
               </div>
             )}
@@ -389,9 +389,9 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="card border-red-200">
-        <h2 className="font-bold mb-1 text-red-700">Danger Zone</h2>
-        <p className="text-sm text-slate-600 mb-3">
+      <div className="card border-red-200 dark:border-red-900">
+        <h2 className="font-bold mb-1 text-red-700 dark:text-red-400">Danger Zone</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">
           Reset all data on this device. Your profile, XP, habits, practices,
           and badges will be cleared locally. If you&apos;re signed in, the
           cloud copy stays intact — this only wipes the browser.
@@ -416,7 +416,7 @@ export default function SettingsPage() {
         ) : (
           <button
             onClick={() => setConfirming(true)}
-            className="text-red-600 hover:text-red-700 font-semibold text-sm"
+            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-semibold text-sm"
           >
             Reset this device
           </button>
@@ -425,14 +425,14 @@ export default function SettingsPage() {
 
       {/* Account deletion — only offered to signed-in users */}
       {configured && account && (
-        <div className="card border-red-300 bg-red-50/30">
+        <div className="card border-red-300 dark:border-red-900 bg-red-50/30 dark:bg-red-950/20">
           <div className="flex items-start gap-3 mb-2">
             <div className="w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center flex-shrink-0">
               <AlertTriangle size={18} />
             </div>
             <div>
-              <h2 className="font-bold text-red-800">Delete my account</h2>
-              <p className="text-sm text-slate-700 mt-0.5 leading-snug">
+              <h2 className="font-bold text-red-800 dark:text-red-300">Delete my account</h2>
+              <p className="text-sm text-slate-700 dark:text-slate-300 mt-0.5 leading-snug">
                 Permanently deletes your account, all your data, all your
                 videos, and every connection. This can&apos;t be undone.
               </p>
@@ -441,19 +441,19 @@ export default function SettingsPage() {
 
           {deleteStep === "confirm" ? (
             <div className="space-y-2 mt-3">
-              <label className="text-xs font-bold text-slate-600 block">
-                Type <span className="font-mono text-red-700">DELETE</span> to
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block">
+                Type <span className="font-mono text-red-700 dark:text-red-400">DELETE</span> to
                 confirm:
               </label>
               <input
                 value={deleteText}
                 onChange={(e) => setDeleteText(e.target.value)}
-                className="w-full rounded-xl border-2 border-red-200 px-3 py-2 text-sm focus:border-red-400 outline-none"
+                className="w-full rounded-xl border-2 border-red-200 dark:border-red-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 px-3 py-2 text-sm focus:border-red-400 dark:focus:border-red-500 outline-none"
                 placeholder="DELETE"
                 autoFocus
               />
               {deleteErr && (
-                <div className="rounded-lg bg-red-100 border border-red-300 text-red-800 px-3 py-2 text-xs">
+                <div className="rounded-lg bg-red-100 dark:bg-red-950/50 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-200 px-3 py-2 text-xs">
                   {deleteErr}
                 </div>
               )}

@@ -38,11 +38,15 @@ export default function AskCoachPage() {
 
   // Only athletes can see this right now (simpler scope for F.3)
   const athleteId = user?.id;
+  // Bumped on each refresh; stale completions check this and bail.
+  const refreshSeq = useRef(0);
 
   const refresh = useCallback(async () => {
     if (!athleteId) return;
+    const seq = ++refreshSeq.current;
     setLoading(true);
     const rows = await fetchConversations(athleteId);
+    if (seq !== refreshSeq.current) return;
     setConversations(rows);
     setLoading(false);
   }, [athleteId]);
@@ -193,7 +197,7 @@ export default function AskCoachPage() {
           </button>
         </div>
         {error && (
-          <div className="mt-2 rounded-lg bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-xs flex items-start gap-2">
+          <div className="mt-2 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-200 px-3 py-2 text-xs flex items-start gap-2">
             <AlertTriangle size={12} className="mt-0.5 flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -308,11 +312,11 @@ function ConversationCard({
           </p>
         </div>
       ) : c.error ? (
-        <div className="rounded-xl bg-red-50 border border-red-200 text-red-800 p-3 text-xs">
+        <div className="rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200 p-3 text-xs">
           Couldn&apos;t generate an answer: {c.error}
         </div>
       ) : (
-        <div className="rounded-xl bg-slate-50 border border-slate-200 text-slate-500 p-3 text-xs flex items-center gap-2">
+        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 p-3 text-xs flex items-center gap-2">
           <span className="inline-block w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
           Still thinking…
         </div>

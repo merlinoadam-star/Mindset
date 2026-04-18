@@ -52,20 +52,27 @@ export default function CoachDashboard() {
   const { account, user, signOut } = useAuth();
   const [athletes, setAthletes] = useState<ConnectedAthlete[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const refresh = useCallback(
     async (showSpinner: boolean) => {
       if (!supabase || !user) return;
       if (showSpinner) setLoading(true);
       // All connections where I'm the "other" party (coach/parent)
-      const { data: conns } = await supabase
+      const { data: conns, error: connsErr } = await supabase
         .from("connections")
         .select("*")
         .eq("other_account_id", user.id);
+      if (connsErr) {
+        setLoadError(connsErr.message);
+        if (showSpinner) setLoading(false);
+        return;
+      }
       if (!conns) {
         if (showSpinner) setLoading(false);
         return;
       }
+      setLoadError(null);
       const ids = conns.map((c) => c.athlete_account_id);
       const { data: accts } = ids.length
         ? await supabase
@@ -128,7 +135,13 @@ export default function CoachDashboard() {
       setStats(new Map());
       return;
     }
-    fetchTeamStats(ids).then(setStats);
+    let cancelled = false;
+    fetchTeamStats(ids).then((next) => {
+      if (!cancelled) setStats(next);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [accepted]);
 
   type SortKey = "name" | "streak" | "mood" | "active" | "xp";
@@ -269,8 +282,21 @@ export default function CoachDashboard() {
       )}
 
       {/* Connected athletes */}
-      {loading ? (
-        <div className="card text-sm text-slate-500">Loading athletes...</div>
+      {loadError ? (
+        <div className="card bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800 text-sm text-red-800 dark:text-red-200 flex items-start justify-between gap-3">
+          <div>
+            <div className="font-bold">Couldn&apos;t load your roster</div>
+            <div className="text-xs mt-0.5 opacity-90">{loadError}</div>
+          </div>
+          <button
+            onClick={() => refresh(true)}
+            className="text-xs font-bold underline shrink-0"
+          >
+            Retry
+          </button>
+        </div>
+      ) : loading ? (
+        <div className="card text-sm text-slate-500 dark:text-slate-400">Loading athletes...</div>
       ) : accepted.length === 0 ? (
         <div className="card text-center py-10">
           <Users size={40} className="mx-auto text-slate-300" />

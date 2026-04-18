@@ -94,7 +94,7 @@ export default function NotificationsCard() {
       </div>
 
       {notSupported && (
-        <div className="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900 flex items-start gap-2">
+        <div className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-2 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
           <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
           <div>
             This browser doesn&apos;t support push notifications. On iPhone,
@@ -105,7 +105,7 @@ export default function NotificationsCard() {
       )}
 
       {!notSupported && denied && (
-        <div className="mt-3 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-900 flex items-start gap-2">
+        <div className="mt-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2 text-xs text-red-900 dark:text-red-200 flex items-start gap-2">
           <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
           <div>
             Notifications are blocked. Open your browser&apos;s site settings
@@ -115,7 +115,7 @@ export default function NotificationsCard() {
       )}
 
       {error && (
-        <div className="mt-3 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-900">
+        <div className="mt-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2 text-xs text-red-900 dark:text-red-200">
           {error}
         </div>
       )}
