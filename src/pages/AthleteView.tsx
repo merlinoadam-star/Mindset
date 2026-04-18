@@ -8,6 +8,11 @@ import {
 } from "../lib/athleteSync";
 import { fetchMatchesForAthlete, rowToMatch } from "../lib/matchSync";
 import { fetchAllAthleteData } from "../lib/dataSync";
+import { fetchPersonalRecordsForAthlete } from "../lib/personalRecordsSync";
+import {
+  formatRecordValue,
+  summarizeRecords,
+} from "../lib/personalRecords";
 import {
   fetchVideosForAthlete,
   getVideoSignedUrl,
@@ -30,6 +35,7 @@ import {
 import {
   WRESTLING_WIN_TYPE_LABELS,
   type MatchEntry,
+  type PersonalRecordAttempt,
   type VolleyballPosition,
   type WrestlingStyle,
 } from "../types";
@@ -60,6 +66,7 @@ export default function AthleteViewPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [extra, setExtra] = useState<any | null>(null);
   const [videos, setVideos] = useState<DbVideoRow[]>([]);
+  const [records, setRecords] = useState<PersonalRecordAttempt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // Tracks the most recently issued fetch so stale completions can't clobber
@@ -75,12 +82,14 @@ export default function AthleteViewPage() {
       if (showSpinner) setLoading(true);
       setError(null);
       try {
-        const [athleteRow, matchRows, all, videoRows] = await Promise.all([
-          fetchAthleteProfile(id),
-          fetchMatchesForAthlete(id),
-          fetchAllAthleteData(id),
-          fetchVideosForAthlete(id),
-        ]);
+        const [athleteRow, matchRows, all, videoRows, recordRows] =
+          await Promise.all([
+            fetchAthleteProfile(id),
+            fetchMatchesForAthlete(id),
+            fetchAllAthleteData(id),
+            fetchVideosForAthlete(id),
+            fetchPersonalRecordsForAthlete(id),
+          ]);
         if (seq !== requestSeq.current) return;
         if (!athleteRow) {
           setError(
@@ -93,6 +102,7 @@ export default function AthleteViewPage() {
         setMatches(matchRows.map(rowToMatch));
         setExtra(all);
         setVideos(videoRows);
+        setRecords(recordRows);
         // Also fetch the account email for display
         if (supabase && showSpinner) {
           const { data: acct } = await supabase
@@ -136,6 +146,7 @@ export default function AthleteViewPage() {
   useRealtime({ table: "unlocked_badges", filter: athleteFilter, enabled: !!id }, silentRefresh);
   useRealtime({ table: "videos", filter: athleteFilter, enabled: !!id }, silentRefresh);
   useRealtime({ table: "weekly_focus", filter: athleteFilter, enabled: !!id }, silentRefresh);
+  useRealtime({ table: "personal_records", filter: athleteFilter, enabled: !!id }, silentRefresh);
 
   if (loading) {
     return (
@@ -819,6 +830,44 @@ export default function AthleteViewPage() {
         </Section>
       )}
 
+      {/* Personal Records */}
+      {records.length > 0 && row && (
+        <Section
+          icon={<Trophy size={14} />}
+          title={`Personal Records (${new Set(records.map((r) => r.categoryKey)).size})`}
+        >
+          <div className="space-y-2">
+            {summarizeRecords(records, row.sport).slice(0, 8).map((s) => (
+              <div
+                key={s.categoryKey}
+                className="flex items-center gap-3 text-sm"
+              >
+                <span className="text-xl leading-none">{s.emoji ?? "⭐"}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-slate-800 dark:text-slate-100 truncate">
+                    {s.label}
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {s.totalAttempts} attempt{s.totalAttempts === 1 ? "" : "s"}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-extrabold tabular-nums text-slate-900 dark:text-slate-100">
+                    {formatRecordValue(s.best.value, s.unit)}
+                  </div>
+                  <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                    {new Date(s.best.achievedOn + "T00:00:00").toLocaleDateString(
+                      undefined,
+                      { month: "short", day: "numeric" }
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
       {/* Match Log — Phase 2B.4 */}
       {matches.length > 0 ? (
         <Section icon={<Trophy size={14} />} title={`Match Log (${matches.length})`}>
@@ -954,23 +1003,53 @@ function MatchRow({
 
       {/* Mini reflection: Well / Better / Next when present */}
       {(match.wentWell || match.couldBeBetter || match.nextFocus) && (
-        <div className="mt-2 pt-2 border-t border-slate-100 space-y-1 text-xs">
+        <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 space-y-1 text-xs">
           {match.wentWell && (
             <div>
-              <span className="font-bold text-emerald-700">✓ Well: </span>
-              <span className="text-slate-700">{match.wentWell}</span>
+              <span className="font-bold text-emerald-700 dark:text-emerald-300">✓ Well: </span>
+              <span className="text-slate-700 dark:text-slate-200">{match.wentWell}</span>
             </div>
           )}
           {match.couldBeBetter && (
             <div>
-              <span className="font-bold text-amber-700">🔧 Better: </span>
-              <span className="text-slate-700">{match.couldBeBetter}</span>
+              <span className="font-bold text-amber-700 dark:text-amber-300">🔧 Better: </span>
+              <span className="text-slate-700 dark:text-slate-200">{match.couldBeBetter}</span>
             </div>
           )}
           {match.nextFocus && (
             <div>
-              <span className="font-bold text-brand-700">➡️ Next: </span>
-              <span className="text-slate-700">{match.nextFocus}</span>
+              <span className="font-bold text-brand-700 dark:text-brand-300">➡️ Next: </span>
+              <span className="text-slate-700 dark:text-slate-200">{match.nextFocus}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Loss-recovery — coach-visible read-only summary so the coach
+          can respond to the athlete's processing of a tough match. */}
+      {match.lossRecoveryCompletedAt && (
+        <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700 text-xs">
+          <div className="font-bold text-indigo-700 dark:text-indigo-300 mb-1">
+            💜 Worked through this loss
+          </div>
+          {match.lossRecoveryLesson && (
+            <div className="mb-1">
+              <span className="font-semibold text-slate-600 dark:text-slate-300">
+                Lesson:{" "}
+              </span>
+              <span className="text-slate-700 dark:text-slate-200">
+                {match.lossRecoveryLesson}
+              </span>
+            </div>
+          )}
+          {match.lossRecoveryCarry && (
+            <div>
+              <span className="font-semibold text-slate-600 dark:text-slate-300">
+                Taking forward:{" "}
+              </span>
+              <span className="text-slate-700 dark:text-slate-200">
+                {match.lossRecoveryCarry}
+              </span>
             </div>
           )}
         </div>

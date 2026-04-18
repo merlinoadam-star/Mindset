@@ -15,6 +15,7 @@ import type {
   MentalSession,
   NutritionLog,
   OpponentEntry,
+  PersonalRecordAttempt,
   PowerPhrase,
   PracticeEntry,
   Profile,
@@ -87,6 +88,10 @@ import {
   syncUnlockedBadges,
   syncWeeklyReviews,
 } from "./dataSync";
+import {
+  fetchPersonalRecordsForAthlete,
+  syncAllPersonalRecords,
+} from "./personalRecordsSync";
 import {
   deleteVideoFromCloud,
   updateVideoMetadata,
@@ -182,6 +187,10 @@ interface StoreContextValue {
   ) => Promise<{ awardedXp: number; newlyUnlocked: string[]; videoId: string }>;
   updateVideo: (id: string, updates: Partial<VideoEntry>) => void;
   deleteVideo: (id: string) => Promise<void>;
+  addPersonalRecord: (
+    attempt: Omit<PersonalRecordAttempt, "id" | "createdAt">
+  ) => { awardedXp: number; newlyUnlocked: string[]; isNewBest: boolean };
+  deletePersonalRecord: (id: string) => void;
   setVoicePersona: (id: string) => void;
   resetAll: () => void;
 }
@@ -218,6 +227,9 @@ const PRE_MATCH_XP = 15;
 const POST_MATCH_XP = 30;
 const FULL_FRAMEWORK_BONUS = 10;
 const WIN_BONUS = 5;
+const LOSS_RECOVERY_XP = 20;
+const PR_ATTEMPT_XP = 5;
+const PR_NEW_BEST_XP = 20;
 const WEEKLY_REVIEW_XP = 50;
 const POWER_PHRASE_CREATE_XP = 10;
 const RECOVERY_CHECKIN_XP = 15;
@@ -280,10 +292,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        const [profileRow, dataRows, matchRows] = await Promise.all([
+        const [profileRow, dataRows, matchRows, prRows] = await Promise.all([
           fetchAthleteProfile(account.id),
           fetchAllAthleteData(account.id),
           fetchMatchesForAthlete(account.id),
+          fetchPersonalRecordsForAthlete(account.id),
         ]);
         if (cancelled) return;
 
@@ -320,6 +333,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           }
 
           const matches = mergeById(matchRows.map(rowToMatch), prev.matches);
+          const personalRecords = mergeById(prRows, prev.personalRecords ?? []);
 
           const practices = dataRows
             ? mergeById(dataRows.practices.map(rowToPractice), prev.practices)
@@ -413,6 +427,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             weeklyReviews,
             powerPhrases,
             unlockedBadges,
+            personalRecords,
           };
         });
       } catch (e) {
@@ -553,6 +568,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }, 1000);
     return () => window.clearTimeout(id);
   }, [account, cloudHydrated, state.nutritionLogs]);
+
+  useEffect(() => {
+    if (!account || account.role !== "athlete" || !cloudHydrated) return;
+    const id = window.setTimeout(() => {
+      syncAllPersonalRecords(account.id, state.personalRecords ?? []);
+    }, 1000);
+    return () => window.clearTimeout(id);
+  }, [account, cloudHydrated, state.personalRecords]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -1240,6 +1263,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           (updates.postMatchCompletedAt ||
             (updates.result && !existing.result));
 
+        const becameLossRecovery =
+          !existing.lossRecoveryCompletedAt &&
+          !!updates.lossRecoveryCompletedAt;
+
         let newXp = 0;
         if (becamePreMatch) newXp += PRE_MATCH_XP;
         if (becamePostMatch) {
@@ -1253,6 +1280,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             newXp += WIN_BONUS;
           }
         }
+        // Working through a loss is real, undervalued work — reward it.
+        if (becameLossRecovery) newXp += LOSS_RECOVERY_XP;
 
         const merged: MatchEntry = {
           ...existing,
@@ -1721,6 +1750,83 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, voicePersonaId: id }));
   }, []);
 
+  const addPersonalRecord = useCallback(
+    (attempt: Omit<PersonalRecordAttempt, "id" | "createdAt">) => {
+      let awardedXp = 0;
+      let newlyUnlocked: string[] = [];
+      let isNewBest = false;
+
+      setState((prev) => {
+        // Check best-so-far for this category before inserting. Empty
+        // history = first attempt counts as a PR.
+        const sameCategory = prev.personalRecords.filter(
+          (a) => a.categoryKey === attempt.categoryKey
+        );
+        if (sameCategory.length === 0) {
+          isNewBest = true;
+        } else {
+          const bestValue =
+            attempt.direction === "higher"
+              ? Math.max(...sameCategory.map((a) => a.value))
+              : Math.min(...sameCategory.map((a) => a.value));
+          isNewBest =
+            attempt.direction === "higher"
+              ? attempt.value > bestValue
+              : attempt.value < bestValue;
+        }
+
+        const newAttempt: PersonalRecordAttempt = {
+          ...attempt,
+          id: genId(),
+          createdAt: new Date().toISOString(),
+        };
+
+        const newXp = isNewBest ? PR_NEW_BEST_XP : PR_ATTEMPT_XP;
+        awardedXp = newXp;
+
+        let next: AppState = {
+          ...prev,
+          xp: prev.xp + newXp,
+          lastActiveDate: todayISO(),
+          personalRecords: [...prev.personalRecords, newAttempt],
+        };
+
+        const sportHabitCount = prev.profile
+          ? habitsForSport(prev.profile.sport).length
+          : 0;
+        newlyUnlocked = evaluateBadges(next, sportHabitCount);
+        if (newlyUnlocked.length > 0) {
+          const now = new Date().toISOString();
+          next = {
+            ...next,
+            unlockedBadges: [
+              ...next.unlockedBadges,
+              ...newlyUnlocked.map((bid) => ({ id: bid, unlockedAt: now })),
+            ],
+          };
+        }
+        return next;
+      });
+
+      if (isNewBest) {
+        fireConfetti(60);
+        hapticCelebrate();
+      } else {
+        hapticMedium();
+      }
+
+      return { awardedXp, newlyUnlocked, isNewBest };
+    },
+    []
+  );
+
+  const deletePersonalRecord = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      personalRecords: prev.personalRecords.filter((a) => a.id !== id),
+    }));
+  }, []);
+
   const deleteVideo = useCallback(async (id: string) => {
     // Find blob key + storage path before we drop the row from state
     let blobKey: string | undefined;
@@ -1843,6 +1949,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     addVideo,
     updateVideo,
     deleteVideo,
+    addPersonalRecord,
+    deletePersonalRecord,
     setVoicePersona,
     resetAll,
   };

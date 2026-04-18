@@ -6,6 +6,8 @@ import { showReward } from "./RewardToast";
 import FeedbackThread from "./FeedbackThread";
 import MatchReflectionPrompts from "./MatchReflectionPrompts";
 import ShareWinModal from "./ShareWinModal";
+import LossRecoveryModal, { LossRecoverySummary } from "./LossRecoveryModal";
+import { Heart } from "lucide-react";
 import type { ShareWinData } from "../lib/shareWins";
 import { Share2 } from "lucide-react";
 import {
@@ -39,11 +41,18 @@ export default function MatchDetail({ match, onBack }: Props) {
   const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>("overview");
   const [shareData, setShareData] = useState<ShareWinData | null>(null);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
 
   if (!state.profile) return null;
 
   const prePrepared = !!match.preMatchCompletedAt;
   const postReflected = !!match.postMatchCompletedAt;
+  const isLoss = match.result === "loss";
+  const recoveryDone = !!match.lossRecoveryCompletedAt;
+  // Only show the recovery CTA after the post-match reflection is in —
+  // otherwise we'd be asking them to process feelings before they've
+  // even logged the score.
+  const showRecoveryCta = isLoss && postReflected && !recoveryDone;
 
   return (
     <div className="space-y-4 animate-slide-up">
@@ -169,6 +178,37 @@ export default function MatchDetail({ match, onBack }: Props) {
             </section>
           )}
 
+          {showRecoveryCta && (
+            <button
+              onClick={() => setRecoveryOpen(true)}
+              className="block w-full text-left rounded-2xl border-2 border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 p-4 hover:border-indigo-300 dark:hover:border-indigo-700 transition focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:outline-none"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 flex items-center justify-center flex-shrink-0">
+                  <Heart size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                    Tough one — want to work through it?
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-snug">
+                    A 3-step ritual: feel it, name it, carry one thing forward.
+                    Takes about a minute.
+                  </div>
+                  <div className="text-xs font-bold text-indigo-700 dark:text-indigo-300 mt-1.5">
+                    +20 XP
+                  </div>
+                </div>
+                <ArrowRight
+                  size={16}
+                  className="text-indigo-500 flex-shrink-0 mt-1"
+                />
+              </div>
+            </button>
+          )}
+
+          {recoveryDone && <LossRecoverySummary match={match} />}
+
           {postReflected && (
             <section className="card">
               <div className="flex items-center gap-2 mb-2">
@@ -286,6 +326,26 @@ export default function MatchDetail({ match, onBack }: Props) {
       )}
 
       <ShareWinModal data={shareData} onClose={() => setShareData(null)} />
+
+      {recoveryOpen && (
+        <LossRecoveryModal
+          match={match}
+          onClose={() => setRecoveryOpen(false)}
+          onComplete={(answers) => {
+            const { awardedXp, newlyUnlocked } = updateMatch(match.id, {
+              lossRecoveryFeeling: answers.feeling,
+              lossRecoveryLesson: answers.lesson,
+              lossRecoveryCarryType: answers.carryType,
+              lossRecoveryCarry: answers.carry,
+              lossRecoveryCompletedAt: new Date().toISOString(),
+            });
+            if (awardedXp > 0 || newlyUnlocked.length) {
+              showReward(awardedXp, newlyUnlocked);
+            }
+            setRecoveryOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
