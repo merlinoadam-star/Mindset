@@ -60,6 +60,7 @@ export function buildAppStateFromCloud(
     recoveryCheckins: (e.recovery ?? []).map(rowToRecoveryCheckin),
     nutritionLogs: (e.nutrition ?? []).map(rowToNutritionLog),
     videos: [],
+    personalRecords: [],
     voicePersonaId: profileRow.voice_persona_id ?? "natural",
     unlockedBadges: (e.badges ?? []).map(rowToUnlockedBadge),
     lastActiveDate: null,

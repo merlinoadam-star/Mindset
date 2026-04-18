@@ -209,6 +209,10 @@ export default function ProfilePage() {
         onEdit={() => setEditing("goals")}
       />
 
+      <RecordsRow />
+
+
+
       {/* Modals */}
       {editing === "about" && <AboutModal onClose={() => setEditing(null)} />}
       {editing === "sport" && <SportModal onClose={() => setEditing(null)} />}
@@ -308,6 +312,37 @@ function SectionRow({
       </div>
       <Pencil size={14} className="text-slate-300" />
     </button>
+  );
+}
+
+function RecordsRow() {
+  const { state } = useStore();
+  const count = state.personalRecords?.length ?? 0;
+  const categoryCount = new Set(
+    (state.personalRecords ?? []).map((r) => r.categoryKey)
+  ).size;
+  const summary =
+    count === 0
+      ? "Track your bests — lifts, jumps, times"
+      : `${categoryCount} record${categoryCount === 1 ? "" : "s"} · ${count} attempt${count === 1 ? "" : "s"}`;
+  return (
+    <Link
+      to="/records"
+      className="card w-full flex items-center gap-3 text-left hover:shadow-card-hover hover:border-slate-200 transition"
+    >
+      <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-300 flex items-center justify-center flex-shrink-0">
+        <Trophy size={18} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-slate-900 dark:text-slate-100">
+          Personal Records
+        </div>
+        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+          {summary}
+        </div>
+      </div>
+      <ChevronDown size={14} className="text-slate-300 dark:text-slate-600 -rotate-90" />
+    </Link>
   );
 }
 

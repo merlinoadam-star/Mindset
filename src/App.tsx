@@ -49,6 +49,7 @@ const AppFeedbackPage = lazy(() => import("./pages/AppFeedback"));
 const SeasonGoalsPage = lazy(() => import("./pages/SeasonGoals"));
 const MatchDayPage = lazy(() => import("./pages/MatchDay"));
 const HighlightReelPage = lazy(() => import("./pages/HighlightReel"));
+const RecordsPage = lazy(() => import("./pages/Records"));
 
 function PageLoader() {
   return (
@@ -172,6 +173,7 @@ function AppShell() {
             <Route path="connections" element={<ConnectionsPage />} />
             <Route path="feedback" element={<FeedbackInboxPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="records" element={<RecordsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

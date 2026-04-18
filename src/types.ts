@@ -353,6 +353,43 @@ export type LossRecoveryCarryType =
   | "do-different"
   | "phrase";
 
+// ---------------------------------------------------------------------------
+// Personal records
+// ---------------------------------------------------------------------------
+
+/**
+ * One logged attempt at a PR category (e.g. "Heaviest deadlift: 225 lbs on
+ * 2026-04-18"). The current best for a category is the min or max across
+ * all attempts, depending on `direction`.
+ *
+ * `categoryKey` is a stable identifier — for built-in categories it matches
+ * one of the entries in the catalog in `lib/personalRecords.ts`; for custom
+ * categories the athlete created it starts with `custom-` and is unique to
+ * that athlete.
+ */
+export interface PersonalRecordAttempt {
+  id: string;
+  categoryKey: string;
+  categoryLabel: string;
+  unit: PersonalRecordUnit;
+  direction: PersonalRecordDirection;
+  value: number;
+  achievedOn: string; // YYYY-MM-DD
+  notes?: string;
+  createdAt: string; // ISO
+}
+
+export type PersonalRecordDirection = "higher" | "lower";
+export type PersonalRecordUnit =
+  | "lbs"
+  | "kg"
+  | "reps"
+  | "sec"
+  | "in"
+  | "cm"
+  | "mph"
+  | "serves";
+
 export interface BadgeDefinition {
   id: string;
   name: string;
@@ -513,6 +550,7 @@ export interface AppState {
   recoveryCheckins: RecoveryCheckin[];
   nutritionLogs: NutritionLog[];
   videos: VideoEntry[];
+  personalRecords: PersonalRecordAttempt[];
   voicePersonaId?: string; // selected TTS persona ("natural", "champ", etc.)
   unlockedBadges: UnlockedBadge[];
   lastActiveDate: string | null;
