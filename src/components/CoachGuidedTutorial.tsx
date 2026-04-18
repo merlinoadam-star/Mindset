@@ -235,7 +235,7 @@ export default function CoachGuidedTutorial({
     }
 
     return (
-      <div className="card bg-gradient-to-br from-brand-50 via-purple-50 to-white border-brand-200 relative animate-slide-up">
+      <div className="card bg-gradient-to-br from-brand-50 via-purple-50 to-white dark:from-brand-950 dark:via-purple-950 dark:to-slate-900 border-brand-200 dark:border-brand-800 relative animate-slide-up">
         <button
           onClick={dismissAll}
           aria-label="Dismiss"
@@ -364,7 +364,7 @@ export default function CoachGuidedTutorial({
   };
 
   return (
-    <div className="card bg-gradient-to-br from-brand-50/60 to-white border-brand-100 relative animate-slide-up">
+    <div className="card bg-gradient-to-br from-brand-50/60 to-white dark:from-brand-950/40 dark:to-slate-900 border-brand-100 dark:border-brand-900 relative animate-slide-up">
       <button
         onClick={handleDismissDaily}
         aria-label="Dismiss"
