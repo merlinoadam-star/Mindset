@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { todayISO } from "../lib/gamification";
 import { opponentDisplayName } from "../lib/opponentStats";
@@ -12,6 +13,20 @@ export default function MatchesPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
   const [view, setView] = useState<"list" | "calendar">("list");
+  const [params, setParams] = useSearchParams();
+
+  // Deep link: /matches?open=<matchId> from the season timeline.
+  useEffect(() => {
+    const openId = params.get("open");
+    if (openId && state.matches.some((m) => m.id === openId)) {
+      setActiveId(openId);
+      // Clean the query string so going back to /matches doesn't keep
+      // re-opening the same match.
+      const next = new URLSearchParams(params);
+      next.delete("open");
+      setParams(next, { replace: true });
+    }
+  }, [params, setParams, state.matches]);
 
   if (!state.profile) return null;
 

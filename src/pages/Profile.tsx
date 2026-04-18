@@ -211,6 +211,8 @@ export default function ProfilePage() {
 
       <RecordsRow />
 
+      <TimelineRow />
+
 
 
       {/* Modals */}
@@ -336,6 +338,37 @@ function RecordsRow() {
       <div className="flex-1 min-w-0">
         <div className="font-bold text-slate-900 dark:text-slate-100">
           Personal Records
+        </div>
+        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+          {summary}
+        </div>
+      </div>
+      <ChevronDown size={14} className="text-slate-300 dark:text-slate-600 -rotate-90" />
+    </Link>
+  );
+}
+
+function TimelineRow() {
+  const { state } = useStore();
+  const matchCount = state.matches.length;
+  const prCount = state.personalRecords?.length ?? 0;
+  const badgeCount = state.unlockedBadges?.length ?? 0;
+  const total = matchCount + prCount + badgeCount;
+  const summary =
+    total === 0
+      ? "Your season arc — matches, PRs, milestones"
+      : `${matchCount} match${matchCount === 1 ? "" : "es"} · ${badgeCount} badge${badgeCount === 1 ? "" : "s"} · ${prCount} attempt${prCount === 1 ? "" : "s"}`;
+  return (
+    <Link
+      to="/timeline"
+      className="card w-full flex items-center gap-3 text-left hover:shadow-card-hover hover:border-slate-200 transition"
+    >
+      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white flex items-center justify-center flex-shrink-0">
+        <Sparkles size={18} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-bold text-slate-900 dark:text-slate-100">
+          Your Season
         </div>
         <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
           {summary}
