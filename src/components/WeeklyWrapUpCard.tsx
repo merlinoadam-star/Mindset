@@ -74,7 +74,7 @@ export default function WeeklyWrapUpCard({
   if (!configured) return null;
 
   return (
-    <div className="card bg-gradient-to-br from-indigo-50 via-purple-50 to-white border-purple-200">
+    <div className="card bg-gradient-to-br from-indigo-50 via-purple-50 to-white dark:from-indigo-950/40 dark:via-purple-950/40 dark:to-slate-900 border-purple-200 dark:border-purple-900">
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
           <Sparkles size={18} />

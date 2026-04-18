@@ -59,16 +59,16 @@ export default function CheerButtons({ athleteId }: { athleteId: string }) {
   };
 
   return (
-    <div className="card bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200">
+    <div className="card bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-950/40 dark:to-rose-950/40 border-pink-200 dark:border-pink-900">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-lg bg-pink-500 text-white flex items-center justify-center">
           <Heart size={16} />
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider font-bold text-pink-700">
+          <div className="text-[10px] uppercase tracking-wider font-bold text-pink-700 dark:text-pink-300">
             Send a Cheer
           </div>
-          <div className="text-xs text-slate-500 font-medium">
+          <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             One tap, instant encouragement
           </div>
         </div>
@@ -85,8 +85,8 @@ export default function CheerButtons({ athleteId }: { athleteId: string }) {
               disabled={Boolean(sending)}
               className={`text-left p-2.5 rounded-xl border text-xs font-medium transition active:scale-95 ${
                 justSent
-                  ? "bg-emerald-100 border-emerald-300 text-emerald-800"
-                  : "bg-white border-pink-200 hover:border-pink-300 hover:bg-pink-50 text-slate-700 disabled:opacity-50"
+                  ? "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-900 dark:border-emerald-700 dark:text-emerald-200"
+                  : "bg-white dark:bg-slate-800 border-pink-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-700 hover:bg-pink-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 disabled:opacity-50"
               }`}
             >
               <div className="text-xl mb-0.5">{p.emoji}</div>
