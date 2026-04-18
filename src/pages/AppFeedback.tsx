@@ -327,12 +327,15 @@ export default function AppFeedbackPage() {
                       {item.text}
                     </p>
                   </div>
-                  <button
-                    onClick={() => deleteFeedback(item.id)}
-                    className="text-slate-400 hover:text-red-500 flex-shrink-0"
-                  >
-                    <Trash2 size={12} />
-                  </button>
+                  {account?.role === "coach" && (
+                    <button
+                      onClick={() => deleteFeedback(item.id)}
+                      aria-label="Delete feedback"
+                      className="text-slate-400 hover:text-red-500 flex-shrink-0"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

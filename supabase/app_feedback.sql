@@ -28,3 +28,14 @@ create policy "app_feedback_insert" on public.app_feedback
 drop policy if exists "app_feedback_read_own" on public.app_feedback;
 create policy "app_feedback_read_own" on public.app_feedback
   for select using (auth.uid() = account_id);
+
+-- Only coaches can delete feedback (items are closed out as bugs are fixed).
+-- Other roles have no delete policy, so RLS will refuse the operation.
+drop policy if exists "app_feedback_delete_coach" on public.app_feedback;
+create policy "app_feedback_delete_coach" on public.app_feedback
+  for delete using (
+    exists (
+      select 1 from public.accounts a
+      where a.id = auth.uid() and a.role = 'coach'
+    )
+  );
