@@ -34,10 +34,10 @@ interface Props {
 }
 
 const ITEMS = [
-  { id: "practice", label: "Practice log", icon: Activity },
-  { id: "checkin", label: "Mental check-in", icon: Heart },
-  { id: "habits", label: "Habits", icon: CheckSquare },
-  { id: "match", label: "Upcoming match", icon: CalendarDays },
+  { id: "practice", label: "Practice log", icon: Activity, anchor: "training-consistency" },
+  { id: "checkin", label: "Mental check-in", icon: Heart, anchor: "recent-checkins" },
+  { id: "habits", label: "Habits", icon: CheckSquare, anchor: "training-consistency" },
+  { id: "match", label: "Upcoming match", icon: CalendarDays, anchor: "match-log" },
 ] as const;
 type ItemId = (typeof ITEMS)[number]["id"];
 
@@ -324,7 +324,7 @@ export default function ParentDailyReviewCard({
                   </div>
                 </div>
                 <Link
-                  to={`/athlete/${athleteAccountId}`}
+                  to={`/athlete/${athleteAccountId}#${item.anchor}`}
                   onClick={(e) => e.stopPropagation()}
                   className="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:text-rose-800 dark:hover:text-rose-200 focus-visible:outline-none"
                 >

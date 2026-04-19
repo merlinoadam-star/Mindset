@@ -133,6 +133,13 @@ export async function logParentAction(params: {
     }).then(() => {}, () => {});
   }
 
+  // Notify any in-app listeners (the XP bar) that the totals
+  // changed. Realtime should also fire, but this guarantees an
+  // immediate refresh even if the WS subscription is briefly down.
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("parent-xp-changed"));
+  }
+
   return {
     awardedXp: baseXp + comboXp,
     combo,
