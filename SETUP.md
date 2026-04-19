@@ -95,6 +95,7 @@ As the project evolved, new migrations were added alongside the main
 - `supabase/team_leaderboard.sql` — weekly team mini-game XP leaderboard
 - `supabase/coach_practice_plans.sql` — coach-pushed daily practice plans + per-item completions
 - `supabase/video_annotations.sql` — adds timestamp_sec column to feedback for video-pinned notes
+- `supabase/app_feedback_replies.sql` — threaded replies on bug tickets + broadened read policy
 
 ## Push notifications (optional, Phase 2E)
 
