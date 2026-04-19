@@ -1,4 +1,4 @@
-// Mindset — Service Worker
+// Fearless — Service Worker
 // Handles web push notifications, click-through navigation, and
 // offline caching so the app works with no/spotty connection.
 //
@@ -139,10 +139,10 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: "Mindset", body: event.data?.text() || "" };
+    data = { title: "Fearless", body: event.data?.text() || "" };
   }
 
-  const title = data.title || "Mindset";
+  const title = data.title || "Fearless";
   const options = {
     body: data.body || "",
     icon: "/icon.svg",

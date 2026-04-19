@@ -106,15 +106,18 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-800 to-brand-700 text-white flex flex-col">
-      <div className="absolute top-20 right-10 w-40 h-40 rounded-full bg-brand-500/20 blur-3xl" />
-      <div className="absolute bottom-40 left-0 w-60 h-60 rounded-full bg-brand-400/10 blur-3xl" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 text-white flex flex-col">
+      <div className="absolute top-20 right-10 w-40 h-40 rounded-full bg-brand-500/25 blur-3xl" />
+      <div className="absolute bottom-40 left-0 w-60 h-60 rounded-full bg-brand-400/15 blur-3xl" />
       <div className="relative max-w-md w-full mx-auto px-6 py-10 flex-1 flex flex-col">
         <div className="mb-6">
-          <div className="text-xs uppercase tracking-[0.3em] font-bold text-brand-300">
-            Mindset
+          <div className="text-[11px] uppercase tracking-[0.35em] font-bold text-brand-300">
+            Fearless
           </div>
-          <h1 className="text-3xl font-extrabold mt-2 tracking-tight">
+          <div className="text-[11px] text-white/50 mt-1">
+            The athlete&apos;s app. The family&apos;s corner.
+          </div>
+          <h1 className="text-3xl font-extrabold mt-4 tracking-tight">
             {mode === "signup"
               ? "Create your account"
               : mode === "magic"

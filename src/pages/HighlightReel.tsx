@@ -477,7 +477,7 @@ function buildCards(stats: ReelStats, name: string): Card[] {
     render: () => (
       <div className="text-center">
         <div className="text-xs uppercase tracking-[0.3em] font-bold text-white/60 mb-3">
-          Mindset Reel
+          Fearless Reel
         </div>
         <h1 className="text-5xl font-extrabold tracking-tight leading-[1.05]">
           Hey {first || "there"}.
@@ -831,8 +831,8 @@ function formatFriendlyDate(iso: string): string {
 // =============================================================================
 
 async function handleShare(stats: ReelStats, name: string): Promise<void> {
-  const summary = `My Mindset Reel: ${stats.daysLogged} active days · +${stats.xpGained} XP · ${stats.longestStreak}d streak · ${stats.matchWins}-${stats.matchLosses} record. Lvl ${stats.level}${stats.levelTitle ? ` ${stats.levelTitle}` : ""}.`;
-  const title = name ? `${name}'s Mindset Reel` : "My Mindset Reel";
+  const summary = `My Fearless Reel: ${stats.daysLogged} active days · +${stats.xpGained} XP · ${stats.longestStreak}d streak · ${stats.matchWins}-${stats.matchLosses} record. Lvl ${stats.level}${stats.levelTitle ? ` ${stats.levelTitle}` : ""}.`;
+  const title = name ? `${name}'s Fearless Reel` : "My Fearless Reel";
 
   type Nav = Navigator & {
     share?: (data: { title?: string; text?: string; url?: string }) => Promise<void>;

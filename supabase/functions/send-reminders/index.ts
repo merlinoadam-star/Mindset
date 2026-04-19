@@ -531,7 +531,7 @@ Deno.serve(async (req: Request) => {
 
         const msg = {
           title: `4 hours to save your ${ctx.streakLength}-day streak 🔥`,
-          body: `Open Mindset and log anything — one habit is enough.`,
+          body: `Open Fearless and log anything — one habit is enough.`,
           tag: `streak-saver-${today}`,
         };
         const pushResult = await pushToAthlete(
@@ -610,7 +610,7 @@ Deno.serve(async (req: Request) => {
             `vs ${m.opponent ?? "your opponent"} tomorrow. ${
               prepped
                 ? "You're prepared!"
-                : "Open Mindset and get your head right."
+                : "Open Fearless and get your head right."
             }`,
             "/matches",
             `match-tomorrow-${m.id}`

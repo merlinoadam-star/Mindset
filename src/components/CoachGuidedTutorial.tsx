@@ -272,7 +272,7 @@ export default function CoachGuidedTutorial({
           <StepCard
             icon={<Smartphone size={18} />}
             iconColor="from-brand-600 to-purple-600"
-            title="Install Mindset"
+            title="Install Fearless"
             desc="Add to your home screen for push notifications when your athlete levels up or logs activity."
           >
             {canInstall && (
