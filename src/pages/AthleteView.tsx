@@ -1303,6 +1303,8 @@ function VideoThumb({
   const [playing, setPlaying] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loadingUrl, setLoadingUrl] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   async function startPlayback() {
     if (!video.storage_path) return;
@@ -1313,6 +1315,13 @@ function VideoThumb({
       setSignedUrl(url);
       setLoadingUrl(false);
     }
+  }
+
+  function seekTo(seconds: number) {
+    const el = videoRef.current;
+    if (!el) return;
+    el.currentTime = Math.max(0, seconds);
+    el.play().catch(() => {});
   }
 
   if (playing) {
@@ -1326,10 +1335,12 @@ function VideoThumb({
           )}
           {signedUrl && (
             <video
+              ref={videoRef}
               src={signedUrl}
               controls
               autoPlay
               playsInline
+              onTimeUpdate={(e) => setCurrentTime((e.target as HTMLVideoElement).currentTime)}
               className="w-full h-full"
             />
           )}
@@ -1353,13 +1364,15 @@ function VideoThumb({
             Close
           </button>
         </div>
-        {/* Feedback thread under the expanded video */}
+        {/* Feedback thread under the expanded video — with timestamp pinning */}
         <div className="p-3 pt-0">
           <FeedbackThread
             athleteId={athleteId}
             targetType="video"
             targetId={video.id}
             compact
+            videoCurrentTime={currentTime}
+            onSeekTo={seekTo}
           />
         </div>
       </div>

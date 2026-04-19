@@ -22,6 +22,8 @@ export interface FeedbackRow {
   read_at: string | null;
   created_at: string;
   updated_at: string | null;
+  /** Video playback position (seconds) this note is pinned to. Null for non-video feedback. */
+  timestamp_sec: number | null;
   // Enriched in the client
   author_name?: string;
 }
@@ -48,10 +50,20 @@ export async function postFeedback(params: {
   targetType: FeedbackTargetType;
   targetId: string;
   text: string;
+  /** Only meaningful when targetType is 'video'. Pins the note to a timestamp. */
+  timestampSec?: number | null;
 }): Promise<{ row?: FeedbackRow; error?: string }> {
   if (!supabase) return { error: "Sync not configured." };
   const text = params.text.trim();
   if (!text) return { error: "Note is empty." };
+
+  const timestampSec =
+    params.targetType === "video" &&
+    typeof params.timestampSec === "number" &&
+    Number.isFinite(params.timestampSec) &&
+    params.timestampSec >= 0
+      ? params.timestampSec
+      : null;
 
   const { data, error } = await supabase
     .from("feedback")
@@ -62,6 +74,7 @@ export async function postFeedback(params: {
       target_type: params.targetType,
       target_id: params.targetId,
       text,
+      timestamp_sec: timestampSec,
     })
     .select()
     .single();
