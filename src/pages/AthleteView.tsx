@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import {
   fetchAthleteProfile,
@@ -61,6 +61,7 @@ import {
 export default function AthleteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [row, setRow] = useState<DbAthleteRow | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [matches, setMatches] = useState<MatchEntry[]>([]);
@@ -127,6 +128,20 @@ export default function AthleteViewPage() {
   useEffect(() => {
     loadAll(true);
   }, [loadAll]);
+
+  // Scroll to the URL #hash once the page has finished loading. Used by
+  // deep links (e.g. parent's daily-review "View" buttons → #recent-checkins).
+  useEffect(() => {
+    if (loading || !location.hash) return;
+    const target = document.getElementById(location.hash.slice(1));
+    if (target) {
+      // requestAnimationFrame so the layout has settled after the loading
+      // skeleton is replaced by the real content.
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, [loading, location.hash]);
 
   // Realtime — any change to the athlete's data refreshes the view.
   // One subscription per athlete-scoped table. All fire the same silent
@@ -480,7 +495,11 @@ export default function AthleteViewPage() {
 
       {/* Training consistency — Phase 2B.5 */}
       {extra && (
-        <Section icon={<Flame size={14} />} title="Training Consistency">
+        <Section
+          id="training-consistency"
+          icon={<Flame size={14} />}
+          title="Training Consistency"
+        >
           <div className="grid grid-cols-4 gap-2">
             <StatTile
               label="Practices"
@@ -546,7 +565,11 @@ export default function AthleteViewPage() {
 
       {/* Recent Mental Check-Ins */}
       {extra?.mentalCheckins && extra.mentalCheckins.length > 0 && (
-        <Section icon={<Target size={14} />} title="Recent Check-Ins">
+        <Section
+          id="recent-checkins"
+          icon={<Target size={14} />}
+          title="Recent Check-Ins"
+        >
           <div className="space-y-2">
             {extra.mentalCheckins
               .slice(0, 5)
@@ -877,7 +900,11 @@ export default function AthleteViewPage() {
 
       {/* Match Log — Phase 2B.4 */}
       {matches.length > 0 ? (
-        <Section icon={<Trophy size={14} />} title={`Match Log (${matches.length})`}>
+        <Section
+          id="match-log"
+          icon={<Trophy size={14} />}
+          title={`Match Log (${matches.length})`}
+        >
           {/* Quick summary */}
           <div className="grid grid-cols-4 gap-2 mb-3">
             <StatTile
@@ -1093,13 +1120,15 @@ function Section({
   icon,
   title,
   children,
+  id,
 }: {
   icon: React.ReactNode;
   title: string;
   children: React.ReactNode;
+  id?: string;
 }) {
   return (
-    <section className="card">
+    <section id={id} className="card scroll-mt-24">
       <h2 className="font-bold text-slate-900 flex items-center gap-2 mb-3 text-sm">
         <span className="w-6 h-6 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
           {icon}

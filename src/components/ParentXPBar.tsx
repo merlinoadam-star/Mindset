@@ -37,6 +37,14 @@ export default function ParentXPBar() {
     load
   );
 
+  // In-app fallback — fires synchronously after a parent action so the
+  // bar updates immediately, regardless of realtime connection state.
+  useEffect(() => {
+    const handler = () => load();
+    window.addEventListener("parent-xp-changed", handler);
+    return () => window.removeEventListener("parent-xp-changed", handler);
+  }, [load]);
+
   if (!account || account.role !== "parent") return null;
   if (xp === null) return null;
 

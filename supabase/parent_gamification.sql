@@ -172,3 +172,19 @@ $func$;
 
 revoke all on function public.grant_athlete_combo_xp(uuid, int, text) from public;
 grant execute on function public.grant_athlete_combo_xp(uuid, int, text) to authenticated;
+
+-- Realtime — the parent's XP bar subscribes to inserts so it animates
+-- right after an action. The athlete-side toast consumer also benefits
+-- from realtime on athlete_xp_gifts.
+do $$
+begin
+  alter publication supabase_realtime add table public.parent_actions;
+exception
+  when duplicate_object then null;
+end $$;
+do $$
+begin
+  alter publication supabase_realtime add table public.athlete_xp_gifts;
+exception
+  when duplicate_object then null;
+end $$;
