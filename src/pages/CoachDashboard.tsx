@@ -28,6 +28,8 @@ import ParentCheckInCard from "../components/ParentCheckInCard";
 import ParentDailyReviewCard from "../components/ParentDailyReviewCard";
 import ParentPlaybookCard from "../components/ParentPlaybookCard";
 import ParentXPBar from "../components/ParentXPBar";
+import PostAnnouncementCard from "../components/PostAnnouncementCard";
+import AnnouncementsCard from "../components/AnnouncementsCard";
 import TeamBulkActions from "../components/TeamBulkActions";
 import TeamLeaderboard from "../components/TeamLeaderboard";
 import {
@@ -239,6 +241,12 @@ export default function CoachDashboard() {
 
       {/* Parent Support Level — XP earned for supporting their athlete(s). */}
       {account.role === "parent" && accepted.length > 0 && <ParentXPBar />}
+
+      {/* Coach-only: post a new team announcement */}
+      {account.role === "coach" && accepted.length > 0 && <PostAnnouncementCard />}
+
+      {/* Everyone (coach, parent) sees team announcements from their coaches */}
+      {accepted.length > 0 && <AnnouncementsCard />}
 
       {/* Welcome tip — only when they have athletes */}
       {accepted.length > 0 && (
