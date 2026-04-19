@@ -91,6 +91,7 @@ As the project evolved, new migrations were added alongside the main
 - `supabase/loss_recovery.sql` — loss-recovery flow columns on matches
 - `supabase/personal_records.sql` — personal records table + RLS
 - `supabase/adult_chats.sql` — coach↔parent private chats table + RLS
+- `supabase/parent_gamification.sql` — parent XP ledger, combo gifts, grant RPC
 
 ## Push notifications (optional, Phase 2E)
 

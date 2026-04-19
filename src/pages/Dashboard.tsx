@@ -15,6 +15,7 @@ import ReminderBanner from "../components/ReminderBanner";
 import WeeklyWrapUpCard from "../components/WeeklyWrapUpCard";
 import DailyChallengeCard from "../components/DailyChallengeCard";
 import ComboCard from "../components/ComboCard";
+import ComboGiftConsumer from "../components/ComboGiftConsumer";
 import SpinWheelCard from "../components/SpinWheelCard";
 import UpcomingMatchesCard from "../components/UpcomingMatchesCard";
 import MatchDayCard from "../components/MatchDayCard";
@@ -61,6 +62,8 @@ export default function Dashboard() {
         open={avatarPickerOpen}
         onClose={() => setAvatarPickerOpen(false)}
       />
+      {/* Shows a toast for any unseen combo XP gifts from a parent/coach. */}
+      <ComboGiftConsumer />
 
       {/* Header */}
       <header className="pt-4 pb-1 flex items-center justify-between">

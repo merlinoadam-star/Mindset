@@ -8,6 +8,8 @@ import {
   type PlaybookContext,
 } from "../lib/parentPlaybookContext";
 import { useRealtime } from "../lib/useRealtime";
+import { logParentAction } from "../lib/parentXpSync";
+import { showReward } from "./RewardToast";
 
 /**
  * Parent Playbook — today's parent-facing to-dos derived from an
@@ -133,8 +135,25 @@ export default function ParentPlaybookCard({
       };
       setDone(next);
       saveDoneState(parentAccountId, athleteId, next);
+      // Award parent XP for this playbook action. The DB caps it to one
+      // `playbook` award per (parent, athlete, day) so subsequent items
+      // today return alreadyLogged and award 0 — that's fine.
+      if (account?.role === "parent") {
+        logParentAction({
+          parentAccountId,
+          athleteAccountId: athleteId,
+          actionType: "playbook",
+        }).then((res) => {
+          if (res.awardedXp > 0) {
+            showReward(
+              res.awardedXp,
+              res.combo ? ["__combo__Combo with your athlete!"] : []
+            );
+          }
+        });
+      }
     },
-    [done, parentAccountId, athleteId]
+    [done, parentAccountId, athleteId, account?.role]
   );
 
   const sendCheer = useCallback(

@@ -26,6 +26,7 @@ import {
 import CoachGuidedTutorial from "../components/CoachGuidedTutorial";
 import ParentCheckInCard from "../components/ParentCheckInCard";
 import ParentPlaybookCard from "../components/ParentPlaybookCard";
+import ParentXPBar from "../components/ParentXPBar";
 import TeamBulkActions from "../components/TeamBulkActions";
 import {
   fetchTeamStats,
@@ -234,6 +235,9 @@ export default function CoachDashboard() {
         athleteIds={accepted.map((a) => a.athleteAccountId)}
       />
 
+      {/* Parent Support Level — XP earned for supporting their athlete(s). */}
+      {account.role === "parent" && accepted.length > 0 && <ParentXPBar />}
+
       {/* Welcome tip — only when they have athletes */}
       {accepted.length > 0 && (
         <div className="rounded-2xl bg-gradient-to-br from-brand-50 to-purple-50 dark:from-brand-950/50 dark:to-purple-950/50 border border-brand-100 dark:border-brand-900 p-3 flex items-start gap-2">
@@ -268,7 +272,12 @@ export default function CoachDashboard() {
           concrete thing to ask after practice. */}
       {accepted.length > 0 &&
         account?.role === "parent" &&
-        user && <ParentCheckInCard accountId={user.id} />}
+        user && (
+          <ParentCheckInCard
+            accountId={user.id}
+            primaryAthleteId={accepted[0]?.athleteAccountId}
+          />
+        )}
 
       {/* Pending invites (incoming) */}
       {pending.filter((p) => p.pendingIncoming).length > 0 && (

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Check, MessageCircleHeart, RefreshCw } from "lucide-react";
 import { currentWeekMondayISO } from "../lib/gamification";
 import { promptForWeek, type ParentPrompt } from "../lib/parentPrompts";
+import { logParentAction } from "../lib/parentXpSync";
+import { showReward } from "./RewardToast";
 
 /**
  * Weekly conversation prompt shown on the parent's dashboard. Gives
@@ -14,10 +16,16 @@ import { promptForWeek, type ParentPrompt } from "../lib/parentPrompts";
  * week if today's doesn't fit. Both pieces of UI state persist in
  * localStorage keyed by the parent's account id so they don't cross
  * between accounts on a shared device.
+ *
+ * When `primaryAthleteId` is supplied, marking the prompt as asked
+ * also logs a `check_in` action against that athlete (awards XP, and
+ * a combo bonus if the athlete logged activity today).
  */
 
 interface Props {
   accountId: string;
+  /** Athlete to attribute this check-in to for XP/combo purposes. */
+  primaryAthleteId?: string;
 }
 
 /**
@@ -62,7 +70,10 @@ function saveState(accountId: string, next: PersistedState): void {
   }
 }
 
-export default function ParentCheckInCard({ accountId }: Props) {
+export default function ParentCheckInCard({
+  accountId,
+  primaryAthleteId,
+}: Props) {
   const week = currentWeekMondayISO();
   const [persisted, setPersisted] = useState<PersistedState | null>(() =>
     loadState(accountId)
@@ -81,6 +92,22 @@ export default function ParentCheckInCard({ accountId }: Props) {
     const next: PersistedState = { ...stateThisWeek, asked: true };
     setPersisted(next);
     saveState(accountId, next);
+    // Award XP (best-effort). Skip if no athlete to attribute to —
+    // the DB write needs an athlete id for RLS + combo scoping.
+    if (primaryAthleteId) {
+      logParentAction({
+        parentAccountId: accountId,
+        athleteAccountId: primaryAthleteId,
+        actionType: "check_in",
+      }).then((res) => {
+        if (res.awardedXp > 0) {
+          showReward(
+            res.awardedXp,
+            res.combo ? ["__combo__Nice combo with your athlete!"] : []
+          );
+        }
+      });
+    }
   }
 
   function nextPrompt() {
