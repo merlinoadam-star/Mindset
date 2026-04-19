@@ -7,6 +7,7 @@ import {
   Gamepad2,
   Grid3x3,
   Target,
+  Timer,
   Zap,
 } from "lucide-react";
 
@@ -64,6 +65,17 @@ const GAMES: GameDef[] = [
     badgeColor: "text-sky-700",
     xpInfo: "+5 XP per level reached",
     bestLabel: "Best level",
+  },
+  {
+    id: "playcall",
+    to: "/games/playcall",
+    title: "Play Call",
+    subtitle: "7 seconds per call. Think fast. Call it right.",
+    icon: <Timer size={20} />,
+    gradient: "from-rose-500 to-red-600",
+    badgeColor: "text-rose-700",
+    xpInfo: "+5 base · speed bonus · streak multiplier",
+    bestLabel: "Best XP",
   },
 ];
 

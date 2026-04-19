@@ -63,6 +63,56 @@ export const WRESTLING_TRIVIA: TriviaQuestion[] = [
   { question: "What does 'riding time' measure?", choices: ["How long the match lasts", "Time on top controlling your opponent", "Time between periods", "Warm-up time"], answer: 1, fact: "In college wrestling, 1+ minute of net riding time earns a bonus point." },
   { question: "Which president of the United States was a college wrestler?", choices: ["Barack Obama", "Abraham Lincoln", "Donald Trump", "Theodore Roosevelt"], answer: 1, fact: "Lincoln was known as an outstanding wrestler in his youth in Illinois." },
   { question: "What does USAW stand for?", choices: ["United States Amateur Wrestling", "USA Wrestling", "US Association of Wrestling", "United Sports and Wrestling"], answer: 1 },
+
+  // Rules deep cuts
+  { question: "What is a 'stalling' warning given for?", choices: ["Not moving aggressively enough", "Staying on the edge of the mat", "Both of the above", "Talking to your coach"], answer: 2, fact: "Stalling can be called for avoiding action, fleeing the mat, or failing to improve a position." },
+  { question: "How many stalling calls before the first penalty point is awarded?", choices: ["None — first call is a point", "One warning, then points", "Two warnings", "Three warnings"], answer: 1, fact: "Folkstyle: one warning, then 1, 1, 2, DQ on subsequent stalling calls." },
+  { question: "What's the penalty for a wrestler who fails to make weight?", choices: ["Automatic loss of 1 point", "Forfeit of the match", "Moves up a weight", "5-pound deduction from next weigh-in"], answer: 1 },
+  { question: "'Locked hands' penalty applies to the wrestler in which position?", choices: ["Neutral", "Top — the offensive wrestler", "Bottom — the defensive wrestler", "Either position"], answer: 1, fact: "The top wrestler can't lock hands, feet, or arms around the bottom wrestler's torso unless in a pinning combination." },
+  { question: "What is 'match point' in wrestling?", choices: ["The final takedown", "The point that would win the match", "Any point scored in overtime", "The first point of the match"], answer: 1 },
+  { question: "What is a 'dual meet'?", choices: ["Head-to-head team competition", "A match with two referees", "An exhibition match", "A tournament's finals"], answer: 0 },
+  { question: "How many consecutive team points from one match is the maximum in a dual?", choices: ["3", "6", "8 (pin, tech, forfeit)", "10"], answer: 2, fact: "A pin, tech fall, or forfeit all count as 6 team points in most dual-meet scoring systems." },
+  { question: "In a dual meet, how many weight classes are contested?", choices: ["10", "12", "13", "14"], answer: 3 },
+  { question: "What's the scoring value of a 'major decision'?", choices: ["3 team points", "4 team points", "6 team points", "8 team points"], answer: 1, fact: "A major decision is a win by 8–14 points and is worth 4 team points in duals." },
+  { question: "What point margin defines a 'regular decision' win?", choices: ["1–7 points", "8–14 points", "15+ points", "Any margin"], answer: 0 },
+
+  // More techniques
+  { question: "What's a 'half nelson'?", choices: ["A takedown", "An upper-body pinning move where you hook under one arm and behind the neck", "A type of escape", "A stance"], answer: 1 },
+  { question: "What's the 'funk' position known for?", choices: ["Being stuck underneath", "Creative scrambling from unconventional positions", "Bottom standup", "A type of ride"], answer: 1, fact: "Funk wrestling emphasizes reversals and scoring from seemingly bad positions." },
+  { question: "What's a 'high crotch'?", choices: ["A type of ride", "A single-leg takedown where you lift the leg high", "A type of sprawl", "A counter to a duck-under"], answer: 1 },
+  { question: "What's an 'ankle pick'?", choices: ["A takedown grabbing just the ankle", "A stretching exercise", "A pin", "A reversal"], answer: 0 },
+  { question: "'Tight waist + ankle' is a classic wrestling:", choices: ["Breakdown", "Stand-up", "Takedown", "Throw"], answer: 0, fact: "It's one of the most fundamental rides used to break an opponent down from their base." },
+  { question: "What is the 'spladle'?", choices: ["A type of singlet", "A pinning combination", "A leg split", "A warm-up drill"], answer: 1 },
+  { question: "What's a 'Peterson roll'?", choices: ["A breakfast", "A front-head escape roll", "A back arch throw", "A type of pin from top"], answer: 1 },
+  { question: "What's a 'granby roll'?", choices: ["A hip-heist escape", "A shoulder roll escape from bottom", "A type of takedown", "A front-roll escape"], answer: 1 },
+  { question: "What is 'chain wrestling'?", choices: ["Linking moves together fluidly", "Wrestling on outdoor chains", "Team relay format", "Wrestling with ankle weights"], answer: 0 },
+  { question: "A 'suplex' is primarily scored by:", choices: ["Going off-mat", "Back exposure / near-fall after the throw", "Taking down to the mat from clinch", "Clinching only"], answer: 1 },
+
+  // More history & legends
+  { question: "Who was the first American to win an Olympic gold medal in wrestling?", choices: ["George Mehnert", "Frank Gotch", "Tom Brands", "Dan Hodge"], answer: 0 },
+  { question: "The 'Dan Hodge Trophy' is awarded to:", choices: ["Best high school wrestler", "Best college wrestler of the year", "Best freestyle wrestler", "Best coach"], answer: 1, fact: "Named after Dan Hodge, legendary Oklahoma wrestler. It's the Heisman of college wrestling." },
+  { question: "Which state is known for producing the most top high school wrestlers per capita?", choices: ["California", "Pennsylvania", "Iowa", "All three are top states"], answer: 3 },
+  { question: "What is the nickname of Iowa's wrestling team?", choices: ["Cyclones", "Hawkeyes", "Panthers", "Golden Eagles"], answer: 1 },
+  { question: "Who is 'The Bull' in wrestling?", choices: ["Kyle Snyder", "Jordan Burroughs", "Dave Schultz", "John Smith"], answer: 1 },
+  { question: "John Smith won how many world/Olympic titles?", choices: ["4", "6", "8", "10"], answer: 1, fact: "Smith won 4 World Championships and 2 Olympic gold medals — 6 world-level titles total." },
+  { question: "What school is Cael Sanderson the head coach of?", choices: ["Iowa State", "Oklahoma State", "Penn State", "Minnesota"], answer: 2 },
+  { question: "'The Russian Tie' is a reference to what?", choices: ["A weight class in Russia", "A hand-control position", "An international competition", "A type of singlet"], answer: 1 },
+  { question: "Who wrote the famous book 'A Wrestling Life'?", choices: ["Dan Gable", "Cael Sanderson", "John Smith", "Kurt Angle"], answer: 0 },
+  { question: "What year did Jordan Burroughs win his first Olympic gold?", choices: ["2008", "2012", "2016", "2020"], answer: 1, fact: "Burroughs won gold in London 2012 and became one of the most decorated American wrestlers ever." },
+
+  // International & freestyle
+  { question: "In freestyle wrestling, how long is each period?", choices: ["1 minute", "2 minutes", "3 minutes", "4 minutes"], answer: 2 },
+  { question: "In freestyle, a 'gut wrench' scores points by:", choices: ["Breaking the opponent down", "Rolling the opponent for back exposure", "Being a takedown only", "Riding time"], answer: 1 },
+  { question: "What ends a freestyle or Greco-Roman match by 'technical superiority'?", choices: ["15-point lead", "10-point lead", "Pin", "6-point lead"], answer: 1, fact: "Freestyle ends at a 10-point lead; Greco-Roman ends at 8." },
+  { question: "In international wrestling, what color of shoe lace is sometimes used to signify that a scoring move is complete?", choices: ["No lace rule", "Red", "Blue", "The lace rule was eliminated"], answer: 3 },
+  { question: "Which country has historically been the most dominant in freestyle wrestling?", choices: ["USA", "Iran", "Soviet Union / Russia", "Turkey"], answer: 2 },
+
+  // Conditioning & training
+  { question: "What's the purpose of 'live goes' in practice?", choices: ["Warm-up", "Full-contact match simulation", "Cooldown stretches", "Cardio sprints"], answer: 1 },
+  { question: "What is 'cauliflower ear' caused by?", choices: ["Bacterial infection", "Trauma and blood pooling under ear cartilage", "Allergic reaction", "Genetics"], answer: 1, fact: "Headgear prevents it. Once formed, draining promptly prevents permanent disfigurement." },
+  { question: "Most wrestlers' stance emphasizes:", choices: ["Tall and upright", "Low level, hips down, knees bent", "Lunging forward", "Standing sideways"], answer: 1 },
+  { question: "Before a match, 'shadow wrestling' is done to:", choices: ["Warm up movement patterns + sharpen timing", "Impress the opponent", "Score style points", "Mimic the opponent's style"], answer: 0 },
+  { question: "What does 'out-of-bounds' result in during a match?", choices: ["Automatic loss", "Restart in the neutral position", "Restart in the same position in the center", "1 point to opponent"], answer: 2 },
 ];
 
 // -----------------------------------------------------------------------------
@@ -119,6 +169,54 @@ export const VOLLEYBALL_TRIVIA: TriviaQuestion[] = [
   { question: "How many sets does a team need to win to take a match?", choices: ["2 of 3", "3 of 5", "4 of 7", "2 of 5"], answer: 1 },
   { question: "What year was the libero position introduced in international volleyball?", choices: ["1988", "1998", "2002", "2006"], answer: 1 },
   { question: "Where was the first recorded game of beach volleyball played?", choices: ["California", "Florida", "Hawaii", "Australia"], answer: 2, fact: "The first recorded beach volleyball game was at the Outrigger Canoe Club on Waikiki Beach in 1915." },
+
+  // Rules deep cuts
+  { question: "How many timeouts does each team get per set?", choices: ["1", "2", "3", "Unlimited"], answer: 1, fact: "Each team gets 2 timeouts per set, each 30 seconds long." },
+  { question: "What is a 'lift' violation?", choices: ["Pushing the ball up with open hands", "Holding or catching the ball even briefly during a contact", "Contact above the net", "A type of substitution"], answer: 1 },
+  { question: "How many substitutions is a team allowed per set?", choices: ["3", "6", "10", "Unlimited"], answer: 1, fact: "6 subs per set in most rule sets, but the libero doesn't count." },
+  { question: "What is the 'center line' rule?", choices: ["You cannot step fully across to the opponent's side", "Where serves must land", "The setter's area", "Where the libero plays"], answer: 0 },
+  { question: "What happens if you touch the net during play?", choices: ["Automatic point for the other team", "Warning only", "Point if the contact interferes with the play", "Nothing — it's legal"], answer: 2, fact: "Only net contact that affects the play (not incidental hair/jersey) is called." },
+  { question: "What is a 'reverse coin toss'?", choices: ["The coin flipped by the away team", "Used in deciding 5th-set start side", "A player rotation method", "Doesn't exist"], answer: 3 },
+  { question: "Can a libero set from the front court with their hands?", choices: ["Yes, always", "No — a front-row teammate can't attack that ball above the net", "Only if outside the attack line", "Only during serve receive"], answer: 1, fact: "Front-row player can't attack above the net off a libero's overhand set from in front of the 3m line." },
+  { question: "What is a 'prolonged contact' violation?", choices: ["Holding the ball", "Serving past the line", "Net contact", "Too many touches"], answer: 0 },
+  { question: "Can you attack a serve?", choices: ["Yes, any time", "No — a served ball cannot be attacked from above the net on/inside the 3m line", "Only in beach volleyball", "Only as a kill"], answer: 1 },
+  { question: "What is the 'overlap' rule?", choices: ["Players must be in correct rotational order when the serve is contacted", "Three hits on same side", "Too many front-row players", "Server foot faults"], answer: 0 },
+
+  // More techniques
+  { question: "What's a 'roll shot'?", choices: ["A hard-driven spike", "A soft, arcing attack over or around the block", "A backspin serve", "A jump float"], answer: 1 },
+  { question: "What's a 'cut shot'?", choices: ["A cross-court spike at a sharp angle", "A soft shot down the line", "A tip into the middle", "A setter dump"], answer: 0 },
+  { question: "What is a 'line shot'?", choices: ["Hit down the sideline", "Hit across the court", "Hit short", "Hit over the block's hands"], answer: 0 },
+  { question: "What's a 'tool' attack?", choices: ["Using the block's hands to score out of bounds", "A precision tip", "A back-row attack", "A serve receive technique"], answer: 0, fact: "Smart hitters 'tool' the block — swing into the hands so the ball deflects out of bounds on their side." },
+  { question: "What's the 'J stroke' used in?", choices: ["Serving", "Approach to a quick attack", "Defensive digging of a hard-driven ball", "Setting"], answer: 0 },
+  { question: "What's a 'seam' in blocking terminology?", choices: ["The gap between two blockers", "Where the net meets the floor", "A type of attack line", "The server's body position"], answer: 0 },
+  { question: "A 'shoot set' is:", choices: ["A very low, fast set to the outside", "A back-row setting", "A high set for a deep hitter", "A setter dump"], answer: 0, fact: "Shoot (also called a 'go') is a low, flat set designed for fast outside attacks." },
+  { question: "What does 'free ball' mean?", choices: ["The opposing team passes the ball over without an attack", "A legal attack", "A ball given to the referee", "A served ball that hits the net"], answer: 0 },
+  { question: "What's a 'down ball'?", choices: ["A standing hit with no jump", "A bad pass", "A block attempt", "A serve receive"], answer: 0 },
+  { question: "What is a 'pipe' attack?", choices: ["A back-row attack from position 6", "A serve receive formation", "A setter dump", "A blocking position"], answer: 0, fact: "Pipe = straight back middle attack; huge weapon when outsides are blocked tight." },
+
+  // More history & legends
+  { question: "Who is Karch Kiraly known as in volleyball?", choices: ["The Greatest American Male Volleyball Player Ever", "A top coach only", "A beach-only legend", "A rookie star"], answer: 0 },
+  { question: "The 'Flo Hyman Award' is given to athletes who embody:", choices: ["Dignity, spirit, and commitment to excellence", "Most kills in a season", "Best rookie", "Most blocks"], answer: 0, fact: "Named after US star Flo Hyman, who died tragically young but was known for character and courage." },
+  { question: "Which country has produced the most Olympic medals in women's volleyball?", choices: ["USA", "Cuba", "Brazil", "Russia / Soviet Union"], answer: 3 },
+  { question: "Kerri Walsh Jennings' partner Misty May-Treanor is also known for:", choices: ["Being from Los Angeles", "Coaching later in career", "Commentating", "All of the above"], answer: 3 },
+  { question: "Which US collegiate conference has historically dominated women's volleyball?", choices: ["Big Ten", "Pac-12", "SEC", "ACC"], answer: 1, fact: "Pac-12 (now Pac-10/12) has produced the most NCAA women's volleyball champions historically." },
+  { question: "What year did women's volleyball debut at the Olympics?", choices: ["1964", "1968", "1972", "1984"], answer: 0 },
+  { question: "'The Chicken Wing' celebration was popularized by which US team?", choices: ["USA Men's Volleyball", "USA Women's Volleyball", "Brazilian Men's Team", "It's not a thing"], answer: 3 },
+  { question: "Who coached the US Women's National Team to their first Olympic gold in indoor?", choices: ["Karch Kiraly", "Hugh McCutcheon", "Doug Beal", "Mick Haley"], answer: 0, fact: "Kiraly coached USA Women to gold in Tokyo 2020 after decades of coming up short." },
+  { question: "What year was the first World Championship for men's volleyball?", choices: ["1949", "1952", "1960", "1970"], answer: 0 },
+  { question: "Beach volleyball legend Sinjin Smith played for which country?", choices: ["Brazil", "USA", "Italy", "Australia"], answer: 1 },
+
+  // Conditioning & training
+  { question: "What does 'platform' refer to in volleyball?", choices: ["Arm position for forearm passing", "Where the setter stands", "A type of jump", "A warm-up drill"], answer: 0 },
+  { question: "Which muscle group is most engaged during a spike?", choices: ["Biceps only", "Core and hip rotation", "Quads only", "Forearms only"], answer: 1, fact: "Power in a spike comes from hip rotation through the core, not arm strength alone." },
+  { question: "What's a 'shag' in volleyball practice?", choices: ["Picking up balls after drills", "A slow warm-up", "A type of jump", "A blocking drill"], answer: 0 },
+  { question: "The 'approach' refers to:", choices: ["Running footwork pattern leading into a jump to attack", "The serve setup", "Walking to the court", "The handshake line"], answer: 0 },
+  { question: "A 4-step approach is typically:", choices: ["Left-right-left-right", "Step-step-plant-jump (for a right-hander: L-R-L-R)", "Four small shuffle steps", "Back-side-back-side"], answer: 1 },
+  { question: "What is 'shuffle footwork'?", choices: ["Quick lateral steps without crossing feet — used for passing", "A fancy attack step", "A serve routine", "A block footwork drill"], answer: 0 },
+  { question: "Why do blockers 'press' over the net?", choices: ["To look intimidating", "To deflect the ball down into the opponent's court", "To block vision", "To touch the net"], answer: 1 },
+  { question: "What's the purpose of a 'swing block'?", choices: ["A fancy block name", "Using a running/step-close approach to get more height and lateral reach", "Swinging at the ball as a block", "A beach-only technique"], answer: 1 },
+  { question: "Why do teams 'pass to target'?", choices: ["Aesthetics", "So the setter has options for all three front-row attackers", "To slow down the game", "It's just a habit"], answer: 1 },
+  { question: "What's 'reading the hitter'?", choices: ["Watching the hitter's body to predict where they'll attack", "Memorizing stats", "Pre-scouting report", "Reading the scouting book"], answer: 0, fact: "Defenders watch shoulder and arm position mid-approach to anticipate the attack direction." },
 ];
 
 /** How many questions per trivia round */
