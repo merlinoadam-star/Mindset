@@ -28,7 +28,7 @@ create table if not exists public.parent_actions (
   id uuid primary key default gen_random_uuid(),
   parent_account_id uuid not null references public.accounts(id) on delete cascade,
   athlete_account_id uuid not null references public.accounts(id) on delete cascade,
-  action_type text not null check (action_type in ('check_in', 'playbook', 'cheer')),
+  action_type text not null check (action_type in ('check_in', 'playbook', 'cheer', 'daily_review')),
   date date not null,
   xp_earned int not null check (xp_earned >= 0),
   combo boolean not null default false,
