@@ -1,13 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4f46e5"/>
-      <stop offset="100%" style="stop-color:#1e1b4b"/>
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#0f172a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fcd34d"/>
+      <stop offset="100%" style="stop-color:#d97706"/>
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="96" fill="url(#bg)"/>
-  <!-- Flame / mindset icon -->
-  <path d="M256 96 C 200 176, 180 240, 220 296 C 200 280, 180 264, 176 240 C 156 296, 160 368, 224 400 C 256 416, 288 416, 320 400 C 376 376, 384 304, 368 256 C 360 272, 344 284, 328 288 C 352 248, 336 176, 288 144 C 296 176, 288 216, 264 240 C 272 208, 272 152, 256 96 Z" fill="#fff"/>
-  <!-- Subtle inner glow -->
-  <path d="M260 224 C 248 248, 232 264, 216 272 C 232 316, 252 336, 280 336 C 312 336, 328 312, 324 280 C 316 288, 304 292, 292 288 C 288 272, 280 248, 260 224 Z" fill="#fcd34d" opacity="0.9"/>
+  <!-- Bold "F" wordmark — Fearless -->
+  <g fill="url(#gold)">
+    <rect x="116" y="100" width="80"  height="312" rx="14"/>
+    <rect x="116" y="100" width="280" height="80"  rx="14"/>
+    <rect x="116" y="232" width="220" height="72"  rx="14"/>
+  </g>
 </svg>
