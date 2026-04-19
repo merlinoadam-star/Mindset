@@ -126,7 +126,7 @@ security definer
 set search_path = public
 as $$
 declare
-  caller_role text;
+  v_role text;
 begin
   if p_xp is null or p_xp <= 0 or p_xp > 50 then
     raise exception 'xp out of range';
@@ -134,14 +134,14 @@ begin
 
   -- Caller must have an accepted connection to the athlete.
   select c.connected_role
-    into caller_role
+    into v_role
     from public.connections c
    where c.athlete_account_id = p_athlete
      and c.other_account_id = auth.uid()
      and c.status = 'accepted'
    limit 1;
 
-  if caller_role is null then
+  if v_role is null then
     raise exception 'not connected to athlete';
   end if;
 
@@ -162,7 +162,7 @@ begin
   ) values (
     p_athlete,
     auth.uid(),
-    caller_role,
+    v_role,
     p_xp,
     p_reason
   );
