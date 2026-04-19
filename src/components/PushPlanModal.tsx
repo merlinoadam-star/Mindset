@@ -6,6 +6,7 @@ import {
   generateItemId,
   type PracticePlanItem,
 } from "../lib/practicePlanSync";
+import { showReward } from "./RewardToast";
 
 /**
  * Coach-facing modal: build today's practice plan for a single
@@ -115,6 +116,7 @@ export default function PushPlanModal({
       setError(error);
       return;
     }
+    showReward(0, [`__combo__Plan sent to ${athleteName}`]);
     onClose();
   };
 
@@ -127,7 +129,7 @@ export default function PushPlanModal({
         className="w-full sm:max-w-lg max-h-[92vh] bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-elevated flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <header className="flex items-center gap-3 px-5 py-4 border-b border-slate-200 dark:border-slate-800">
+        <header className="flex items-center gap-3 px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white flex items-center justify-center">
             <ClipboardList size={16} />
           </div>
@@ -148,7 +150,7 @@ export default function PushPlanModal({
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 min-h-0">
           <div>
             <label className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 block mb-1">
               Title
@@ -237,13 +239,21 @@ export default function PushPlanModal({
           </div>
 
           {error && (
-            <div className="text-xs text-red-600 dark:text-red-400 font-medium">
-              {error}
+            <div className="rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 px-3 py-2 text-xs text-red-700 dark:text-red-300 font-medium">
+              Couldn't push plan: {error}
+            </div>
+          )}
+
+          {!canSubmit && !submitting && (
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 text-center">
+              {title.trim().length === 0
+                ? "Give the plan a title."
+                : "Fill in at least one drill name to enable Push."}
             </div>
           )}
         </div>
 
-        <footer className="flex items-center gap-2 px-5 py-3 border-t border-slate-200 dark:border-slate-800">
+        <footer className="flex items-center gap-2 px-5 py-3 border-t border-slate-200 dark:border-slate-800 flex-shrink-0 bg-white dark:bg-slate-900">
           <button
             type="button"
             onClick={onClose}
@@ -256,8 +266,9 @@ export default function PushPlanModal({
             onClick={submit}
             disabled={!canSubmit}
             className="flex-[1.4] btn-primary !py-2.5 disabled:opacity-50"
+            aria-label={`Push plan to ${athleteName}`}
           >
-            {submitting ? "Pushing..." : "Push plan"}
+            {submitting ? "Pushing..." : `Push to ${athleteName.split(" ")[0] || "athlete"}`}
           </button>
         </footer>
       </div>
