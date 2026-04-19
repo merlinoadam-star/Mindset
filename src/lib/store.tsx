@@ -181,6 +181,8 @@ interface StoreContextValue {
   ) => { awardedXp: number; newlyUnlocked: string[]; isNewBest: boolean };
   /** Claim XP for the current week's cross-game challenge if completed. */
   claimWeeklyChallenge: () => { awardedXp: number };
+  /** Bump athlete XP from a coach-pushed practice plan item tick. */
+  awardXpFromPlan: (xp: number) => void;
   addOpponent: (
     data: Omit<OpponentEntry, "id" | "createdAt" | "updatedAt">
   ) => string;
@@ -1612,6 +1614,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return { awardedXp };
   }, []);
 
+  const awardXpFromPlan = useCallback((xp: number) => {
+    if (xp <= 0) return;
+    setState((prev) => ({
+      ...prev,
+      xp: prev.xp + xp,
+      lastActiveDate: todayISO(),
+    }));
+  }, []);
+
   const addOpponent = useCallback(
     (data: Omit<OpponentEntry, "id" | "createdAt" | "updatedAt">) => {
       const id = genId();
@@ -1978,6 +1989,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveNutritionLog,
     completeGameRound,
     claimWeeklyChallenge,
+    awardXpFromPlan,
     addOpponent,
     updateOpponent,
     deleteOpponent,

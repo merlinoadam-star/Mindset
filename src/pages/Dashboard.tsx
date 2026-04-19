@@ -11,6 +11,7 @@ import AvatarPicker, { AvatarCircle } from "../components/AvatarPicker";
 import { useState } from "react";
 import UnreadFeedbackBanner from "../components/UnreadFeedbackBanner";
 import WeeklyFocusCard from "../components/WeeklyFocusCard";
+import TodaysPlanCard from "../components/TodaysPlanCard";
 import ReminderBanner from "../components/ReminderBanner";
 import WeeklyWrapUpCard from "../components/WeeklyWrapUpCard";
 import DailyChallengeCard from "../components/DailyChallengeCard";
@@ -122,6 +123,8 @@ export default function Dashboard() {
       <UpcomingMatchesCard />
 
       <WeeklyFocusCard />
+
+      <TodaysPlanCard />
 
       <SpinWheelCard />
 
