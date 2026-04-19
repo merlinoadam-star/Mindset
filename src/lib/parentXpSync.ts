@@ -17,12 +17,17 @@ import { supabase } from "./supabase";
  *   - Athlete XP gifts require an accepted connection.
  */
 
-export type ParentActionType = "check_in" | "playbook" | "cheer";
+export type ParentActionType =
+  | "check_in"
+  | "playbook"
+  | "cheer"
+  | "daily_review";
 
 const BASE_XP: Record<ParentActionType, number> = {
   check_in: 10,
   playbook: 10,
   cheer: 5,
+  daily_review: 10,
 };
 
 export const PARENT_COMBO_BONUS = 5;
@@ -119,6 +124,7 @@ export async function logParentAction(params: {
       check_in: "Your parent checked in on you",
       playbook: "Your parent took a supporting action",
       cheer: "Your parent cheered for you",
+      daily_review: "Your parent reviewed your day",
     };
     supabase.rpc("grant_athlete_combo_xp", {
       p_athlete: params.athleteAccountId,

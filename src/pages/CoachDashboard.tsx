@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import CoachGuidedTutorial from "../components/CoachGuidedTutorial";
 import ParentCheckInCard from "../components/ParentCheckInCard";
+import ParentDailyReviewCard from "../components/ParentDailyReviewCard";
 import ParentPlaybookCard from "../components/ParentPlaybookCard";
 import ParentXPBar from "../components/ParentXPBar";
 import TeamBulkActions from "../components/TeamBulkActions";
@@ -250,6 +251,23 @@ export default function CoachDashboard() {
           </div>
         </div>
       )}
+
+      {/* Parent-only: daily review checklist per athlete. Parent
+          checks off practice log / check-in / habits / upcoming match;
+          full check-off awards parent XP with combo bonus. */}
+      {account?.role === "parent" &&
+        user &&
+        accepted.length > 0 && (
+          <div className="space-y-3">
+            {accepted.map((a) => (
+              <ParentDailyReviewCard
+                key={`review-${a.athleteAccountId}`}
+                athleteAccountId={a.athleteAccountId}
+                athleteName={a.name}
+              />
+            ))}
+          </div>
+        )}
 
       {/* Parent-only: daily Playbook — 1-3 contextual actions derived
           from each athlete's recent data. One card per accepted athlete
