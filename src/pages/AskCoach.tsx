@@ -161,8 +161,8 @@ export default function AskCoachPage() {
       </header>
 
       {/* Safety note — always visible */}
-      <div className="rounded-xl bg-slate-50 border border-slate-200 text-slate-700 px-3 py-2 text-xs flex items-start gap-2">
-        <Shield size={14} className="mt-0.5 flex-shrink-0 text-slate-500" />
+      <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 px-3 py-2 text-xs flex items-start gap-2">
+        <Shield size={14} className="mt-0.5 flex-shrink-0 text-slate-500 dark:text-slate-400" />
         <div>
           Your coach and parent can see these questions and answers too. AI
           Coach doesn&apos;t give medical, diet, or weight-cut advice — ask a

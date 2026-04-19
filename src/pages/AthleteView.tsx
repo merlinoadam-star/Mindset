@@ -275,13 +275,13 @@ export default function AthleteViewPage() {
             </div>
           </div>
         </div>
-        <div className="mt-3 h-2 bg-slate-100 rounded-full overflow-hidden">
+        <div className="mt-3 h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-brand-600 to-brand-400 rounded-full transition-all"
             style={{ width: `${info.progressPct}%` }}
           />
         </div>
-        <div className="mt-1.5 flex justify-between text-xs text-slate-500 font-semibold">
+        <div className="mt-1.5 flex justify-between text-xs text-slate-500 dark:text-slate-400 font-semibold">
           <span>Progress to level {info.level + 1}</span>
           <span>{info.progressPct}%</span>
         </div>
@@ -541,7 +541,7 @@ export default function AthleteViewPage() {
                     }) => (
                       <div
                         key={p.id}
-                        className="flex items-center gap-2 text-xs py-1 border-b border-slate-100 last:border-b-0"
+                        className="flex items-center gap-2 text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
                       >
                         <span className="text-slate-500 w-20 flex-shrink-0 tabular-nums">
                           {new Date(p.date + "T00:00:00").toLocaleDateString(
@@ -721,7 +721,7 @@ export default function AthleteViewPage() {
                   return (
                     <div
                       key={r.id}
-                      className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 last:border-b-0"
+                      className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
                     >
                       <span className="text-slate-600 font-semibold">
                         {new Date(r.date + "T00:00:00").toLocaleDateString(
@@ -818,7 +818,7 @@ export default function AthleteViewPage() {
                 }) => (
                   <li
                     key={t.id}
-                    className="flex items-start gap-2 py-1 border-b border-slate-100 last:border-b-0"
+                    className="flex items-start gap-2 py-1 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
                   >
                     <span>🏆</span>
                     <div className="flex-1">
@@ -853,7 +853,7 @@ export default function AthleteViewPage() {
               }) => (
                 <li
                   key={a.id}
-                  className="flex items-start gap-2 py-1 border-b border-slate-100 last:border-b-0"
+                  className="flex items-start gap-2 py-1 border-b border-slate-100 dark:border-slate-800 last:border-b-0"
                 >
                   <span>🎖️</span>
                   <div className="flex-1">
@@ -887,11 +887,11 @@ export default function AthleteViewPage() {
                 return (
                   <div
                     key={b.id}
-                    className="rounded-xl bg-slate-50 border border-slate-200 p-2 text-center"
+                    className="rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2 text-center"
                     title={def.description}
                   >
                     <div className="text-2xl">{def.emoji}</div>
-                    <div className="text-[9px] font-bold text-slate-700 mt-0.5 leading-tight">
+                    <div className="text-[9px] font-bold text-slate-700 dark:text-slate-200 mt-0.5 leading-tight">
                       {def.name}
                     </div>
                   </div>
@@ -1011,8 +1011,8 @@ export default function AthleteViewPage() {
         </Section>
       )}
 
-      <div className="card bg-slate-50 border-slate-200 text-xs text-slate-500 leading-relaxed">
-        <div className="flex items-center gap-1.5 mb-1 font-bold text-slate-600">
+      <div className="card bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+        <div className="flex items-center gap-1.5 mb-1 font-bold text-slate-600 dark:text-slate-300">
           <Zap size={12} /> <Flame size={12} />
           Coming next
         </div>
@@ -1155,7 +1155,7 @@ function MatchRow({
       )}
 
       {/* Feedback thread toggle */}
-      <div className="mt-2 pt-2 border-t border-slate-100">
+      <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-700">
         <button
           type="button"
           onClick={() => setShowFeedback((s) => !s)}
@@ -1227,15 +1227,15 @@ function StatTile({
   accent?: string;
 }) {
   return (
-    <div className="rounded-xl bg-slate-50 border border-slate-200 p-2.5 text-center">
+    <div className="rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-center">
       <div
         className={`text-xl font-extrabold tabular-nums ${
-          accent ?? "text-slate-900"
+          accent ?? "text-slate-900 dark:text-slate-100"
         }`}
       >
         {value}
       </div>
-      <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500 mt-0.5">
+      <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 mt-0.5">
         {label}
       </div>
     </div>
@@ -1335,7 +1335,7 @@ function VideoThumb({
   return (
     <button
       onClick={startPlayback}
-      className="text-left group rounded-2xl overflow-hidden bg-white border border-slate-200 shadow-card hover:shadow-card-hover transition"
+      className="text-left group rounded-2xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-card hover:shadow-card-hover transition"
     >
       <div className="aspect-video bg-slate-900 relative overflow-hidden">
         {video.thumbnail_data_url ? (

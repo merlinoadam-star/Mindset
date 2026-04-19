@@ -133,7 +133,7 @@ export default function CheerButtons({ athleteId }: { athleteId: string }) {
             placeholder="Write your own cheer..."
             rows={2}
             maxLength={200}
-            className="w-full text-sm bg-white border border-pink-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-pink-400"
+            className="w-full text-sm bg-white dark:bg-slate-800 border border-pink-200 dark:border-pink-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-pink-400"
             autoFocus
           />
           <div className="flex gap-2 justify-end">
@@ -143,7 +143,7 @@ export default function CheerButtons({ athleteId }: { athleteId: string }) {
                 setShowCustom(false);
                 setCustom("");
               }}
-              className="text-xs text-slate-500 font-medium px-3 py-1.5"
+              className="text-xs text-slate-500 dark:text-slate-400 font-medium px-3 py-1.5"
             >
               Cancel
             </button>
@@ -161,14 +161,14 @@ export default function CheerButtons({ athleteId }: { athleteId: string }) {
         <button
           type="button"
           onClick={() => setShowCustom(true)}
-          className="mt-2 w-full text-xs font-medium text-pink-700 hover:text-pink-900 py-1.5"
+          className="mt-2 w-full text-xs font-medium text-pink-700 dark:text-pink-300 hover:text-pink-900 dark:hover:text-pink-200 py-1.5"
         >
           + Write my own
         </button>
       )}
 
       {err && (
-        <div className="text-xs text-red-600 mt-2 font-medium">{err}</div>
+        <div className="text-xs text-red-600 dark:text-red-400 mt-2 font-medium">{err}</div>
       )}
     </div>
   );
