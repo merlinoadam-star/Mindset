@@ -124,24 +124,19 @@ returns void
 language plpgsql
 security definer
 set search_path = public
-as $$
-declare
-  v_role text;
+as $func$
 begin
   if p_xp is null or p_xp <= 0 or p_xp > 50 then
     raise exception 'xp out of range';
   end if;
 
   -- Caller must have an accepted connection to the athlete.
-  select c.connected_role
-    into v_role
-    from public.connections c
-   where c.athlete_account_id = p_athlete
-     and c.other_account_id = auth.uid()
-     and c.status = 'accepted'
-   limit 1;
-
-  if v_role is null then
+  if not exists (
+    select 1 from public.connections c
+    where c.athlete_account_id = p_athlete
+      and c.other_account_id = auth.uid()
+      and c.status = 'accepted'
+  ) then
     raise exception 'not connected to athlete';
   end if;
 
@@ -152,22 +147,28 @@ begin
          updated_at = now()
    where id = p_athlete;
 
-  -- Log the gift so the athlete can see it next time they load.
+  -- Log the gift, pulling the caller's role from the connection row
+  -- inline so we don't need a local variable.
   insert into public.athlete_xp_gifts (
     athlete_account_id,
     from_account_id,
     from_role,
     xp,
     reason
-  ) values (
+  )
+  select
     p_athlete,
     auth.uid(),
-    v_role,
+    c.connected_role,
     p_xp,
     p_reason
-  );
+  from public.connections c
+  where c.athlete_account_id = p_athlete
+    and c.other_account_id = auth.uid()
+    and c.status = 'accepted'
+  limit 1;
 end;
-$$;
+$func$;
 
 revoke all on function public.grant_athlete_combo_xp(uuid, int, text) from public;
 grant execute on function public.grant_athlete_combo_xp(uuid, int, text) to authenticated;
