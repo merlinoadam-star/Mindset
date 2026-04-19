@@ -28,6 +28,7 @@ import ParentCheckInCard from "../components/ParentCheckInCard";
 import ParentPlaybookCard from "../components/ParentPlaybookCard";
 import ParentXPBar from "../components/ParentXPBar";
 import TeamBulkActions from "../components/TeamBulkActions";
+import TeamLeaderboard from "../components/TeamLeaderboard";
 import {
   fetchTeamStats,
   type AthleteStat,
@@ -433,6 +434,13 @@ export default function CoachDashboard() {
           {/* Bulk team actions */}
           <TeamBulkActions
             athleteIds={accepted.map((a) => a.athleteAccountId)}
+          />
+
+          <TeamLeaderboard
+            athleteIds={accepted.map((a) => a.athleteAccountId)}
+            nameById={Object.fromEntries(
+              accepted.map((a) => [a.athleteAccountId, a.name])
+            )}
           />
 
           <section>

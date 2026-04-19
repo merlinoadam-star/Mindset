@@ -92,6 +92,7 @@ As the project evolved, new migrations were added alongside the main
 - `supabase/personal_records.sql` — personal records table + RLS
 - `supabase/adult_chats.sql` — coach↔parent private chats table + RLS
 - `supabase/parent_gamification.sql` — parent XP ledger, combo gifts, grant RPC
+- `supabase/team_leaderboard.sql` — weekly team mini-game XP leaderboard
 
 ## Push notifications (optional, Phase 2E)
 

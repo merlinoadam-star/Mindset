@@ -35,6 +35,7 @@ import {
   isChallengeComplete,
   rollWeeklyChallenge,
 } from "./weeklyChallenge";
+import { recordWeeklyGameXp } from "./leaderboardSync";
 import { habitsForSport, getHabit } from "./habits";
 import { todaysChallenge } from "./dailyChallenges";
 import { comboLabel, unclaimedComboXp } from "./combos";
@@ -1220,6 +1221,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return next;
       });
 
+      if (xpEarned > 0) recordWeeklyGameXp(xpEarned);
       return { awardedXp: xpEarned, newlyUnlocked };
     },
     []
@@ -1584,6 +1586,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
         return next;
       });
+      if (xp > 0) recordWeeklyGameXp(xp);
       return { awardedXp: xp, newlyUnlocked, isNewBest };
     },
     []
@@ -1916,6 +1919,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
         return next;
       });
+      // Only mini-game sessions count toward the team leaderboard —
+      // scenarios is the only kind that reaches this path from a game
+      // surface (breathing/visualization are tools, not games).
+      if (xp > 0 && kind === "scenarios") recordWeeklyGameXp(xp);
       return { awardedXp: xp, newlyUnlocked };
     },
     []
