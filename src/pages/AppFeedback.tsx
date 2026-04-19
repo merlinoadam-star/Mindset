@@ -7,10 +7,10 @@ import {
   MessageCircle,
   Send,
   Check,
-  Trash2,
 } from "lucide-react";
 import { useAuth } from "../lib/authContext";
 import { supabase } from "../lib/supabase";
+import FeedbackTicket from "../components/FeedbackTicket";
 
 const APP_OWNER_ID = import.meta.env.VITE_APP_OWNER_ACCOUNT_ID as string | undefined;
 
@@ -137,17 +137,8 @@ export default function AppFeedbackPage() {
     window.setTimeout(() => setSent(false), 2000);
   };
 
-  const deleteFeedback = async (id: string) => {
-    if (!supabase) return;
-    const { error: delErr } = await supabase
-      .from("app_feedback")
-      .delete()
-      .eq("id", id);
-    if (delErr) {
-      setHistoryError(`Couldn't delete: ${delErr.message}`);
-      return;
-    }
-    loadHistory();
+  const removeFromList = (id: string) => {
+    setHistory((prev) => prev.filter((f) => f.id !== id));
   };
 
   if (!configured || !user) {
@@ -293,51 +284,11 @@ export default function AppFeedbackPage() {
           <h2 className="section-label mb-2 px-1">All feedback</h2>
           <div className="space-y-2">
             {history.map((item) => (
-              <div key={item.id} className="card !p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
-                          item.feedback_type === "bug"
-                            ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
-                            : item.feedback_type === "idea"
-                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
-                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                        }`}
-                      >
-                        {item.feedback_type}
-                      </span>
-                      {item.display_name && (
-                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">
-                          {item.display_name}
-                          {item.role ? ` (${item.role})` : ""}
-                        </span>
-                      )}
-                      <span className="text-[10px] text-slate-400">
-                        {new Date(item.created_at).toLocaleDateString()}
-                      </span>
-                      {item.page && (
-                        <span className="text-[10px] text-slate-400">
-                          · {item.page}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 whitespace-pre-wrap leading-snug">
-                      {item.text}
-                    </p>
-                  </div>
-                  {account?.role === "coach" && (
-                    <button
-                      onClick={() => deleteFeedback(item.id)}
-                      aria-label="Delete feedback"
-                      className="text-slate-400 hover:text-red-500 flex-shrink-0"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  )}
-                </div>
-              </div>
+              <FeedbackTicket
+                key={item.id}
+                feedback={item}
+                onDeleted={removeFromList}
+              />
             ))}
           </div>
         </div>
