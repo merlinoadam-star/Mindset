@@ -140,7 +140,7 @@ export default function NutritionCard() {
   return (
     <div
       className={`card ${
-        done ? "bg-gradient-to-br from-lime-50 to-white border-lime-100" : ""
+        done ? "bg-gradient-to-br from-lime-50 to-white dark:from-lime-950/40 dark:to-slate-900 border-lime-100 dark:border-lime-800" : ""
       }`}
     >
       <button
@@ -151,14 +151,14 @@ export default function NutritionCard() {
         <div className="flex items-center gap-3">
           <div
             className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              done ? "bg-lime-500 text-white" : "bg-lime-100 text-lime-600"
+              done ? "bg-lime-500 text-white" : "bg-lime-100 dark:bg-lime-900/50 text-lime-600 dark:text-lime-300"
             }`}
           >
             {done ? <Check size={18} strokeWidth={3} /> : <Apple size={18} />}
           </div>
           <div className="text-left">
-            <div className="font-bold text-slate-900">Fuel Log</div>
-            <div className="text-xs text-slate-500">
+            <div className="font-bold text-slate-900 dark:text-slate-100">Fuel Log</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">
               {done ? summary(existing, waterGlasses) : "How did you fuel today?"}
             </div>
           </div>

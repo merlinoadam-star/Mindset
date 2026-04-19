@@ -78,16 +78,16 @@ export default function HabitsPage() {
                     onClick={() => onToggle(h.id)}
                     className={`w-full flex items-center gap-3 rounded-2xl p-4 border-2 transition-all duration-200 text-left ${
                       done
-                        ? "bg-green-50/80 border-green-300 shadow-glow-green"
-                        : "bg-white border-slate-100 hover:border-brand-200 hover:shadow-card-hover active:scale-[0.98]"
+                        ? "bg-green-50/80 dark:bg-green-950/40 border-green-300 dark:border-green-800 shadow-glow-green"
+                        : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-brand-200 dark:hover:border-brand-700 hover:shadow-card-hover active:scale-[0.98]"
                     }`}
                   >
                     <div className="text-3xl">{h.emoji}</div>
                     <div className="flex-1 min-w-0">
-                      <div className={`font-bold ${done ? "text-green-800" : "text-slate-900"}`}>
+                      <div className={`font-bold ${done ? "text-green-800 dark:text-green-200" : "text-slate-900 dark:text-slate-100"}`}>
                         {h.label}
                       </div>
-                      <div className={`text-xs truncate ${done ? "text-green-600" : "text-slate-500"}`}>
+                      <div className={`text-xs truncate ${done ? "text-green-600 dark:text-green-400" : "text-slate-500 dark:text-slate-400"}`}>
                         {h.description}
                       </div>
                     </div>
