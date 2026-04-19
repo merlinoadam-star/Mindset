@@ -14,6 +14,7 @@ import WeeklyFocusCard from "../components/WeeklyFocusCard";
 import ReminderBanner from "../components/ReminderBanner";
 import WeeklyWrapUpCard from "../components/WeeklyWrapUpCard";
 import DailyChallengeCard from "../components/DailyChallengeCard";
+import WeeklyChallengeCard from "../components/WeeklyChallengeCard";
 import ComboCard from "../components/ComboCard";
 import ComboGiftConsumer from "../components/ComboGiftConsumer";
 import SpinWheelCard from "../components/SpinWheelCard";
@@ -125,6 +126,8 @@ export default function Dashboard() {
       <SpinWheelCard />
 
       <DailyChallengeCard />
+
+      <WeeklyChallengeCard />
 
       <ComboCard />
 

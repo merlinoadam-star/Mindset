@@ -574,4 +574,24 @@ export interface AppState {
   gameBestScores: Record<string, number>;
   gameXpEarned: Record<string, number>;
   gamePlaysCount: Record<string, number>;
+  /**
+   * Weekly cross-game challenge. Optional for backwards compat with
+   * stored state from before the feature shipped — the store rolls
+   * it on first read.
+   */
+  weeklyChallenge?: {
+    weekIso: string;
+    snapshot: {
+      triviaRounds: number;
+      scenarioSessions: number;
+      reactionPlays: number;
+      reactionBest: number;
+      flashPlays: number;
+      flashBest: number;
+      playcallPlays: number;
+      playcallBest: number;
+      distinctGamesPlayed: number;
+    };
+    claimed: boolean;
+  };
 }

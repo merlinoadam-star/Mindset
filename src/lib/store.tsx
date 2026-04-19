@@ -30,6 +30,11 @@ import {
   saveVideoBlob,
 } from "./videoStorage";
 import { emptyState, loadState, saveState, clearState } from "./storage";
+import {
+  challengeForWeek,
+  isChallengeComplete,
+  rollWeeklyChallenge,
+} from "./weeklyChallenge";
 import { habitsForSport, getHabit } from "./habits";
 import { todaysChallenge } from "./dailyChallenges";
 import { comboLabel, unclaimedComboXp } from "./combos";
@@ -173,6 +178,8 @@ interface StoreContextValue {
     score: number,
     xp: number
   ) => { awardedXp: number; newlyUnlocked: string[]; isNewBest: boolean };
+  /** Claim XP for the current week's cross-game challenge if completed. */
+  claimWeeklyChallenge: () => { awardedXp: number };
   addOpponent: (
     data: Omit<OpponentEntry, "id" | "createdAt" | "updatedAt">
   ) => string;
@@ -1582,6 +1589,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const claimWeeklyChallenge = useCallback(() => {
+    let awardedXp = 0;
+    setState((prev) => {
+      // Ensure snapshot is current — roll if week changed since last read.
+      const rolled = rollWeeklyChallenge(prev, prev.weeklyChallenge);
+      const challenge = challengeForWeek(rolled.weekIso);
+      if (rolled.claimed) return { ...prev, weeklyChallenge: rolled };
+      if (!isChallengeComplete(challenge, prev, rolled.snapshot)) {
+        return { ...prev, weeklyChallenge: rolled };
+      }
+      awardedXp = challenge.xpReward;
+      return {
+        ...prev,
+        xp: prev.xp + awardedXp,
+        weeklyChallenge: { ...rolled, claimed: true },
+      };
+    });
+    return { awardedXp };
+  }, []);
+
   const addOpponent = useCallback(
     (data: Omit<OpponentEntry, "id" | "createdAt" | "updatedAt">) => {
       const id = genId();
@@ -1943,6 +1970,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveRecoveryCheckin,
     saveNutritionLog,
     completeGameRound,
+    claimWeeklyChallenge,
     addOpponent,
     updateOpponent,
     deleteOpponent,
