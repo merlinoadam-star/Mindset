@@ -94,6 +94,7 @@ As the project evolved, new migrations were added alongside the main
 - `supabase/parent_gamification.sql` — parent XP ledger, combo gifts, grant RPC
 - `supabase/team_leaderboard.sql` — weekly team mini-game XP leaderboard
 - `supabase/coach_practice_plans.sql` — coach-pushed daily practice plans + per-item completions
+- `supabase/video_annotations.sql` — adds timestamp_sec column to feedback for video-pinned notes
 
 ## Push notifications (optional, Phase 2E)
 

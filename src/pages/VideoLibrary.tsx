@@ -555,6 +555,15 @@ function VideoDetail({
   const [description, setDescription] = useState(video.description ?? "");
   const [selfNotes, setSelfNotes] = useState(video.selfNotes ?? "");
   const urlRef = useRef<string | null>(null);
+  const videoElRef = useRef<HTMLVideoElement>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+
+  function seekTo(seconds: number) {
+    const el = videoElRef.current;
+    if (!el) return;
+    el.currentTime = Math.max(0, seconds);
+    el.play().catch(() => {});
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -641,7 +650,14 @@ function VideoDetail({
             Loading...
           </div>
         ) : src ? (
-          <video src={src} controls playsInline className="w-full h-full" />
+          <video
+            ref={videoElRef}
+            src={src}
+            controls
+            playsInline
+            onTimeUpdate={(e) => setCurrentTime((e.target as HTMLVideoElement).currentTime)}
+            className="w-full h-full"
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">
             Couldn&apos;t load video
@@ -815,6 +831,8 @@ function VideoDetail({
           athleteId={user.id}
           targetType="video"
           targetId={video.id}
+          videoCurrentTime={currentTime}
+          onSeekTo={seekTo}
         />
       )}
 
