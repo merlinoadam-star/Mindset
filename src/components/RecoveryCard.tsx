@@ -45,7 +45,7 @@ export default function RecoveryCard() {
     <div
       className={`card ${
         done
-          ? "bg-gradient-to-br from-sky-50 to-white border-sky-100"
+          ? "bg-gradient-to-br from-sky-50 to-white dark:from-sky-950/40 dark:to-slate-900 border-sky-100 dark:border-sky-800"
           : ""
       }`}
     >
@@ -59,7 +59,7 @@ export default function RecoveryCard() {
             className={`w-10 h-10 rounded-xl flex items-center justify-center ${
               done
                 ? "bg-sky-500 text-white"
-                : "bg-sky-100 text-sky-600"
+                : "bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-300"
             }`}
           >
             {done ? (
@@ -69,8 +69,8 @@ export default function RecoveryCard() {
             )}
           </div>
           <div className="text-left">
-            <div className="font-bold text-slate-900">Recovery Check-In</div>
-            <div className="text-xs text-slate-500">
+            <div className="font-bold text-slate-900 dark:text-slate-100">Recovery Check-In</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">
               {done
                 ? summarizeRecovery(existing, sleepHours)
                 : "Sleep, soreness, energy — 30 seconds"}

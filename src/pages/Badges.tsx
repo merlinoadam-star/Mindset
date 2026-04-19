@@ -13,7 +13,7 @@ export default function BadgesPage() {
         <p className="page-subtitle">
           {unlockedCount} of {BADGES.length} unlocked
         </p>
-        <div className="mt-3 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+        <div className="mt-3 h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-brand-600 to-brand-400 rounded-full transition-all"
             style={{ width: `${(unlockedCount / BADGES.length) * 100}%` }}
@@ -29,8 +29,8 @@ export default function BadgesPage() {
               key={b.id}
               className={`rounded-3xl p-5 border text-center transition-all duration-200 ${
                 unlocked
-                  ? "bg-gradient-to-b from-white to-slate-50 border-brand-200 shadow-card"
-                  : "bg-slate-50 border-slate-100"
+                  ? "bg-gradient-to-b from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-brand-200 dark:border-brand-800 shadow-card"
+                  : "bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700"
               }`}
             >
               <div
@@ -42,14 +42,18 @@ export default function BadgesPage() {
               </div>
               <div
                 className={`font-bold mt-3 text-sm ${
-                  unlocked ? "text-slate-900" : "text-slate-400"
+                  unlocked
+                    ? "text-slate-900 dark:text-slate-100"
+                    : "text-slate-400 dark:text-slate-500"
                 }`}
               >
                 {b.name}
               </div>
               <div
                 className={`text-xs mt-1 leading-tight ${
-                  unlocked ? "text-slate-500" : "text-slate-400"
+                  unlocked
+                    ? "text-slate-500 dark:text-slate-400"
+                    : "text-slate-400 dark:text-slate-500"
                 }`}
               >
                 {unlocked ? b.description : b.requirement}

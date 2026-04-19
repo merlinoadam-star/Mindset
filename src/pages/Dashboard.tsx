@@ -285,41 +285,41 @@ export default function Dashboard() {
         <div className="grid grid-cols-4 gap-2">
           <Link
             to="/visualize"
-            className="rounded-2xl p-3 text-center bg-gradient-to-b from-purple-50 to-white border border-purple-100 hover:border-purple-200 hover:shadow-card-hover transition"
+            className="rounded-2xl p-3 text-center bg-gradient-to-b from-purple-50 to-white dark:from-purple-950/40 dark:to-slate-900 border border-purple-100 dark:border-purple-800 hover:border-purple-200 dark:hover:border-purple-700 hover:shadow-card-hover transition"
           >
-            <div className="w-9 h-9 mx-auto rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+            <div className="w-9 h-9 mx-auto rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 flex items-center justify-center">
               <Eye size={16} />
             </div>
-            <div className="text-[11px] font-bold text-slate-900 mt-2">
+            <div className="text-[11px] font-bold text-slate-900 dark:text-slate-100 mt-2">
               Visualize
             </div>
           </Link>
           <Link
             to="/breathe"
-            className="rounded-2xl p-3 text-center bg-gradient-to-b from-sky-50 to-white border border-sky-100 hover:border-sky-200 hover:shadow-card-hover transition"
+            className="rounded-2xl p-3 text-center bg-gradient-to-b from-sky-50 to-white dark:from-sky-950/40 dark:to-slate-900 border border-sky-100 dark:border-sky-800 hover:border-sky-200 dark:hover:border-sky-700 hover:shadow-card-hover transition"
           >
-            <div className="w-9 h-9 mx-auto rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center">
+            <div className="w-9 h-9 mx-auto rounded-xl bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-300 flex items-center justify-center">
               <Wind size={16} />
             </div>
-            <div className="text-[11px] font-bold text-slate-900 mt-2">Breathe</div>
+            <div className="text-[11px] font-bold text-slate-900 dark:text-slate-100 mt-2">Breathe</div>
           </Link>
           <Link
             to="/lessons"
-            className="rounded-2xl p-3 text-center bg-gradient-to-b from-amber-50 to-white border border-amber-100 hover:border-amber-200 hover:shadow-card-hover transition"
+            className="rounded-2xl p-3 text-center bg-gradient-to-b from-amber-50 to-white dark:from-amber-950/40 dark:to-slate-900 border border-amber-100 dark:border-amber-800 hover:border-amber-200 dark:hover:border-amber-700 hover:shadow-card-hover transition"
           >
-            <div className="w-9 h-9 mx-auto rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+            <div className="w-9 h-9 mx-auto rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-300 flex items-center justify-center">
               <BookOpen size={16} />
             </div>
-            <div className="text-[11px] font-bold text-slate-900 mt-2">Lessons</div>
+            <div className="text-[11px] font-bold text-slate-900 dark:text-slate-100 mt-2">Lessons</div>
           </Link>
           <Link
             to="/phrases"
-            className="rounded-2xl p-3 text-center bg-gradient-to-b from-red-50 to-white border border-red-100 hover:border-red-200 hover:shadow-card-hover transition"
+            className="rounded-2xl p-3 text-center bg-gradient-to-b from-red-50 to-white dark:from-red-950/40 dark:to-slate-900 border border-red-100 dark:border-red-800 hover:border-red-200 dark:hover:border-red-700 hover:shadow-card-hover transition"
           >
-            <div className="w-9 h-9 mx-auto rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
+            <div className="w-9 h-9 mx-auto rounded-xl bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-300 flex items-center justify-center">
               <Sword size={16} />
             </div>
-            <div className="text-[11px] font-bold text-slate-900 mt-2">Phrases</div>
+            <div className="text-[11px] font-bold text-slate-900 dark:text-slate-100 mt-2">Phrases</div>
           </Link>
         </div>
       </div>
@@ -327,16 +327,16 @@ export default function Dashboard() {
       {/* Recent Badges */}
       <div className="card">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-slate-900">Recent Badges</h2>
+          <h2 className="font-bold text-slate-900 dark:text-slate-100">Recent Badges</h2>
           <Link
             to="/badges"
-            className="text-brand-600 text-sm font-semibold hover:underline"
+            className="text-brand-600 dark:text-brand-400 text-sm font-semibold hover:underline"
           >
             See all
           </Link>
         </div>
         {recentBadges.length === 0 ? (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-400 dark:text-slate-500">
             No badges yet. Complete a habit to earn your first!
           </p>
         ) : (
@@ -347,10 +347,10 @@ export default function Dashboard() {
               return (
                 <div
                   key={ub.id}
-                  className="rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200 p-3 text-center shadow-sm"
+                  className="rounded-2xl bg-gradient-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 p-3 text-center shadow-sm"
                 >
                   <div className="text-3xl">{b.emoji}</div>
-                  <div className="text-[11px] font-bold mt-1.5 leading-tight text-slate-700">
+                  <div className="text-[11px] font-bold mt-1.5 leading-tight text-slate-700 dark:text-slate-200">
                     {b.name}
                   </div>
                 </div>
@@ -406,8 +406,8 @@ function QuickAction({
       to={to}
       className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-200 ${
         done
-          ? "bg-green-50/80 border-green-200 shadow-glow-green"
-          : "bg-white border-slate-100 hover:border-brand-200 hover:shadow-card-hover"
+          ? "bg-green-50/80 dark:bg-green-950/40 border-green-200 dark:border-green-800 shadow-glow-green"
+          : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-brand-200 dark:hover:border-brand-700 hover:shadow-card-hover"
       }`}
     >
       <div
@@ -419,13 +419,13 @@ function QuickAction({
       >
         {done ? "✓" : icon}
       </div>
-      <div className="flex-1 font-semibold text-slate-700 text-sm">{label}</div>
+      <div className="flex-1 font-semibold text-slate-700 dark:text-slate-100 text-sm">{label}</div>
       {progress && (
-        <span className="text-xs font-bold text-slate-400 tabular-nums">
+        <span className="text-xs font-bold text-slate-400 dark:text-slate-500 tabular-nums">
           {progress}
         </span>
       )}
-      <ArrowRight size={16} className="text-slate-300" />
+      <ArrowRight size={16} className="text-slate-300 dark:text-slate-600" />
     </Link>
   );
 }

@@ -308,7 +308,7 @@ export default function PracticePage() {
                   {p.drills.map((d) => (
                     <span
                       key={d}
-                      className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-semibold"
+                      className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-semibold"
                     >
                       {d}
                     </span>
