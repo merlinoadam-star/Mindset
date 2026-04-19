@@ -225,7 +225,7 @@ export default function SettingsPage() {
             <div className="font-bold text-slate-900">Guided setup</div>
             <div className="text-xs text-slate-500 mt-0.5">
               Show step-by-step tips at the top of your dashboard to help you
-              get the most out of Mindset.
+              get the most out of Fearless.
             </div>
           </div>
           <button
@@ -502,7 +502,7 @@ export default function SettingsPage() {
       )}
 
       <div className="text-center text-xs text-slate-400 pt-4">
-        Mindset · Built for Young Athletes
+        Fearless · Built for Young Athletes
       </div>
     </div>
   );

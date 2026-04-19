@@ -63,7 +63,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-800 to-brand-700 text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 text-white flex flex-col">
       <div className="absolute top-20 right-10 w-40 h-40 rounded-full bg-brand-500/20 blur-3xl" />
       <div className="absolute bottom-40 left-0 w-60 h-60 rounded-full bg-brand-400/10 blur-3xl" />
 
@@ -78,11 +78,14 @@ export default function Onboarding() {
               Welcome to
             </div>
             <h1 className="text-5xl font-extrabold mt-1 tracking-tight">
-              Mindset
+              Fearless
             </h1>
-            <p className="text-white/70 mt-4 text-base max-w-xs mx-auto leading-relaxed">
-              The mental game app for youth athletes. Build habits, prep for
-              matches, and grow stronger every day.
+            <p className="text-white/60 mt-2 text-xs uppercase tracking-[0.25em]">
+              The athlete&apos;s app. The family&apos;s corner.
+            </p>
+            <p className="text-white/70 mt-5 text-base max-w-xs mx-auto leading-relaxed">
+              Build habits. Prep for matches. Train your mindset. Grow stronger
+              every day — with your coach and family in your corner.
             </p>
 
             <div className="mt-8 grid grid-cols-2 gap-3 text-left max-w-sm mx-auto">

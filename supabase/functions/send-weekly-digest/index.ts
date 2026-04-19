@@ -24,7 +24,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const DIGEST_FROM =
-  Deno.env.get("DIGEST_FROM") || "Mindset <onboarding@resend.dev>";
+  Deno.env.get("DIGEST_FROM") || "Fearless <onboarding@resend.dev>";
 // Required: shared secret sent in `x-cron-secret` by the pg_cron job.
 // Without this, the function URL is publicly invokable and an attacker
 // could spam coach/parent inboxes with weekly summaries.
@@ -312,7 +312,7 @@ function renderEmailHtml(
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;">
 <div style="max-width:560px;margin:0 auto;padding:24px 16px;">
   <div style="text-align:center;margin-bottom:20px;">
-    <div style="display:inline-block;background:linear-gradient(135deg,#6366f1,#a855f7);color:white;font-weight:800;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 16px;border-radius:999px;">Mindset Weekly</div>
+    <div style="display:inline-block;background:linear-gradient(135deg,#f59e0b,#b45309);color:white;font-weight:800;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 16px;border-radius:999px;">Fearless Weekly</div>
   </div>
   <h1 style="font-size:28px;font-weight:800;line-height:1.15;margin:0 0 6px 0;">${escapeHtml(title)}</h1>
   <p style="color:#64748b;font-size:14px;margin:0 0 24px 0;">${escapeHtml(weekLabel)}${recipientName ? ` · Hi ${escapeHtml(recipientName)} 👋` : ""}</p>
@@ -320,8 +320,8 @@ function renderEmailHtml(
   ${cards}
 
   <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;line-height:1.5;">
-    <p style="margin:0 0 6px 0;">You're getting this because you're connected to ${summaries.length === 1 ? "this athlete" : "these athletes"} on Mindset.</p>
-    <p style="margin:0;">You can turn weekly digests off in your Mindset Settings → Notifications.</p>
+    <p style="margin:0 0 6px 0;">You're getting this because you're connected to ${summaries.length === 1 ? "this athlete" : "these athletes"} on Fearless.</p>
+    <p style="margin:0;">You can turn weekly digests off in your Fearless Settings → Notifications.</p>
   </div>
 </div>
 </body>
@@ -623,8 +623,8 @@ Deno.serve(async (req: Request) => {
 
     const subject =
       summaries.length === 1
-        ? `${summaries[0].athleteName}'s week on Mindset`
-        : `Weekly Mindset recap — ${summaries.length} athletes`;
+        ? `${summaries[0].athleteName}'s week on Fearless`
+        : `Weekly Fearless recap — ${summaries.length} athletes`;
 
     const result = await sendEmail(r.email, subject, html);
 

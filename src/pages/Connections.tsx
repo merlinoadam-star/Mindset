@@ -357,7 +357,7 @@ function InviteForm({
 
       if (lookupErr || !acct) {
         setError(
-          "No Mindset account found with that email. Ask them to sign up first."
+          "No Fearless account found with that email. Ask them to sign up first."
         );
         setSending(false);
         return;
@@ -470,7 +470,7 @@ function InviteForm({
           .invoke("send-push", {
             body: {
               toAccountId: recipientId,
-              title: `New Mindset invite`,
+              title: `New Fearless invite`,
               body: `${inviterName} (${roleLabel}) wants to connect.${
                 note.trim() ? ` "${note.trim().slice(0, 80)}"` : ""
               }`,
@@ -550,7 +550,7 @@ function InviteForm({
           />
         </div>
         <p className="text-[11px] text-slate-500 mt-1">
-          They must have a Mindset account with this email.
+          They must have a Fearless account with this email.
         </p>
       </div>
 

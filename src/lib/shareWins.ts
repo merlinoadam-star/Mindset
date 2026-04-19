@@ -134,10 +134,10 @@ function paintCanvas(data: ShareWinData): HTMLCanvasElement {
   ctx.fillStyle = "#ffffff";
   ctx.fillText(nameText, SIZE / 2, 920);
 
-  // Mindset branding bottom
+  // Fearless branding bottom
   ctx.font = "700 32px system-ui, -apple-system, sans-serif";
   ctx.fillStyle = "rgba(255,255,255,0.7)";
-  ctx.fillText("🔥 Mindset", SIZE / 2, 1020);
+  ctx.fillText("🔥 Fearless", SIZE / 2, 1020);
 
   return canvas;
 }

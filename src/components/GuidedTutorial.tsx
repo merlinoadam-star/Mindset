@@ -369,7 +369,7 @@ export default function GuidedTutorial() {
             icon={<Smartphone size={18} />}
             iconColor="from-brand-600 to-purple-600"
             title="Install on your device"
-            desc="Add Mindset to your home screen so it opens like a real app — faster, with push notifications, and no browser bar."
+            desc="Add Fearless to your home screen so it opens like a real app — faster, with push notifications, and no browser bar."
           >
             {canInstall && (
               <button
@@ -398,7 +398,7 @@ export default function GuidedTutorial() {
                       Scroll down → tap <strong>Add to Home Screen</strong>
                     </IosStep>
                     <IosStep n={3}>
-                      Tap <strong>Add</strong> → open Mindset from your home
+                      Tap <strong>Add</strong> → open Fearless from your home
                       screen
                     </IosStep>
                   </div>

@@ -46,7 +46,7 @@ export function InstallBanner() {
           <Smartphone size={18} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-bold text-slate-900">Install Mindset</div>
+          <div className="font-bold text-slate-900">Install Fearless</div>
           <div className="text-xs text-slate-600 mt-0.5 leading-snug">
             Add to your home screen for the full app experience — faster
             loading, push notifications, and no browser bar.
@@ -98,7 +98,7 @@ export function InstallBanner() {
                       3
                     </div>
                     <div>
-                      Tap <strong>Add</strong> — then open Mindset from your
+                      Tap <strong>Add</strong> — then open Fearless from your
                       home screen
                     </div>
                   </div>
