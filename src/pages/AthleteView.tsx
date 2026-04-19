@@ -28,6 +28,7 @@ import CoachVideoUpload from "../components/CoachVideoUpload";
 import { useRealtime } from "../lib/useRealtime";
 import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
+import { habitsForSport } from "../lib/habits";
 import {
   VOLLEYBALL_POSITION_LABELS,
   WRESTLING_STYLE_LABELS,
@@ -496,9 +497,9 @@ export default function AthleteViewPage() {
       {/* Training consistency — Phase 2B.5 */}
       {extra && (
         <Section
-          id="training-consistency"
+          id="practice-log"
           icon={<Flame size={14} />}
-          title="Training Consistency"
+          title="Practice Log"
         >
           <div className="grid grid-cols-4 gap-2">
             <StatTile
@@ -563,12 +564,71 @@ export default function AthleteViewPage() {
         </Section>
       )}
 
+      {/* Habits — today's checkmarks. Anchored so the parent's Daily
+          Review "View" link can deep-link here. */}
+      {extra && profile && (
+        <Section id="habits" icon={<Target size={14} />} title="Habits">
+          {(() => {
+            const today = new Date().toISOString().slice(0, 10);
+            const todayCompletions = (
+              extra.habits as Array<{ habit_id: string; date: string }>
+            ).filter((h) => h.date === today);
+            const allHabits = habitsForSport(profile.sport);
+            const completedIds = new Set(todayCompletions.map((h) => h.habit_id));
+
+            return (
+              <div>
+                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400 mb-2">
+                  Today · {todayCompletions.length} of {allHabits.length}
+                </div>
+                <div className="space-y-1.5">
+                  {allHabits.map((h) => {
+                    const done = completedIds.has(h.id);
+                    return (
+                      <div
+                        key={h.id}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <div
+                          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 ${
+                            done
+                              ? "bg-emerald-500 border-emerald-500 text-white"
+                              : "border-slate-300 dark:border-slate-600"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          {done ? "✓" : ""}
+                        </div>
+                        <span
+                          className={
+                            done
+                              ? "text-slate-500 dark:text-slate-400 line-through"
+                              : "text-slate-800 dark:text-slate-100"
+                          }
+                        >
+                          {h.emoji} {h.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {extra.habits.length > 0 && (
+                  <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
+                    All-time: {extra.habits.length} habit completions logged.
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </Section>
+      )}
+
       {/* Recent Mental Check-Ins */}
       {extra?.mentalCheckins && extra.mentalCheckins.length > 0 && (
         <Section
-          id="recent-checkins"
+          id="mental-checkin"
           icon={<Target size={14} />}
-          title="Recent Check-Ins"
+          title="Mental Check-In"
         >
           <div className="space-y-2">
             {extra.mentalCheckins

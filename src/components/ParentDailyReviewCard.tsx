@@ -34,10 +34,10 @@ interface Props {
 }
 
 const ITEMS = [
-  { id: "practice", label: "Practice log", icon: Activity, anchor: "training-consistency" },
-  { id: "checkin", label: "Mental check-in", icon: Heart, anchor: "recent-checkins" },
-  { id: "habits", label: "Habits", icon: CheckSquare, anchor: "training-consistency" },
-  { id: "match", label: "Upcoming match", icon: CalendarDays, anchor: "match-log" },
+  { id: "practice", label: "Practice Log", icon: Activity, anchor: "practice-log" },
+  { id: "checkin", label: "Mental Check-In", icon: Heart, anchor: "mental-checkin" },
+  { id: "habits", label: "Habits", icon: CheckSquare, anchor: "habits" },
+  { id: "match", label: "Match Log", icon: CalendarDays, anchor: "match-log" },
 ] as const;
 type ItemId = (typeof ITEMS)[number]["id"];
 
