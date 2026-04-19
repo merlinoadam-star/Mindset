@@ -263,6 +263,291 @@ export const WRESTLING_SCENARIOS: ScenarioCard[] = [
       "Celebrate briefly, then refocus. The next match doesn't care about the last one. Five minutes of pride, then back to your process. Champions finish tournaments, not just matches.",
     category: "mental",
   },
+  {
+    id: "w-down-late",
+    situation:
+      "Down 4-2 with 25 seconds left. You're on bottom. What's the call?",
+    options: [
+      "Wait for the whistle and try a stand-up — takedowns are 2 points and you only need 2",
+      "Explode on the whistle: stand up immediately, then attack a takedown before time runs out",
+      "Bridge hard for a reversal",
+      "Stall to avoid getting stuck — tie the match in OT",
+    ],
+    bestIndex: 1,
+    explanation:
+      "You need 2+ points in 25 seconds. Instant stand-up to create the escape AND force a scramble opportunity. Passive waiting wastes the only time you have.",
+    category: "tactics",
+  },
+  {
+    id: "w-mid-period-pins",
+    situation:
+      "You get caught in a headlock and go to your back. Ref is counting. Options?",
+    options: [
+      "Close your eyes and hope for the whistle",
+      "Drive your chest toward the mat, bridge hard, and keep fighting",
+      "Give up to avoid the pin — save points for next match",
+      "Argue with the ref about the count",
+    ],
+    bestIndex: 1,
+    explanation:
+      "Never stop fighting on your back. Bridge, turn toward the trapped arm, work your way out. Wrestlers who keep fighting escape pins — those who give up give up matches.",
+    category: "tactics",
+  },
+  {
+    id: "w-locker-room-cut",
+    situation:
+      "A teammate is making weight the wrong way — laxatives, hidden food purging. You've seen it twice. What do you do?",
+    options: [
+      "Mind your own business — not your weight, not your problem",
+      "Tell the coach or trainer quietly — this can be life-threatening",
+      "Confront them publicly in front of the team",
+      "Post a vague callout on social media",
+    ],
+    bestIndex: 1,
+    explanation:
+      "Disordered eating in wrestling is dangerous and common. Telling a trusted adult isn't snitching — it's protecting a teammate's life. Private > public is the right call.",
+    category: "teamwork",
+  },
+  {
+    id: "w-practice-injury",
+    situation:
+      "Two days before a tournament, you tweak your knee in a live go. It's a little swollen but you can walk. What's the best play?",
+    options: [
+      "Keep going hard — you need the reps",
+      "Ice, compression, rest for 24 hours, tell the trainer, re-assess tomorrow",
+      "Skip practice all week just to be safe",
+      "Wrap it tight and lie to coach so you can wrestle"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Early care prevents minor tweaks from becoming tournament-ending injuries. Honesty with coach and trainer = better decisions. Hiding injuries blows up a whole season.",
+    category: "recovery",
+  },
+  {
+    id: "w-backup-step-up",
+    situation:
+      "The starter at your weight gets sick the day of duals. Coach tells you you're in. You've been wrestling JV. What's your mindset?",
+    options: [
+      "Freak out — I'm not ready for this",
+      "This is what I've trained for. Same match I wrestle every day — just a different singlet. Go.",
+      "Ask coach if someone else can go instead",
+      "Go easy so I don't embarrass myself"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Opportunity doesn't announce itself. You've been preparing for this. Treat it like any other match — same technique, same effort. Stepping up builds confidence for the next time.",
+    category: "mental",
+  },
+  {
+    id: "w-tough-workout-morning",
+    situation:
+      "You slept poorly and practice is in 30 minutes. You feel exhausted. What do you do?",
+    options: [
+      "Skip practice — you need the sleep",
+      "Go in and go hard — no excuses",
+      "Go in, tell coach you're running on fumes, work the mental reps and technique at 80%",
+      "Drink two energy drinks and push through full speed"
+    ],
+    bestIndex: 2,
+    explanation:
+      "Showing up is half the battle. Honest communication lets coach adjust the plan. Grinding at 80% on fundamentals is smarter than red-lining and risking injury.",
+    category: "recovery",
+  },
+  {
+    id: "w-drill-partner-slacking",
+    situation:
+      "Your drill partner keeps going light — not resisting, not giving real looks. Your reps are getting sloppy. How do you handle it?",
+    options: [
+      "Just push through it — your partner isn't your problem",
+      "Calmly ask for more resistance: 'Give me 60% — I need better looks'",
+      "Complain to coach about them",
+      "Go hard on them to teach them a lesson"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Direct, respectful communication first. Most partners don't realize they're going too light. Frame it as 'help me get better' — not 'you suck'. Save the coach conversation for if it keeps happening.",
+    category: "teamwork",
+  },
+  {
+    id: "w-hard-weeks",
+    situation:
+      "You haven't wrestled well in 3 matches. Confidence is low. You feel like quitting. What's the move?",
+    options: [
+      "Quit — it's clearly not for you",
+      "Have a real conversation with coach about what's going wrong, then lean into the work",
+      "Stop caring about results to protect your ego",
+      "Blame your coach and change schools"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Slumps are temporary if you address them. Coach can see things you can't. The way out is usually technical + mental — fix what's broken, trust the process, results return.",
+    category: "mental",
+  },
+  {
+    id: "w-bad-draw",
+    situation:
+      "Bracket comes out. You have the returning state champ in round 1. Your teammates look shocked. What's your thought?",
+    options: [
+      "'Great — no pressure, all opportunity. If I lose, expected. If I win, legend.'",
+      "'Unfair draw. The bracket was rigged.'",
+      "'I should fake an injury and drop out'",
+      "'I'll just survive and hope for a lucky scramble'"
+    ],
+    bestIndex: 0,
+    explanation:
+      "Reframe the draw. Heavy favorites have everything to lose; you have everything to gain. Wrestle loose, trust your attack, leave it on the mat — upsets happen every tournament.",
+    category: "mental",
+  },
+  {
+    id: "w-teammate-choking",
+    situation:
+      "Your teammate is about to wrestle in the finals. You can tell they're freaking out — shaky, not warming up. You finished 3rd already. What's your move?",
+    options: [
+      "Leave them alone — they need to figure it out themselves",
+      "Remind them of one specific thing they did well today, walk them through their warm-up",
+      "Tell them they look scared and need to toughen up",
+      "Give them a pep talk about the crowd watching"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Calm presence + a concrete win recall beats motivational speeches. Shrink the focus to one thing they own. Walk them through the warm-up like any other match — routine steadies nerves.",
+    category: "teamwork",
+  },
+  {
+    id: "w-first-varsity-loss",
+    situation:
+      "Your first varsity match — you just got tech-falled. Coach is quiet. Your parents look disappointed. What do you do?",
+    options: [
+      "Never wrestle again — clearly not your level",
+      "Review the match with coach, identify 2 things to work on, commit to next practice",
+      "Blame the ref and the opponent for being dirty",
+      "Spiral — tell yourself you're terrible"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Every varsity wrestler's first loss is brutal. The ones who stick with it extract lessons and come back. Your second varsity match is where growth starts.",
+    category: "mental",
+  },
+  {
+    id: "w-trash-pre-match",
+    situation:
+      "The opposing coach is telling their wrestler loudly that you're 'nothing' and 'easy work'. You're warming up right next to them. Your move?",
+    options: [
+      "Yell back at the coach",
+      "Keep your earbuds in, stay in your warm-up routine, answer with your wrestling",
+      "Tell your coach to confront theirs",
+      "Get in the opponent's face before the whistle"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Their coach trash-talking is a sign they don't think they can win clean. Don't feed the energy. Your composure is itself a statement. Let your takedowns do the talking.",
+    category: "mental",
+  },
+  {
+    id: "w-bye-round",
+    situation:
+      "You got a bye in round 1. You won't wrestle for 3 hours. How do you handle the downtime?",
+    options: [
+      "Take off your singlet, eat a big meal, nap",
+      "Stay warm — light movement every 30 minutes, small snacks, watch matches actively, mental reset 15 min before",
+      "Hang out with friends off-mat",
+      "Do a full warm-up now so you're ready whenever"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Long byes kill legs and focus. Small movements, light fueling, active scouting. Full warm-up comes 15–20 min before mat call — too early and you peak before you wrestle.",
+    category: "recovery",
+  },
+  {
+    id: "w-social-media-trashtalk",
+    situation:
+      "An opponent is subtweeting you — 'Easy win tomorrow' vibes. Your friends are mad and want you to clap back. What's the play?",
+    options: [
+      "Reply with a fire tweet — put them in their place",
+      "Screenshot it, save it as motivation, stay silent, let the match speak",
+      "Block them",
+      "Report the account"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Public beef before a match is free energy — for THEM. Silence + a dominant performance is the rarest and most powerful combo. Let your work hit louder than your typing.",
+    category: "mental",
+  },
+  {
+    id: "w-cutting-too-much",
+    situation:
+      "You're on a dangerous cut and barely making weight every week. Your energy in matches is low. What's the right call?",
+    options: [
+      "Push through — championships require sacrifice",
+      "Talk to your coach and family about moving up a class. Health > weight class.",
+      "Cut even more aggressively to get comfortable",
+      "Find ways to sneak food while cheating the scale"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Chronic under-eating hurts development, strength, and mindset. Moving up one class often wins MORE matches because your strength returns. Coaches respect athletes who advocate for long-term health.",
+    category: "recovery",
+  },
+  {
+    id: "w-freezing-up",
+    situation:
+      "You freeze on the whistle — you can't move, you just react. Your opponent scores. How do you respond in the next 15 seconds?",
+    options: [
+      "Keep freezing — hope the period ends",
+      "Reset — whisper your go-to attack out loud to yourself, then execute it",
+      "Get mad at yourself and force a sloppy shot",
+      "Wait for the opponent's next move"
+    ],
+    bestIndex: 1,
+    explanation:
+      "A single action breaks the freeze. Verbalizing your next move (even silently) turns thinking into doing. One shot, one move, one action — restart the engine.",
+    category: "mental",
+  },
+  {
+    id: "w-cant-finish",
+    situation:
+      "You've shot 4 deep attacks but can't finish. Opponent keeps hip-blocking. What's the adjustment?",
+    options: [
+      "Keep shooting the same way — it'll break through eventually",
+      "Switch to setups that expose their hip: change levels first, or snap them down",
+      "Give up on takedowns, ride for points",
+      "Stop attacking — don't risk another failed shot"
+    ],
+    bestIndex: 1,
+    explanation:
+      "If something isn't working, adjust. Same input = same output. A snap-down or level change breaks their hip posture and creates the opening that deep shots alone can't.",
+    category: "tactics",
+  },
+  {
+    id: "w-late-match-conditioning",
+    situation:
+      "It's the third period and your lungs are screaming. The opponent looks fresher. What's the mental frame?",
+    options: [
+      "'I'm too tired — hope he doesn't attack'",
+      "'I've been to this place in practice 1000 times. One more sprint. One more breath.'",
+      "'Just hold on to the tie'",
+      "'If I score I win — all-in on one big shot'"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Third period is mental. You've trained specifically for this moment. Anchor to the reps you've done. Opponents bluff fresh — many are as tired as you. First one to show it loses.",
+    category: "mental",
+  },
+  {
+    id: "w-losing-stance",
+    situation:
+      "Mid-match, you realize you've been standing up straight — head above your hips — and you've been getting snapped. Adjustment?",
+    options: [
+      "Stay tall — you can defend from up there",
+      "Drop your level, knees bent, butt back, head up. Fix the stance first, offense second.",
+      "Go defensive only — stall out the period",
+      "Shoot faster before they can snap you"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Stance = survival. Bad stance = exposed to snaps, easy to move. Fix posture before anything else — it's the foundation every other move rides on.",
+    category: "tactics",
+  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -537,6 +822,291 @@ export const VOLLEYBALL_SCENARIOS: ScenarioCard[] = [
     bestIndex: 1,
     explanation:
       "Peak emotional highs lead to flat next performances. Celebrate, then compartmentalize. The next team doesn't care about your last win. Stay hungry, stay ready.",
+    category: "mental",
+  },
+  {
+    id: "v-serving-game",
+    situation:
+      "You're serving down 22-24. One mistake and the set's over. Your coach wants you to go aggressive. What's the right call?",
+    options: [
+      "Play safe — just get it in",
+      "Trust your aggressive serve — a safe serve to a good team loses the set anyway",
+      "Ask to be subbed out",
+      "Serve to the opponent's best passer on purpose"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Scared serves on match point die short or go long. Your aggressive serve got you to 22 — trust it. Good teams eat soft serves for breakfast.",
+    category: "mental",
+  },
+  {
+    id: "v-setter-nightmare",
+    situation:
+      "You're the setter. The first pass is shanked off the net. You have to chase it. What's the best option?",
+    options: [
+      "Bump set the ball to your left-side hitter — flat and fast",
+      "Let it drop — can't save a bad pass",
+      "Run under and try a one-handed set from 6 feet off",
+      "Free-ball it over the net gently"
+    ],
+    bestIndex: 3,
+    explanation:
+      "When the pass is shanked, don't force offense. A controlled free ball resets the rally. Fancy plays from bad positions lose points. Simplify when the situation is bad.",
+    category: "tactics",
+  },
+  {
+    id: "v-starter-loss",
+    situation:
+      "You got moved to the bench after being the starter all year. The player who replaced you is now playing well. What do you do?",
+    options: [
+      "Cheer loud, study them, support them — your turn comes when coach trusts you again",
+      "Sit on the bench quietly, don't engage",
+      "Tell teammates you should be starting",
+      "Skip the next few practices in protest"
+    ],
+    bestIndex: 0,
+    explanation:
+      "How you handle getting benched says more to a coach than your play. Active support + watching = earned trust later. Sulking = staying on the bench longer.",
+    category: "mental",
+  },
+  {
+    id: "v-ref-bad-call",
+    situation:
+      "Ref calls a net violation on you — you didn't touch it. Your coach calls for the review but can't overturn it. You lost the point. Next serve is coming. What's your internal state?",
+    options: [
+      "Dwell on it — this isn't fair",
+      "One breath, 'let it go', ready position, eyes on the server",
+      "Argue with the ref every time they look at you",
+      "Tell teammates the ref is cheating you"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Calls even out over a season. One bad call costs 1 point; dwelling costs 3-4 more points AND your team's energy. Next ball — same focus, same you.",
+    category: "mental",
+  },
+  {
+    id: "v-team-meeting",
+    situation:
+      "Two teammates have been feuding for a week. It's starting to hurt practice. You're a senior. What do you do?",
+    options: [
+      "Stay out — not your drama",
+      "Pull them aside separately, hear both sides, then facilitate a conversation — or tell coach",
+      "Take one side publicly",
+      "Post something on the team group chat to force it out"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Senior leaders solve things at the lowest level possible. Separate conversations de-escalate, then a calm face-to-face. Coach involvement is the next step if peer mediation fails.",
+    category: "teamwork",
+  },
+  {
+    id: "v-block-getting-hammered",
+    situation:
+      "The opposing outside is hitting through you every rotation. Your block is getting tooled or going over. What's the adjustment?",
+    options: [
+      "Keep blocking the same way — eventually you'll get them",
+      "Press harder over the net AND watch their last hop for the shoulder angle",
+      "Give up on blocking, play defense in the back row",
+      "Try to hit the ball with your face"
+    ],
+    bestIndex: 1,
+    explanation:
+      "If you can't beat them with height, beat them with reads. Watch their approach and shoulder — that's where they tell you the swing direction. Then penetrate the net.",
+    category: "tactics",
+  },
+  {
+    id: "v-perfect-pass-pressure",
+    situation:
+      "You're serve-receiving in the biggest point of your season. The opposing server is their ace. What's your mental cue?",
+    options: [
+      "'Don't shank it, don't shank it'",
+      "'Platform, target, breathe — just the next pass.'",
+      "'I need to be perfect here'",
+      "'Please don't serve at me'"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Negative self-talk ('don't shank') tells your brain 'shank'. Process cues (platform, target, breathe) put attention on what you control. Simple = reliable.",
+    category: "mental",
+  },
+  {
+    id: "v-kill-celebration",
+    situation:
+      "You just got a massive kill to tie the game. The crowd erupts. Your next play is right now. What's the play?",
+    options: [
+      "Celebrate hard with teammates, take your time",
+      "Quick team tap, back to ready position, eyes up — next ball is yours to earn",
+      "Stare down the opposing blocker",
+      "Look into the crowd for your parents"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Short celebration, long focus. Top teams celebrate for 2 seconds and reset. Long celebrations drain energy + tell the opponent you peaked — they regroup while you're posing.",
+    category: "mental",
+  },
+  {
+    id: "v-library-down",
+    situation:
+      "The libero just dove and is slow to get up after a dig. The play continues. Your opponent attacks her zone. What do you do?",
+    options: [
+      "Assume she's got it — she's a pro",
+      "Communicate loudly — 'Got it!' — and cover her zone yourself",
+      "Wait to see if she can get up",
+      "Run her off the court"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Communication wins rallies. When a teammate is compromised, cover without waiting to be asked. Teams that cover each other's weaknesses turn defense into offense.",
+    category: "teamwork",
+  },
+  {
+    id: "v-warmup-miss",
+    situation:
+      "You missed every single hit in warm-ups. Now the match is starting and you're up to hit. What's your approach?",
+    options: [
+      "Tip everything the first few times to avoid errors",
+      "Your warm-up isn't your match. Trust your reps. Swing with intent on your first opportunity.",
+      "Ask the setter to give you easy sets",
+      "Fake a minor injury to sit out the first rotation"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Warm-up misses don't mean match misses. Pros have bad warm-ups and great games all the time. Commitment + clear target resets your swing. Tipping all match = predictable.",
+    category: "mental",
+  },
+  {
+    id: "v-crowd-heckling",
+    situation:
+      "The opposing student section is chanting your name and a rude nickname every time you serve. You're getting rattled. What do you do?",
+    options: [
+      "Make a gesture at them",
+      "Laugh internally — 'they only heckle people they're worried about' — then run your routine",
+      "Ask the ref to stop them",
+      "Miss on purpose so you stop serving"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Heckling is a compliment in disguise. Reframe it: they're scared of you. Go back to your routine — same toss, same contact — and let your serve shut them up.",
+    category: "mental",
+  },
+  {
+    id: "v-playing-after-illness",
+    situation:
+      "You had the flu 3 days ago. You feel 80%. Coach wants you in the starting lineup. What's the right move?",
+    options: [
+      "Start and go 100% like nothing happened",
+      "Tell coach honestly where you're at so they can plan subs — then go as hard as you can",
+      "Pretend you're sicker than you are to avoid starting",
+      "Play but go easy without telling coach"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Honest communication lets coach manage your minutes. You going 80% with rest is better for the team than 100% for 10 points and then gassed for the set. Adults make adult decisions.",
+    category: "recovery",
+  },
+  {
+    id: "v-captain-silence",
+    situation:
+      "You're the team captain. The team lost a tight match. In the locker room, nobody is talking. What do you say?",
+    options: [
+      "Nothing — let the loss sink in",
+      "Acknowledge the loss, name ONE thing the team did great, name ONE thing to work on next practice, end with 'We go again'",
+      "Make a long emotional speech about never giving up",
+      "Chew out specific teammates"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Captains shape the 15 minutes after a loss. Brief, honest, forward-looking. Silence lets doubt fester. A specific win-and-lesson turns the loss into fuel for the next practice.",
+    category: "teamwork",
+  },
+  {
+    id: "v-set-lag",
+    situation:
+      "Your setter keeps setting too tight to the net — making it easy for blockers. You've told her twice. It's still happening. What's your next move?",
+    options: [
+      "Yell at her in front of the team",
+      "Between points: 'Pull it 2 feet off — I need the space'. Clear, specific, respectful.",
+      "Stop hitting her sets — tip everything",
+      "Complain to the coach mid-match"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Feedback should be specific + actionable ('pull it 2 feet') not emotional ('your sets suck'). Setters can adjust with clear input but not with frustration. Respect wins reps.",
+    category: "teamwork",
+  },
+  {
+    id: "v-coach-sub-quiet",
+    situation:
+      "Coach subs you in mid-rotation. You'll serve in 2 rotations. What do you do right now?",
+    options: [
+      "Find my spot, eyes up, watch the game, stay loose",
+      "Hurry to my position — panic face",
+      "Ask the ref what just happened",
+      "Whisper 'don't mess up' to yourself"
+    ],
+    bestIndex: 0,
+    explanation:
+      "Subs happen. Walk in like you belong. Active observation of the game tempo + loose body = smooth first touch. Calm presence radiates to teammates.",
+    category: "mental",
+  },
+  {
+    id: "v-pre-tournament-nerves",
+    situation:
+      "It's the night before the biggest tournament of the year. You can't sleep. What do you do?",
+    options: [
+      "Stare at the ceiling and will yourself to sleep",
+      "Get out of bed, dim the lights, 10 min of box breathing, read something light, back to bed",
+      "Scroll your phone to tire yourself out",
+      "Take sleeping pills"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Lying there spikes stress. Get up, reset the nervous system, return when sleepy. Even 5 hours of decent sleep after reset beats 8 hours of rolling anxiety. Phones at night = worse sleep.",
+    category: "recovery",
+  },
+  {
+    id: "v-bench-teammate-down",
+    situation:
+      "You're on the bench. A teammate on the court just made a huge error and looks devastated. Next timeout is in 5 points. What do you do?",
+    options: [
+      "Wait for the timeout to talk to her",
+      "Stand up, catch her eye, clap hard, mouth 'let's go' — right now",
+      "Text her from the bench",
+      "Say something to coach about subbing her out"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Support can't wait 5 points. A single visible clap + eye contact from the bench pulls a teammate back before the next rally. Later is too late — right now is how teams stay together.",
+    category: "teamwork",
+  },
+  {
+    id: "v-wrong-play-call",
+    situation:
+      "Your setter called a quick, but the middle isn't ready. The ball is already in the air. What do you do as the setter?",
+    options: [
+      "Set the quick anyway — commit to the call",
+      "Read it instantly, set the outside hitter instead — audible",
+      "Overhand the ball over the net",
+      "Let the ball drop"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Great setters see what IS, not what they called. Adjust live. An outside hitter swinging is infinitely better than a quick with nobody there. Audibles are the sign of a high-IQ setter.",
+    category: "tactics",
+  },
+  {
+    id: "v-post-match-feedback",
+    situation:
+      "Your dad corners you after the match and lists 6 things you did wrong. You played a tough match and lost. How do you respond?",
+    options: [
+      "Argue each point in detail",
+      "'Thanks — I'll think about it after I decompress. Give me 20 minutes'",
+      "Shut down and not talk to him the rest of the night",
+      "Take it all in and beat yourself up"
+    ],
+    bestIndex: 1,
+    explanation:
+      "Setting boundaries politely is healthy. Post-match adrenaline + criticism = conflict. A 20-minute decompression lets you actually absorb the feedback later — or push back respectfully if it's not helpful.",
     category: "mental",
   },
 ];

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Heart, Check } from "lucide-react";
 import { useAuth } from "../lib/authContext";
 import { postFeedback } from "../lib/feedbackSync";
+import { logParentAction } from "../lib/parentXpSync";
+import { showReward } from "./RewardToast";
 
 /**
  * Phase 3A.2 — one-tap encouragement. Coach / parent picks a preset
@@ -48,6 +50,23 @@ export default function CheerButtons({ athleteId }: { athleteId: string }) {
     }
     setSent(text);
     window.setTimeout(() => setSent(null), 2000);
+    // Award XP to parents for sending a cheer. Coaches are out of
+    // scope for this pass. The DB caps at one cheer award per
+    // (parent, athlete, day).
+    if (account.role === "parent") {
+      logParentAction({
+        parentAccountId: account.id,
+        athleteAccountId: athleteId,
+        actionType: "cheer",
+      }).then((res) => {
+        if (res.awardedXp > 0) {
+          showReward(
+            res.awardedXp,
+            res.combo ? ["__combo__Combo with your athlete!"] : []
+          );
+        }
+      });
+    }
   };
 
   const handleCustomSubmit = async () => {

@@ -39,6 +39,7 @@ const ScenariosPage = lazy(() => import("./pages/Scenarios"));
 const GamesPage = lazy(() => import("./pages/Games"));
 const ReactionTapPage = lazy(() => import("./pages/ReactionTap"));
 const FocusFlashPage = lazy(() => import("./pages/FocusFlash"));
+const PlayCallPage = lazy(() => import("./pages/PlayCall"));
 const VideoLibraryPage = lazy(() => import("./pages/VideoLibrary"));
 const OpponentsPage = lazy(() => import("./pages/Opponents"));
 const VoicePersonasPage = lazy(() => import("./pages/VoicePersonas"));
@@ -168,6 +169,7 @@ function AppShell() {
             <Route path="games" element={<GamesPage />} />
             <Route path="games/reaction" element={<ReactionTapPage />} />
             <Route path="games/flash" element={<FocusFlashPage />} />
+            <Route path="games/playcall" element={<PlayCallPage />} />
             <Route path="videos" element={<VideoLibraryPage />} />
             <Route path="opponents" element={<OpponentsPage />} />
             <Route path="voice" element={<VoicePersonasPage />} />

@@ -100,6 +100,49 @@ const EXERCISES: BreathingExercise[] = [
     description:
       "Research-backed rhythm that syncs your heart rate and breathing. Deeply calming.",
   },
+  {
+    id: "sigh",
+    name: "Physiological Sigh",
+    subtitle: "Double inhale, long exhale · Fast reset",
+    emoji: "😮‍💨",
+    pattern: [
+      { label: "Inhale", seconds: 2 },
+      { label: "Inhale", seconds: 1 },
+      { label: "Exhale", seconds: 6 },
+    ],
+    cycles: 5,
+    xp: 10,
+    description:
+      "The fastest known way to drop stress. Two quick inhales through your nose, one long exhale through your mouth. Used by Stanford neuroscientists and top athletes between points.",
+  },
+  {
+    id: "match-reset",
+    name: "Between-Point Reset",
+    subtitle: "4-6 · Quick recovery rhythm",
+    emoji: "🔄",
+    pattern: [
+      { label: "Inhale", seconds: 4 },
+      { label: "Exhale", seconds: 6 },
+    ],
+    cycles: 5,
+    xp: 10,
+    description:
+      "Short enough to use between points or periods. The longer exhale activates your rest-and-digest system without putting you to sleep.",
+  },
+  {
+    id: "wim",
+    name: "Power Breath",
+    subtitle: "30 deep breaths + hold · Pre-lift / pre-match",
+    emoji: "🦁",
+    pattern: [
+      { label: "Inhale", seconds: 1 },
+      { label: "Exhale", seconds: 1 },
+    ],
+    cycles: 30,
+    xp: 15,
+    description:
+      "Inspired by Wim Hof: 30 rapid deep breaths to flood your system with energy. Do this seated — it can make you lightheaded. Follow with 1-2 min of calm breathing before competing.",
+  },
 ];
 
 export default function BreathePage() {

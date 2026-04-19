@@ -117,3 +117,52 @@ begin
 exception
   when duplicate_object then null;
 end $$;
+
+-- ============================================================================
+-- Co-supporter visibility — required for the chat to be DISCOVERABLE.
+--
+-- Without these expansions, a coach can't see the parent's connection row
+-- (and vice versa), so PrivateChatsSection has nothing to list and the
+-- card never renders. We expand:
+--   1. connections.SELECT — co-supporters of the same athlete can see each
+--      other's accepted connection rows (scoped: status='accepted' only).
+--   2. accounts.SELECT — you can read an account if you share an athlete
+--      (both accepted) with them.
+--
+-- These are additive to the existing "self + direct connection" rules and
+-- scoped narrowly: you only gain visibility into adults who support the
+-- same athlete(s) you do.
+-- ============================================================================
+
+drop policy if exists "connection read" on public.connections;
+create policy "connection read" on public.connections
+  for select using (
+    auth.uid() = athlete_account_id
+    or auth.uid() = other_account_id
+    or (
+      status = 'accepted'
+      and public.is_connected_to_athlete(athlete_account_id)
+    )
+  );
+
+drop policy if exists "accounts read" on public.accounts;
+create policy "accounts read" on public.accounts
+  for select using (
+    auth.uid() = id
+    or exists (
+      select 1 from public.connections c
+      where (
+        (c.athlete_account_id = auth.uid() and c.other_account_id = accounts.id)
+        or (c.other_account_id = auth.uid() and c.athlete_account_id = accounts.id)
+      )
+    )
+    or exists (
+      -- Co-supporter: accounts.id is connected to an athlete I'm also
+      -- connected to (both accepted). Uses the security-definer helper
+      -- to avoid recursing through connections RLS.
+      select 1 from public.connections c
+      where c.other_account_id = accounts.id
+        and c.status = 'accepted'
+        and public.is_connected_to_athlete(c.athlete_account_id)
+    )
+  );
