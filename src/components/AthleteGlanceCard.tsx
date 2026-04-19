@@ -103,15 +103,15 @@ function StatTile({
   sub?: string;
 }) {
   return (
-    <div className="rounded-xl bg-slate-50 border border-slate-100 p-2.5">
-      <div className="text-[9px] uppercase tracking-wider font-bold text-slate-500">
+    <div className="rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-2.5">
+      <div className="text-[9px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400">
         {label}
       </div>
-      <div className="text-xl font-extrabold tabular-nums text-slate-900 leading-none mt-1">
+      <div className="text-xl font-extrabold tabular-nums text-slate-900 dark:text-slate-100 leading-none mt-1">
         {value}
       </div>
       {sub && (
-        <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
           {sub}
         </div>
       )}

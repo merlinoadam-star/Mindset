@@ -130,22 +130,22 @@ export default function FeedbackThread({
 
   return (
     <div
-      className={`rounded-2xl border border-slate-200 bg-slate-50/50 ${
+      className={`rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 ${
         compact ? "p-3 space-y-2.5" : "p-4 space-y-3"
       }`}
     >
-      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-bold text-slate-500">
+      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-bold text-slate-500 dark:text-slate-400">
         <MessageSquare size={12} />
         Coach / Parent Notes
         {items.length > 0 && (
-          <span className="ml-1 text-slate-400">· {items.length}</span>
+          <span className="ml-1 text-slate-400 dark:text-slate-500">· {items.length}</span>
         )}
       </div>
 
       {loading ? (
-        <div className="text-xs text-slate-400">Loading notes...</div>
+        <div className="text-xs text-slate-400 dark:text-slate-500">Loading notes...</div>
       ) : items.length === 0 ? (
-        <div className="text-xs text-slate-400 italic">
+        <div className="text-xs text-slate-400 dark:text-slate-500 italic">
           No notes yet. Add one below.
         </div>
       ) : (
@@ -155,7 +155,7 @@ export default function FeedbackThread({
             return (
               <li
                 key={it.id}
-                className="rounded-xl bg-white border border-slate-200 p-3"
+                className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3"
               >
                 <div className="flex items-start gap-2">
                   <div className="text-lg flex-shrink-0 pt-0.5">
@@ -163,10 +163,10 @@ export default function FeedbackThread({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-bold text-slate-900">
+                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
                         {it.author_name || ACCOUNT_ROLE_LABELS[it.author_role]}
                       </span>
-                      <span className="text-[10px] text-slate-400">
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">
                         {formatAgo(it.created_at)}
                       </span>
                       {isMine && it.read_at && (
@@ -182,7 +182,7 @@ export default function FeedbackThread({
                   {isMine && (
                     <button
                       onClick={() => onDelete(it.id)}
-                      className="w-6 h-6 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 flex items-center justify-center flex-shrink-0"
+                      className="w-6 h-6 rounded-lg text-slate-300 dark:text-slate-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center flex-shrink-0"
                       aria-label="Delete note"
                     >
                       <Trash2 size={11} />

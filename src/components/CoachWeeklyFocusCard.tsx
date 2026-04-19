@@ -309,8 +309,8 @@ function SkillCatalogPicker({
             onClick={() => onPick(s)}
             className={`w-full text-left flex items-start gap-2 p-2 rounded-lg border transition ${
               selectedId === s.id
-                ? "bg-amber-50 border-amber-400"
-                : "border-slate-100 hover:bg-slate-50"
+                ? "bg-amber-50 dark:bg-amber-950/40 border-amber-400 dark:border-amber-700"
+                : "border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
             }`}
           >
             <div className="text-xl flex-shrink-0 leading-none mt-0.5">
