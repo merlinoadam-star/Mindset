@@ -51,7 +51,13 @@ interface Previews {
   practice: { practicesThisWeek: number };
   checkin: { mood: number | null };
   habits: { done: number; total: number };
-  match: { nextMatchDate: string | null; nextMatchOpponent: string | null };
+  match: {
+    totalLogged: number;
+    nextMatchDate: string | null;
+    nextMatchOpponent: string | null;
+    lastMatchDate: string | null;
+    lastMatchOpponent: string | null;
+  };
 }
 
 function storageKey(parentId: string, athleteId: string): string {
@@ -118,32 +124,48 @@ export default function ParentDailyReviewCard({
     const today = todayISO();
     const monday = mondayISOLocal();
 
-    const [practiceRes, checkinRes, habitRes, matchRes] = await Promise.all([
-      supabase
-        .from("practices")
-        .select("id", { head: true, count: "exact" })
-        .eq("athlete_id", athleteAccountId)
-        .gte("date", monday),
-      supabase
-        .from("mental_checkins")
-        .select("mood")
-        .eq("athlete_id", athleteAccountId)
-        .eq("date", today)
-        .maybeSingle(),
-      supabase
-        .from("habit_completions")
-        .select("habit_id")
-        .eq("athlete_id", athleteAccountId)
-        .eq("date", today),
-      supabase
-        .from("matches")
-        .select("date, opponent")
-        .eq("athlete_id", athleteAccountId)
-        .gte("date", today)
-        .order("date", { ascending: true })
-        .limit(1)
-        .maybeSingle(),
-    ]);
+    const [practiceRes, checkinRes, habitRes, upcomingRes, lastRes, countRes] =
+      await Promise.all([
+        supabase
+          .from("practices")
+          .select("id", { head: true, count: "exact" })
+          .eq("athlete_id", athleteAccountId)
+          .gte("date", monday),
+        supabase
+          .from("mental_checkins")
+          .select("mood")
+          .eq("athlete_id", athleteAccountId)
+          .eq("date", today)
+          .maybeSingle(),
+        supabase
+          .from("habit_completions")
+          .select("habit_id")
+          .eq("athlete_id", athleteAccountId)
+          .eq("date", today),
+        // Next upcoming match (if any)
+        supabase
+          .from("matches")
+          .select("date, opponent")
+          .eq("athlete_id", athleteAccountId)
+          .gte("date", today)
+          .order("date", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+        // Most recent past match (fallback when nothing is upcoming)
+        supabase
+          .from("matches")
+          .select("date, opponent")
+          .eq("athlete_id", athleteAccountId)
+          .lt("date", today)
+          .order("date", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        // Total count for the row label
+        supabase
+          .from("matches")
+          .select("id", { head: true, count: "exact" })
+          .eq("athlete_id", athleteAccountId),
+      ]);
 
     setPreviews({
       practice: { practicesThisWeek: practiceRes.count ?? 0 },
@@ -153,9 +175,13 @@ export default function ParentDailyReviewCard({
         total: 5, // Approximate — real athletes see their own sport's count; this is for parent preview only.
       },
       match: {
-        nextMatchDate: (matchRes.data as { date?: string } | null)?.date ?? null,
+        totalLogged: countRes.count ?? 0,
+        nextMatchDate: (upcomingRes.data as { date?: string } | null)?.date ?? null,
         nextMatchOpponent:
-          (matchRes.data as { opponent?: string } | null)?.opponent ?? null,
+          (upcomingRes.data as { opponent?: string } | null)?.opponent ?? null,
+        lastMatchDate: (lastRes.data as { date?: string } | null)?.date ?? null,
+        lastMatchOpponent:
+          (lastRes.data as { opponent?: string } | null)?.opponent ?? null,
       },
     });
   }, [athleteAccountId]);
@@ -213,11 +239,21 @@ export default function ParentDailyReviewCard({
         previews.habits.done > 0
           ? `${previews.habits.done} habit${previews.habits.done === 1 ? "" : "s"} done today`
           : "No habits checked today",
-      match: previews.match.nextMatchDate
-        ? `${formatDate(previews.match.nextMatchDate)}${
-            previews.match.nextMatchOpponent ? ` · vs ${previews.match.nextMatchOpponent}` : ""
-          }`
-        : "No upcoming matches",
+      match: (() => {
+        const m = previews.match;
+        if (m.nextMatchDate) {
+          return `Upcoming: ${formatDate(m.nextMatchDate)}${
+            m.nextMatchOpponent ? ` · vs ${m.nextMatchOpponent}` : ""
+          }`;
+        }
+        if (m.lastMatchDate) {
+          return `Last: ${formatDate(m.lastMatchDate)}${
+            m.lastMatchOpponent ? ` · vs ${m.lastMatchOpponent}` : ""
+          } · ${m.totalLogged} logged`;
+        }
+        if (m.totalLogged > 0) return `${m.totalLogged} matches logged`;
+        return "No matches logged yet";
+      })(),
     };
   }, [previews]);
 

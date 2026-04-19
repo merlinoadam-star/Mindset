@@ -1000,10 +1000,15 @@ export default function AthleteViewPage() {
           )}
         </Section>
       ) : (
-        <div className="card bg-slate-50 border-slate-200 text-sm text-slate-600 text-center py-6">
-          <Trophy size={24} className="mx-auto text-slate-300 mb-2" />
-          No matches logged yet.
-        </div>
+        <Section id="match-log" icon={<Trophy size={14} />} title="Match Log">
+          <div className="text-sm text-slate-600 dark:text-slate-300 text-center py-4">
+            <Trophy
+              size={24}
+              className="mx-auto text-slate-300 dark:text-slate-600 mb-2"
+            />
+            No matches logged yet.
+          </div>
+        </Section>
       )}
 
       <div className="card bg-slate-50 border-slate-200 text-xs text-slate-500 leading-relaxed">
