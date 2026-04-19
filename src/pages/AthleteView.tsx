@@ -20,6 +20,8 @@ import {
 } from "../lib/videoSync";
 import FeedbackThread from "../components/FeedbackThread";
 import CoachWeeklyFocusCard from "../components/CoachWeeklyFocusCard";
+import PushPlanModal from "../components/PushPlanModal";
+import { useAuth } from "../lib/authContext";
 import CheerButtons from "../components/CheerButtons";
 import PrivateChatsSection from "../components/PrivateChatsSection";
 import AthleteGlanceCard from "../components/AthleteGlanceCard";
@@ -52,6 +54,7 @@ import {
   Flame,
   MapPin,
   Shield,
+  ClipboardList,
 } from "lucide-react";
 
 /**
@@ -63,6 +66,8 @@ export default function AthleteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { account } = useAuth();
+  const [planModalOpen, setPlanModalOpen] = useState(false);
   const [row, setRow] = useState<DbAthleteRow | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [matches, setMatches] = useState<MatchEntry[]>([]);
@@ -251,6 +256,35 @@ export default function AthleteViewPage() {
 
       {/* Weekly focus (editable by connected coach / parent) */}
       {id && <CoachWeeklyFocusCard athleteId={id} />}
+
+      {/* Coach-only: push a daily practice plan */}
+      {id && account?.role === "coach" && (
+        <button
+          onClick={() => setPlanModalOpen(true)}
+          className="w-full card-interactive flex items-center gap-3 text-left"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+            <ClipboardList size={18} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              Push today's practice plan
+            </div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">
+              Build a checklist — athlete earns XP as they complete it.
+            </div>
+          </div>
+        </button>
+      )}
+
+      {id && profile && (
+        <PushPlanModal
+          open={planModalOpen}
+          onClose={() => setPlanModalOpen(false)}
+          athleteAccountId={id}
+          athleteName={profile.name}
+        />
+      )}
 
       {/* One-tap encouragement */}
       {id && <CheerButtons athleteId={id} />}
