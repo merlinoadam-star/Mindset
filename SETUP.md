@@ -97,6 +97,7 @@ As the project evolved, new migrations were added alongside the main
 - `supabase/video_annotations.sql` — adds timestamp_sec column to feedback for video-pinned notes
 - `supabase/app_feedback_replies.sql` — threaded replies on bug tickets + broadened read policy
 - `supabase/team_announcements.sql` — coach-to-team broadcast messages + per-reader read marks
+- `supabase/custom_habits.sql` — athlete-defined habits in addition to the preset list
 
 ## Push notifications (optional, Phase 2E)
 
