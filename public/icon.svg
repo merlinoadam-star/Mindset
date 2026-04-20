@@ -1,13 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <!-- Deep night background — almost black with a hint of dark blue -->
     <radialGradient id="bg" cx="50%" cy="40%" r="80%">
       <stop offset="0%"   style="stop-color:#1e293b"/>
       <stop offset="55%"  style="stop-color:#0b1220"/>
       <stop offset="100%" style="stop-color:#000"/>
     </radialGradient>
 
-    <!-- Outer flame: red-crimson at base, deep orange middle, gold tips -->
     <linearGradient id="flameOuter" x1="50%" y1="100%" x2="50%" y2="0%">
       <stop offset="0%"   style="stop-color:#7c2d12"/>
       <stop offset="20%"  style="stop-color:#b91c1c"/>
@@ -16,7 +14,6 @@
       <stop offset="100%" style="stop-color:#fde047"/>
     </linearGradient>
 
-    <!-- Inner flame: bright orange to pale yellow -->
     <linearGradient id="flameInner" x1="50%" y1="100%" x2="50%" y2="0%">
       <stop offset="0%"   style="stop-color:#ea580c"/>
       <stop offset="40%"  style="stop-color:#f59e0b"/>
@@ -24,7 +21,6 @@
       <stop offset="100%" style="stop-color:#fef9c3"/>
     </linearGradient>
 
-    <!-- White-hot core -->
     <radialGradient id="core" cx="50%" cy="60%" r="55%">
       <stop offset="0%"   style="stop-color:#ffffff; stop-opacity:0.95"/>
       <stop offset="35%"  style="stop-color:#fef3c7; stop-opacity:0.85"/>
@@ -32,14 +28,18 @@
       <stop offset="100%" style="stop-color:#f59e0b; stop-opacity:0"/>
     </radialGradient>
 
-    <!-- Outer halo — warm amber glow that bleeds into the dark bg -->
     <radialGradient id="halo" cx="50%" cy="55%" r="60%">
       <stop offset="0%"   style="stop-color:#f97316; stop-opacity:0.45"/>
       <stop offset="40%"  style="stop-color:#dc2626; stop-opacity:0.18"/>
       <stop offset="100%" style="stop-color:#7f1d1d; stop-opacity:0"/>
     </radialGradient>
 
-    <!-- Soft glow filter for embers + flame edges -->
+    <linearGradient id="goldText" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%"   style="stop-color:#fef3c7"/>
+      <stop offset="50%"  style="stop-color:#fcd34d"/>
+      <stop offset="100%" style="stop-color:#d97706"/>
+    </linearGradient>
+
     <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="6" result="blur"/>
       <feMerge>
@@ -48,11 +48,10 @@
       </feMerge>
     </filter>
 
-    <!-- Subtle drop shadow under the wordmark -->
     <filter id="textShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
       <feOffset dx="0" dy="2" result="offsetblur"/>
-      <feFlood flood-color="#7f1d1d" flood-opacity="0.6"/>
+      <feFlood flood-color="#7f1d1d" flood-opacity="0.7"/>
       <feComposite in2="offsetblur" operator="in"/>
       <feMerge>
         <feMergeNode/>
@@ -61,15 +60,11 @@
     </filter>
   </defs>
 
-  <!-- Background -->
   <rect width="512" height="512" rx="96" fill="url(#bg)"/>
 
-  <!-- Halo glow behind the flame -->
   <ellipse cx="252" cy="245" rx="195" ry="220" fill="url(#halo)"/>
 
-  <!-- Outer flame — asymmetric, leaning slightly right like a real flame
-       in motion. Five distinct tongues separated by negative space so
-       you can see the dark background through the gaps. -->
+  <!-- Outer flame -->
   <path d="
     M 258 38
     C 240 100, 222 158, 240 210
@@ -88,7 +83,7 @@
     fill="url(#flameOuter)"
     filter="url(#glow)"/>
 
-  <!-- Inner flame — sharper, brighter, slightly offset for depth -->
+  <!-- Inner flame -->
   <path d="
     M 258 130
     C 246 170, 232 210, 250 248
@@ -102,74 +97,31 @@
     Z"
     fill="url(#flameInner)"/>
 
-  <!-- White-hot core, slightly low and centered -->
+  <!-- White-hot core -->
   <ellipse cx="258" cy="318" rx="46" ry="68" fill="url(#core)"/>
 
-  <!-- Floating embers — small bright dots that look like sparks rising -->
+  <!-- Embers -->
   <g fill="#fde047" filter="url(#glow)">
-    <circle cx="148"  cy="92"  r="4" opacity="0.9"/>
-    <circle cx="380"  cy="68"  r="5" opacity="0.85"/>
-    <circle cx="408"  cy="148" r="3" opacity="0.7"/>
-    <circle cx="118"  cy="158" r="4" opacity="0.75"/>
-    <circle cx="178"  cy="32"  r="3" opacity="0.6"/>
-    <circle cx="345"  cy="22"  r="3" opacity="0.55"/>
-    <circle cx="78"   cy="248" r="4" opacity="0.5"/>
-    <circle cx="436"  cy="232" r="3" opacity="0.5"/>
+    <circle cx="148" cy="92"  r="4" opacity="0.9"/>
+    <circle cx="380" cy="68"  r="5" opacity="0.85"/>
+    <circle cx="408" cy="148" r="3" opacity="0.7"/>
+    <circle cx="118" cy="158" r="4" opacity="0.75"/>
+    <circle cx="178" cy="32"  r="3" opacity="0.6"/>
+    <circle cx="345" cy="22"  r="3" opacity="0.55"/>
+    <circle cx="78"  cy="248" r="4" opacity="0.5"/>
+    <circle cx="436" cy="232" r="3" opacity="0.5"/>
   </g>
 
-  <!-- FEARLESS wordmark — chunky 5-bar block letters, hand-drawn so
-       no font dependency. Subtle red-tinted drop shadow for depth. -->
-  <g fill="#fde68a" filter="url(#textShadow)">
-    <!-- F at x=100 -->
-    <g transform="translate(100,462)">
-      <rect x="0" y="0"  width="8"  height="40" rx="1.5"/>
-      <rect x="0" y="0"  width="32" height="8"  rx="1.5"/>
-      <rect x="0" y="17" width="24" height="7"  rx="1.5"/>
-    </g>
-    <!-- E -->
-    <g transform="translate(140,462)">
-      <rect x="0" y="0"  width="8"  height="40" rx="1.5"/>
-      <rect x="0" y="0"  width="32" height="8"  rx="1.5"/>
-      <rect x="0" y="17" width="24" height="7"  rx="1.5"/>
-      <rect x="0" y="32" width="32" height="8"  rx="1.5"/>
-    </g>
-    <!-- A -->
-    <g transform="translate(180,462)">
-      <path d="M 0 40 L 12 0 L 20 0 L 32 40 L 22 40 L 19 30 L 13 30 L 10 40 Z"/>
-      <rect x="13" y="22" width="6" height="6"/>
-    </g>
-    <!-- R -->
-    <g transform="translate(220,462)">
-      <rect x="0" y="0" width="8" height="40" rx="1.5"/>
-      <path d="M 8 0 L 22 0 Q 32 0 32 11 Q 32 19 24 21 L 32 40 L 22 40 L 16 22 L 8 22 Z M 12 8 L 22 8 Q 24 8 24 12 Q 24 16 22 16 L 12 16 Z"/>
-    </g>
-    <!-- L -->
-    <g transform="translate(260,462)">
-      <rect x="0" y="0"  width="8"  height="40" rx="1.5"/>
-      <rect x="0" y="32" width="28" height="8"  rx="1.5"/>
-    </g>
-    <!-- E -->
-    <g transform="translate(300,462)">
-      <rect x="0" y="0"  width="8"  height="40" rx="1.5"/>
-      <rect x="0" y="0"  width="32" height="8"  rx="1.5"/>
-      <rect x="0" y="17" width="24" height="7"  rx="1.5"/>
-      <rect x="0" y="32" width="32" height="8"  rx="1.5"/>
-    </g>
-    <!-- S -->
-    <g transform="translate(340,462)">
-      <rect x="0"  y="0"  width="32" height="8" rx="1.5"/>
-      <rect x="0"  y="8"  width="8"  height="11"/>
-      <rect x="0"  y="17" width="32" height="7" rx="1.5"/>
-      <rect x="24" y="22" width="8"  height="11"/>
-      <rect x="0"  y="32" width="32" height="8" rx="1.5"/>
-    </g>
-    <!-- S -->
-    <g transform="translate(380,462)">
-      <rect x="0"  y="0"  width="32" height="8" rx="1.5"/>
-      <rect x="0"  y="8"  width="8"  height="11"/>
-      <rect x="0"  y="17" width="32" height="7" rx="1.5"/>
-      <rect x="24" y="22" width="8"  height="11"/>
-      <rect x="0"  y="32" width="32" height="8" rx="1.5"/>
-    </g>
-  </g>
+  <!-- FEARLESS wordmark — Bebas Neue (tall condensed sans, used by
+       Nike / Under Armour / fitness brands). Modern + athletic. -->
+  <text
+    x="256"
+    y="496"
+    font-family="Bebas Neue, Impact, Arial Black, sans-serif"
+    font-size="68"
+    font-weight="400"
+    fill="url(#goldText)"
+    text-anchor="middle"
+    letter-spacing="6"
+    filter="url(#textShadow)">FEARLESS</text>
 </svg>
