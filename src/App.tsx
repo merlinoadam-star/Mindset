@@ -64,7 +64,7 @@ function PageLoader() {
 
 function AppShell() {
   const { state } = useStore();
-  const { account, loading: authLoading } = useAuth();
+  const { session, account, loading: authLoading } = useAuth();
 
   // Password-reset deep link — users land here from the email link with
   // a recovery token in the URL hash. We bypass all the normal auth /
@@ -86,8 +86,12 @@ function AppShell() {
     );
   }
 
-  // Still waiting on initial session resolution
-  if (authLoading) {
+  // Still waiting on initial session resolution, or a fresh sign-in whose
+  // account row hasn't been fetched yet. Without this second check, a
+  // signed-in coach briefly falls into the athlete branch below (because
+  // `account` is still null), whose /auth sub-router bounces them between
+  // `/` and `/auth` until Safari/Chrome throttles history.replaceState.
+  if (authLoading || (session && !account)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-slate-400 text-sm">Loading...</div>
