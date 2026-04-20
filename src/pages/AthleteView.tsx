@@ -32,6 +32,11 @@ import { BADGES, getBadge } from "../lib/gamification";
 import { computeLevel } from "../lib/gamification";
 import { habitsForSport } from "../lib/habits";
 import {
+  fetchCustomHabits,
+  rowToHabit,
+  type CustomHabitRow,
+} from "../lib/customHabitsSync";
+import {
   VOLLEYBALL_POSITION_LABELS,
   WRESTLING_STYLE_LABELS,
   formatHeight,
@@ -68,6 +73,7 @@ export default function AthleteViewPage() {
   const location = useLocation();
   const { account } = useAuth();
   const [planModalOpen, setPlanModalOpen] = useState(false);
+  const [customHabits, setCustomHabits] = useState<CustomHabitRow[]>([]);
   const [row, setRow] = useState<DbAthleteRow | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [matches, setMatches] = useState<MatchEntry[]>([]);
@@ -134,6 +140,20 @@ export default function AthleteViewPage() {
   useEffect(() => {
     loadAll(true);
   }, [loadAll]);
+
+  // Custom habits are stored separately from the bulk athlete data fetch.
+  // Pull them in parallel so the Habits section below shows everything.
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    (async () => {
+      const rows = await fetchCustomHabits(id);
+      if (!cancelled) setCustomHabits(rows);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
   // Scroll to the URL #hash once the page has finished loading. Used by
   // deep links (e.g. parent's daily-review "View" buttons → #recent-checkins).
@@ -607,7 +627,9 @@ export default function AthleteViewPage() {
             const todayCompletions = (
               extra.habits as Array<{ habit_id: string; date: string }>
             ).filter((h) => h.date === today);
-            const allHabits = habitsForSport(profile.sport);
+            const presetHabits = habitsForSport(profile.sport);
+            const customDefs = customHabits.map(rowToHabit);
+            const allHabits = [...presetHabits, ...customDefs];
             const completedIds = new Set(todayCompletions.map((h) => h.habit_id));
 
             return (
