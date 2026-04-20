@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/authContext";
 import type { AccountRole } from "../types";
@@ -29,8 +29,15 @@ export default function AuthPage() {
   const [mode, setMode] = useState<Mode>(initialMode);
 
   // If we're already signed in (or just became signed in), bounce home.
+  // Supabase can fire multiple auth events for a single login (SIGNED_IN
+  // → TOKEN_REFRESHED → USER_UPDATED), each producing a new session
+  // reference. Without the ref guard below each change would re-fire
+  // navigate() → history.replaceState(), and Safari throttles at 100
+  // calls per 10s with an explosive error. A single redirect is enough.
+  const navigatedRef = useRef(false);
   useEffect(() => {
-    if (session) {
+    if (session && !navigatedRef.current) {
+      navigatedRef.current = true;
       navigate("/", { replace: true });
     }
   }, [session, navigate]);
