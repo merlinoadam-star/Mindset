@@ -17,20 +17,22 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  info: ErrorInfo | null;
 }
 
 export default class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, info: null };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("ErrorBoundary caught:", error, info.componentStack);
+    this.setState({ info });
   }
 
   render() {
@@ -53,8 +55,14 @@ export default class ErrorBoundary extends Component<Props, State> {
               <summary className="text-xs text-slate-500 cursor-pointer font-semibold">
                 Technical details
               </summary>
-              <pre className="mt-2 text-[10px] text-red-700 bg-red-50 border border-red-200 rounded-xl p-3 overflow-x-auto whitespace-pre-wrap break-words max-h-32">
+              <pre className="mt-2 text-[10px] text-red-700 bg-red-50 border border-red-200 rounded-xl p-3 overflow-x-auto whitespace-pre-wrap break-words max-h-72">
                 {this.state.error.message}
+                {"\n\n"}
+                {this.state.error.stack || ""}
+                {this.state.info?.componentStack
+                  ? "\n\n---- Component tree ----\n" +
+                    this.state.info.componentStack
+                  : ""}
               </pre>
             </details>
           )}
