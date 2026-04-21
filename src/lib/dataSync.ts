@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { isUuid } from "./store";
+import { reportSyncStatus } from "./syncStatus";
 import type {
   AwardEntry,
   HabitCompletion,
@@ -75,7 +76,25 @@ async function syncTable<T extends WithId>(
         }
         // If literally nothing made it through, skip the delete pass —
         // we don't want to wipe cloud rows that may be the only copy.
-        if (failures === rows.length) return;
+        if (failures === rows.length) {
+          reportSyncStatus("error", {
+            table: tableName,
+            details: error.message ?? "batch upsert failed",
+          });
+          return;
+        }
+        // Some rows failed but others landed. Still a problem worth
+        // surfacing — the athlete's streak could have gaps.
+        if (failures > 0) {
+          reportSyncStatus("error", {
+            table: tableName,
+            details: `${failures}/${rows.length} rows failed`,
+          });
+        } else {
+          reportSyncStatus("ok", { table: tableName });
+        }
+      } else {
+        reportSyncStatus("ok", { table: tableName });
       }
     }
 

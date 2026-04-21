@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import type { Profile } from "../types";
+import { reportSyncStatus } from "./syncStatus";
 
 /**
  * Phase 2B.2 — syncing the athlete's profile to Supabase.
@@ -74,8 +75,13 @@ export async function upsertAthleteProfile(
     .upsert(row, { onConflict: "id" });
   if (error) {
     console.error("Failed to sync athlete profile", error);
+    reportSyncStatus("error", {
+      table: "athletes",
+      details: error.message,
+    });
     return { error: error.message };
   }
+  reportSyncStatus("ok", { table: "athletes" });
   return {};
 }
 
