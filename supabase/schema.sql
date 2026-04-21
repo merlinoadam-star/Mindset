@@ -160,7 +160,7 @@ create table if not exists public.mental_checkins (
 create table if not exists public.mental_sessions (
   id uuid primary key default gen_random_uuid(),
   athlete_id uuid not null references public.athletes(id) on delete cascade,
-  kind text not null check (kind in ('visualization', 'breathing', 'lesson')),
+  kind text not null check (kind in ('visualization', 'breathing', 'lesson', 'scenarios')),
   ref_id text not null,
   date date not null,
   completed_at timestamptz not null default now(),
