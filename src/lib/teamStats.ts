@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { ACTIVITY_SOURCES } from "./activitySources";
 
 /**
  * Phase G — team-level stats for the coach/parent dashboard.
@@ -87,71 +88,45 @@ export async function fetchTeamStats(
 ): Promise<Map<string, AthleteStat>> {
   const out = new Map<string, AthleteStat>();
   if (!supabase || athleteIds.length === 0) return out;
+  // Hoist the narrowed reference so TS keeps it non-null inside the
+  // `.map` closure below (flow-narrowing doesn't cross callbacks).
+  const db = supabase;
 
   const since = isoDate(addDays(new Date(), -60));
   const sevenAgo = isoDate(addDays(new Date(), -6));
   const fourteenAgo = isoDate(addDays(new Date(), -13));
 
-  const [
-    xpRes,
-    habitsRes,
-    practicesRes,
-    checkinsRes,
-    matchesRes,
-    mentalSessionsRes,
-    recoveryRes,
-    nutritionRes,
-    moodRes,
-  ] = await Promise.all([
-    supabase
+  // Pull activity dates from every registered source in lockstep with
+  // the athlete side — see src/lib/activitySources.ts. Adding a new
+  // source there automatically wires it into the roster.
+  const activityQueries = ACTIVITY_SOURCES.map(({ table }) =>
+    db
+      .from(table)
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since)
+  );
+
+  const [xpRes, moodRes, ...activityResults] = await Promise.all([
+    db
       .from("athletes")
       .select("id, xp, used_freeze_dates")
       .in("id", athleteIds),
-    supabase
-      .from("habit_completions")
-      .select("athlete_id, date")
-      .in("athlete_id", athleteIds)
-      .gte("date", since),
-    supabase
-      .from("practices")
-      .select("athlete_id, date")
-      .in("athlete_id", athleteIds)
-      .gte("date", since),
-    supabase
-      .from("mental_checkins")
-      .select("athlete_id, date")
-      .in("athlete_id", athleteIds)
-      .gte("date", since),
-    supabase
-      .from("matches")
-      .select("athlete_id, date")
-      .in("athlete_id", athleteIds)
-      .gte("date", since),
-    // Mindset lessons / breathing / scenarios / visualizations all
-    // count toward the athlete's streak (see activeDatesSet in
-    // gamification.ts), so the coach view has to count them too or
-    // a mindset-only day shows as "inactive" and breaks the streak.
-    supabase
-      .from("mental_sessions")
-      .select("athlete_id, date")
-      .in("athlete_id", athleteIds)
-      .gte("date", since),
-    supabase
-      .from("recovery_checkins")
-      .select("athlete_id, date")
-      .in("athlete_id", athleteIds)
-      .gte("date", since),
-    supabase
-      .from("nutrition_logs")
-      .select("athlete_id, date")
-      .in("athlete_id", athleteIds)
-      .gte("date", since),
-    supabase
+    db
       .from("mental_checkins")
       .select("athlete_id, date, mood")
       .in("athlete_id", athleteIds)
       .gte("date", fourteenAgo),
+    ...activityQueries,
   ]);
+
+  // `habit_completions` is the first source in ACTIVITY_SOURCES — pull
+  // it out by index for the 7-day habits bucket below. Dedicated index
+  // so a future reorder of the list doesn't silently break that count.
+  const habitsIdx = ACTIVITY_SOURCES.findIndex(
+    (s) => s.table === "habit_completions"
+  );
+  const habitsRes = activityResults[habitsIdx];
 
   const today = isoDate(new Date());
 
@@ -164,13 +139,7 @@ export async function fetchTeamStats(
       dates.get(r.athlete_id)!.add(r.date);
     });
   };
-  bump(habitsRes.data);
-  bump(practicesRes.data);
-  bump(checkinsRes.data);
-  bump(matchesRes.data);
-  bump(mentalSessionsRes.data);
-  bump(recoveryRes.data);
-  bump(nutritionRes.data);
+  for (const res of activityResults) bump(res.data);
 
   // Per-athlete set of streak-freeze dates. A kid who spent a freeze
   // yesterday has their streak saved on the athlete app; the coach

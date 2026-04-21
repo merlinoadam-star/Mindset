@@ -30,6 +30,7 @@ import {
   saveVideoBlob,
 } from "./videoStorage";
 import { emptyState, loadState, saveState, clearState } from "./storage";
+import { onSyncStatusChange } from "./syncStatus";
 import {
   challengeForWeek,
   isChallengeComplete,
@@ -264,6 +265,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // for this sign-in session. All sync-UP effects wait on this so we don't
   // upload empty local state over existing cloud data on a new device.
   const [cloudHydrated, setCloudHydrated] = useState(false);
+
+  // Bumped by the auto-retry watcher below whenever a sync reports an
+  // error. Every sync useEffect depends on this so a transient failure
+  // (network blip, rate limit, stale schema cache) gets a quiet retry
+  // without the athlete having to tap the error badge.
+  const [retryTick, setRetryTick] = useState(0);
 
   // Today's date — recomputed periodically so unchanged tab sessions still
   // detect a day rollover (e.g. phone left open overnight).
@@ -515,7 +522,44 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     state.xp,
     state.voicePersonaId,
     state.usedFreezeDates,
+    retryTick,
   ]);
+
+  // Auto-retry watcher — if any sync reports an error, schedule a
+  // single retry after a backoff. The retry bumps `retryTick`, which
+  // re-triggers every sync useEffect below. If the retry succeeds the
+  // next "ok" status report cancels any pending timer. Backoff pattern:
+  // 30s on the first failure, 2m on the second, 5m from then on, so a
+  // kid doesn't watch us hammer a broken backend.
+  useEffect(() => {
+    let timer: number | null = null;
+    let attempt = 0;
+    const schedule = () => {
+      if (timer !== null) return;
+      const delayMs =
+        attempt === 0 ? 30_000 : attempt === 1 ? 120_000 : 300_000;
+      timer = window.setTimeout(() => {
+        timer = null;
+        attempt++;
+        setRetryTick((t) => t + 1);
+      }, delayMs);
+    };
+    const unsub = onSyncStatusChange((s) => {
+      if (s.status === "error") {
+        schedule();
+      } else if (s.status === "ok") {
+        if (timer !== null) {
+          window.clearTimeout(timer);
+          timer = null;
+        }
+        attempt = 0;
+      }
+    });
+    return () => {
+      unsub();
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, []);
 
   // Phase 2B.4 — Auto-sync match log to Supabase when signed in.
   // Upserts every match and deletes cloud rows that no longer exist locally.
@@ -528,7 +572,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncAllMatches(account.id, state.matches);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.matches]);
+  }, [account, cloudHydrated, state.matches, retryTick]);
 
   // Phase 2B.5 — Sync all other athlete data types. Each gets its own
   // debounced effect so unrelated changes don't trigger cross-entity
@@ -539,7 +583,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncPractices(account.id, state.practices);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.practices]);
+  }, [account, cloudHydrated, state.practices, retryTick]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -547,7 +591,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncHabitCompletions(account.id, state.habitCompletions);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.habitCompletions]);
+  }, [account, cloudHydrated, state.habitCompletions, retryTick]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -555,7 +599,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncOpponents(account.id, state.opponents);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.opponents]);
+  }, [account, cloudHydrated, state.opponents, retryTick]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -563,7 +607,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncMentalCheckins(account.id, state.checkins);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.checkins]);
+  }, [account, cloudHydrated, state.checkins, retryTick]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -571,7 +615,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncMentalSessions(account.id, state.mentalSessions ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.mentalSessions]);
+  }, [account, cloudHydrated, state.mentalSessions, retryTick]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -579,7 +623,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncRecoveryCheckins(account.id, state.recoveryCheckins ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.recoveryCheckins]);
+  }, [account, cloudHydrated, state.recoveryCheckins, retryTick]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -587,7 +631,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncNutritionLogs(account.id, state.nutritionLogs ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.nutritionLogs]);
+  }, [account, cloudHydrated, state.nutritionLogs, retryTick]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -595,7 +639,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncAllPersonalRecords(account.id, state.personalRecords ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.personalRecords]);
+  }, [account, cloudHydrated, state.personalRecords, retryTick]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -603,7 +647,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncWeeklyReviews(account.id, state.weeklyReviews ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.weeklyReviews]);
+  }, [account, cloudHydrated, state.weeklyReviews, retryTick]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -611,7 +655,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncPowerPhrases(account.id, state.powerPhrases ?? []);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.powerPhrases]);
+  }, [account, cloudHydrated, state.powerPhrases, retryTick]);
 
   useEffect(() => {
     if (!account || account.role !== "athlete" || !cloudHydrated) return;
@@ -635,7 +679,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       syncUnlockedBadges(account.id, state.unlockedBadges);
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [account, cloudHydrated, state.unlockedBadges]);
+  }, [account, cloudHydrated, state.unlockedBadges, retryTick]);
 
   // After any XP-earning activity, check if the athlete has earned a new freeze
   useEffect(() => {

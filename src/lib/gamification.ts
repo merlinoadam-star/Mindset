@@ -1,4 +1,5 @@
 import type { AppState, BadgeDefinition, Sport } from "../types";
+import { activeDatesFromState } from "./activitySources";
 
 // -----------------------------------------------------------------------------
 // Levels
@@ -99,25 +100,10 @@ export function currentWeekMondayISO(): string {
 }
 
 /** Days with at least one logged activity across any tracking surface.
- *  Must stay in lockstep with teamStats.ts:fetchTeamStats on the coach
- *  side — if these two diverge the athlete's local streak and the
- *  coach-roster streak will disagree. */
+ *  Delegates to the shared ACTIVITY_SOURCES list so the coach roster
+ *  (teamStats.ts) can't drift. See src/lib/activitySources.ts. */
 export function activeDatesSet(state: AppState): Set<string> {
-  const dates = new Set<string>();
-  state.habitCompletions.forEach((c) => dates.add(c.date));
-  state.practices.forEach((p) => dates.add(p.date));
-  state.checkins.forEach((c) => dates.add(c.date));
-  state.matches.forEach((m) => dates.add(m.date));
-  if (state.recoveryCheckins) {
-    state.recoveryCheckins.forEach((r) => dates.add(r.date));
-  }
-  if (state.mentalSessions) {
-    state.mentalSessions.forEach((m) => dates.add(m.date));
-  }
-  if (state.nutritionLogs) {
-    state.nutritionLogs.forEach((n) => dates.add(n.date));
-  }
-  return dates;
+  return activeDatesFromState(state);
 }
 
 export function computeStreak(state: AppState): number {
