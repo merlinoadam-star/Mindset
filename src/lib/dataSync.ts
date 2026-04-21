@@ -38,7 +38,17 @@ async function syncTable<T extends WithId>(
   tableName: string,
   athleteId: string,
   localRows: T[],
-  toRow: (athleteId: string, item: T) => Record<string, unknown>
+  toRow: (athleteId: string, item: T) => Record<string, unknown>,
+  /**
+   * Upsert conflict target. Defaults to "id" (primary key), but tables
+   * with a business-key UNIQUE constraint should pass the column list
+   * — otherwise a same-day re-toggle (e.g. uncheck + recheck a habit)
+   * generates a row with the same (athlete_id, habit_id, date) but a
+   * new uuid, and the unique constraint rejects the whole batch.
+   * habit_completions, recovery_checkins, and nutrition_logs all hit
+   * this.
+   */
+  onConflict: string = "id"
 ): Promise<void> {
   if (!supabase) return;
   try {
@@ -48,7 +58,7 @@ async function syncTable<T extends WithId>(
       const rows = syncable.map((r) => toRow(athleteId, r));
       const { error } = await supabase
         .from(tableName)
-        .upsert(rows, { onConflict: "id" });
+        .upsert(rows, { onConflict });
       if (error) {
         // Postgres aborts the entire batch on the first bad row (e.g.
         // a check constraint or unique violation). Without a fallback,
@@ -65,7 +75,7 @@ async function syncTable<T extends WithId>(
         for (const row of rows) {
           const { error: rowErr } = await supabase
             .from(tableName)
-            .upsert(row, { onConflict: "id" });
+            .upsert(row, { onConflict });
           if (rowErr) {
             failures++;
             console.error(`${tableName} row upsert failed`, {
@@ -271,7 +281,14 @@ export const syncPractices = (athleteId: string, list: PracticeEntry[]) =>
 export const syncHabitCompletions = (
   athleteId: string,
   list: HabitCompletion[]
-) => syncTable("habit_completions", athleteId, list, habitToRow);
+) =>
+  syncTable(
+    "habit_completions",
+    athleteId,
+    list,
+    habitToRow,
+    "athlete_id,habit_id,date"
+  );
 export const syncOpponents = (athleteId: string, list: OpponentEntry[]) =>
   syncTable("opponents", athleteId, list, opponentToRow);
 export const syncMentalCheckins = (
@@ -285,9 +302,22 @@ export const syncMentalSessions = (
 export const syncRecoveryCheckins = (
   athleteId: string,
   list: RecoveryCheckin[]
-) => syncTable("recovery_checkins", athleteId, list, recoveryToRow);
+) =>
+  syncTable(
+    "recovery_checkins",
+    athleteId,
+    list,
+    recoveryToRow,
+    "athlete_id,date"
+  );
 export const syncNutritionLogs = (athleteId: string, list: NutritionLog[]) =>
-  syncTable("nutrition_logs", athleteId, list, nutritionToRow);
+  syncTable(
+    "nutrition_logs",
+    athleteId,
+    list,
+    nutritionToRow,
+    "athlete_id,date"
+  );
 export const syncWeeklyReviews = (athleteId: string, list: WeeklyReview[]) =>
   syncTable("weekly_reviews", athleteId, list, weeklyReviewToRow);
 export const syncPowerPhrases = (athleteId: string, list: PowerPhrase[]) =>
