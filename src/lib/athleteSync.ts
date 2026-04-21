@@ -19,7 +19,8 @@ function profileToRow(
   profile: Profile,
   xp: number,
   voicePersonaId: string,
-  usedFreezeDates: string[]
+  usedFreezeDates: string[],
+  currentStreak: number
 ) {
   return {
     id: accountId,
@@ -51,6 +52,10 @@ function profileToRow(
     // Synced so the coach-roster streak can apply the same freeze
     // logic the athlete app uses locally. See streak_freezes.sql.
     used_freeze_dates: usedFreezeDates,
+    // Cached athlete-computed streak. Coach roster prefers this over
+    // recomputing from raw rows. See cached_streak.sql + teamStats.ts.
+    current_streak: currentStreak,
+    streak_updated_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 }
@@ -60,7 +65,8 @@ export async function upsertAthleteProfile(
   profile: Profile,
   xp: number,
   voicePersonaId: string,
-  usedFreezeDates: string[]
+  usedFreezeDates: string[],
+  currentStreak: number
 ): Promise<{ error?: string }> {
   if (!supabase) return {};
   const row = profileToRow(
@@ -68,7 +74,8 @@ export async function upsertAthleteProfile(
     profile,
     xp,
     voicePersonaId,
-    usedFreezeDates
+    usedFreezeDates,
+    currentStreak
   );
   const { error } = await supabase
     .from("athletes")
@@ -117,6 +124,8 @@ export interface DbAthleteRow {
   xp: number;
   voice_persona_id: string | null;
   used_freeze_dates: string[] | null;
+  current_streak: number | null;
+  streak_updated_at: string | null;
   created_at: string;
   updated_at: string;
 }

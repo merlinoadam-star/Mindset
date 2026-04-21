@@ -506,12 +506,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return;
     }
     const id = window.setTimeout(() => {
+      // Recompute streak from the canonical local state — this is what
+      // the coach roster will read for every view of this athlete, so
+      // it has to match what the athlete sees on their own dashboard.
       upsertAthleteProfile(
         account.id,
         state.profile!,
         state.xp,
         state.voicePersonaId ?? "natural",
-        state.usedFreezeDates ?? []
+        state.usedFreezeDates ?? [],
+        computeStreak(state)
       );
     }, 800);
     return () => window.clearTimeout(id);
@@ -522,6 +526,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     state.xp,
     state.voicePersonaId,
     state.usedFreezeDates,
+    // Streak-affecting state: any of these changing should re-sync the
+    // cached streak value so the coach sees it promptly.
+    state.habitCompletions,
+    state.practices,
+    state.checkins,
+    state.matches,
+    state.mentalSessions,
+    state.recoveryCheckins,
+    state.nutritionLogs,
     retryTick,
   ]);
 
