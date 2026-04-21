@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, ChevronDown, X } from "lucide-react";
 import {
   getLatestSyncStatus,
   onSyncStatusChange,
@@ -33,6 +33,7 @@ export default function SyncErrorBadge() {
     typeof navigator === "undefined" ? true : navigator.onLine
   );
   const [dismissedWhen, setDismissedWhen] = useState<number | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     return onSyncStatusChange(setLatest);
@@ -61,21 +62,40 @@ export default function SyncErrorBadge() {
     : "Some data";
 
   return (
-    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[55] pointer-events-auto">
-      <div className="bg-amber-500 text-white rounded-full shadow-elevated pl-4 pr-1.5 py-1.5 text-xs font-bold flex items-center gap-1.5">
+    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[55] pointer-events-auto max-w-[calc(100vw-2rem)]">
+      <div className="bg-amber-500 text-white rounded-2xl shadow-elevated pl-4 pr-1.5 py-1.5 text-xs font-bold flex items-center gap-1.5">
         <AlertTriangle size={12} strokeWidth={3} />
-        <span className="max-w-[220px] truncate">
-          {tableLabel} not saving to cloud
-        </span>
+        <span className="truncate">{tableLabel} not saving to cloud</span>
+        <button
+          type="button"
+          onClick={() => setShowDetails((v) => !v)}
+          className="p-1 rounded-full hover:bg-amber-600 transition"
+          aria-label={showDetails ? "Hide details" : "Show details"}
+          aria-expanded={showDetails}
+        >
+          <ChevronDown
+            size={12}
+            strokeWidth={3}
+            className={`transition-transform ${showDetails ? "rotate-180" : ""}`}
+          />
+        </button>
         <button
           type="button"
           onClick={() => setDismissedWhen(latest.when)}
-          className="ml-1 p-1 rounded-full hover:bg-amber-600 transition"
+          className="p-1 rounded-full hover:bg-amber-600 transition"
           aria-label="Dismiss"
         >
           <X size={12} strokeWidth={3} />
         </button>
       </div>
+      {showDetails && (
+        <div className="mt-1 mx-1 bg-slate-900 text-slate-100 rounded-xl shadow-elevated px-3 py-2 text-[10px] font-mono leading-snug break-all select-text">
+          <div className="text-amber-300 font-bold mb-0.5">
+            {latest.table ?? "unknown table"}
+          </div>
+          {latest.details ?? "(no details — check DevTools console)"}
+        </div>
+      )}
     </div>
   );
 }
