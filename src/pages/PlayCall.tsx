@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { ArrowLeft, Flame, Play, RotateCcw, Target, Trophy, Zap } from "lucide-react";
 import { useStore } from "../lib/store";
 import { showReward } from "../components/RewardToast";
+import { computeLevel } from "../lib/gamification";
+import { isUnlocked } from "../lib/unlocks";
 import { hapticLight, hapticSuccess } from "../lib/haptics";
 import {
   PLAY_CALL_BASE_XP,
@@ -175,6 +177,12 @@ export default function PlayCallPage() {
   }, [phase]);
 
   if (!state.profile || !sport) return null;
+
+  // Level gate — deep-link guard. The Games hub already renders this
+  // as a locked card at levels below 5.
+  if (!isUnlocked("game.playcall", computeLevel(state.xp, sport).level)) {
+    return <Navigate to="/games" replace />;
+  }
 
   // ---------- Render ----------
   if (phase === "intro") {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { isUnlocked } from "../lib/unlocks";
 import {
   ArrowRight,
   X,
@@ -100,6 +101,11 @@ export default function HighlightReelPage() {
   if (!state.profile) {
     navigate("/");
     return null;
+  }
+
+  // Level gate — Highlight Reel is earned at Lvl 4.
+  if (!isUnlocked("tool.highlight-reel", computeLevel(state.xp, state.profile.sport).level)) {
+    return <Navigate to="/" replace />;
   }
 
   const card = cards[idx];

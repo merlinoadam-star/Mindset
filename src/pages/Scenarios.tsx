@@ -1,7 +1,9 @@
 import { useCallback, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { showReward } from "../components/RewardToast";
+import { computeLevel } from "../lib/gamification";
+import { isUnlocked } from "../lib/unlocks";
 import SpeakButton from "../components/SpeakButton";
 import {
   pickScenarioRound,
@@ -33,6 +35,12 @@ export default function ScenariosPage() {
   const [correctCount, setCorrectCount] = useState(0);
 
   if (!state.profile) return null;
+
+  // Level gate — deep-link guard. The Games hub also renders this as
+  // a locked card below level 4.
+  if (!isUnlocked("game.scenarios", computeLevel(state.xp, state.profile.sport).level)) {
+    return <Navigate to="/games" replace />;
+  }
 
   // Count prior scenario sessions — seeds deterministic shuffle so
   // rounds don't repeat immediately.

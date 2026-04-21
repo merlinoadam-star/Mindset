@@ -25,6 +25,7 @@ import MatchDayCard from "../components/MatchDayCard";
 import WeekOneTourCard from "../components/WeekOneTourCard";
 import { InstallBanner } from "../components/InstallAppCard";
 import GuidedTutorial from "../components/GuidedTutorial";
+import NextUnlockCard from "../components/NextUnlockCard";
 import { useAuth } from "../lib/authContext";
 import { ArrowRight, CheckSquare, Dumbbell, Brain, Gamepad2, Settings, User, Swords, Wind, BookOpen, Eye, Sword, Calendar, Sparkles, Video as VideoIcon, Users, Target } from "lucide-react";
 import { currentWeekMondayISO } from "../lib/gamification";
@@ -105,6 +106,8 @@ export default function Dashboard() {
       <Link to="/progress" className="block group">
         <XPBar xp={state.xp} info={info} />
       </Link>
+
+      <NextUnlockCard />
 
       <UnreadFeedbackBanner />
 

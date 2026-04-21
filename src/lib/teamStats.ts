@@ -55,20 +55,27 @@ function levelFromXp(xp: number): number {
   return level;
 }
 
-function streakFromDates(activeDates: Set<string>): number {
-  if (activeDates.size === 0) return 0;
+/** Mirrors gamification.ts:computeStreak. A day counts if the athlete
+ *  has any activity OR spent a streak-freeze on it. Kept in sync with
+ *  the athlete-side math so the two views agree. */
+function streakFromDates(
+  activeDates: Set<string>,
+  frozenDates: Set<string>
+): number {
+  if (activeDates.size === 0 && frozenDates.size === 0) return 0;
+  const counts = (d: string) => activeDates.has(d) || frozenDates.has(d);
   const today = isoDate(new Date());
   const yesterday = isoDate(addDays(new Date(), -1));
   // If today isn't logged, start from yesterday so streak doesn't reset
   // until the full day passes.
-  let cursor = activeDates.has(today)
+  let cursor = counts(today)
     ? new Date()
-    : activeDates.has(yesterday)
+    : counts(yesterday)
     ? addDays(new Date(), -1)
     : null;
   if (!cursor) return 0;
   let streak = 0;
-  while (activeDates.has(isoDate(cursor))) {
+  while (counts(isoDate(cursor))) {
     streak++;
     cursor = addDays(cursor, -1);
   }
@@ -85,35 +92,66 @@ export async function fetchTeamStats(
   const sevenAgo = isoDate(addDays(new Date(), -6));
   const fourteenAgo = isoDate(addDays(new Date(), -13));
 
-  const [xpRes, habitsRes, practicesRes, checkinsRes, matchesRes, moodRes] =
-    await Promise.all([
-      supabase.from("athletes").select("id, xp").in("id", athleteIds),
-      supabase
-        .from("habit_completions")
-        .select("athlete_id, date")
-        .in("athlete_id", athleteIds)
-        .gte("date", since),
-      supabase
-        .from("practices")
-        .select("athlete_id, date")
-        .in("athlete_id", athleteIds)
-        .gte("date", since),
-      supabase
-        .from("mental_checkins")
-        .select("athlete_id, date")
-        .in("athlete_id", athleteIds)
-        .gte("date", since),
-      supabase
-        .from("matches")
-        .select("athlete_id, date")
-        .in("athlete_id", athleteIds)
-        .gte("date", since),
-      supabase
-        .from("mental_checkins")
-        .select("athlete_id, date, mood")
-        .in("athlete_id", athleteIds)
-        .gte("date", fourteenAgo),
-    ]);
+  const [
+    xpRes,
+    habitsRes,
+    practicesRes,
+    checkinsRes,
+    matchesRes,
+    mentalSessionsRes,
+    recoveryRes,
+    nutritionRes,
+    moodRes,
+  ] = await Promise.all([
+    supabase
+      .from("athletes")
+      .select("id, xp, used_freeze_dates")
+      .in("id", athleteIds),
+    supabase
+      .from("habit_completions")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("practices")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("mental_checkins")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("matches")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    // Mindset lessons / breathing / scenarios / visualizations all
+    // count toward the athlete's streak (see activeDatesSet in
+    // gamification.ts), so the coach view has to count them too or
+    // a mindset-only day shows as "inactive" and breaks the streak.
+    supabase
+      .from("mental_sessions")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("recovery_checkins")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("nutrition_logs")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("mental_checkins")
+      .select("athlete_id, date, mood")
+      .in("athlete_id", athleteIds)
+      .gte("date", fourteenAgo),
+  ]);
 
   const today = isoDate(new Date());
 
@@ -130,6 +168,21 @@ export async function fetchTeamStats(
   bump(practicesRes.data);
   bump(checkinsRes.data);
   bump(matchesRes.data);
+  bump(mentalSessionsRes.data);
+  bump(recoveryRes.data);
+  bump(nutritionRes.data);
+
+  // Per-athlete set of streak-freeze dates. A kid who spent a freeze
+  // yesterday has their streak saved on the athlete app; the coach
+  // view has to honor that too or the streak will look broken.
+  const frozenByAthlete = new Map<string, Set<string>>();
+  for (const a of xpRes.data ?? []) {
+    const freezes = (a as { used_freeze_dates?: string[] | null })
+      .used_freeze_dates;
+    if (freezes && freezes.length > 0) {
+      frozenByAthlete.set(a.id, new Set(freezes));
+    }
+  }
 
   // Bucket habits in last 7 days per athlete
   const habits7 = new Map<string, number>();
@@ -155,9 +208,10 @@ export async function fetchTeamStats(
 
   for (const id of athleteIds) {
     const activeSet = dates.get(id) ?? new Set<string>();
+    const frozenSet = frozenByAthlete.get(id) ?? new Set<string>();
     const sorted = [...activeSet].sort();
     const xp = (xpRes.data ?? []).find((a) => a.id === id)?.xp ?? 0;
-    const streak = streakFromDates(activeSet);
+    const streak = streakFromDates(activeSet, frozenSet);
     const lastActive = sorted.length > 0 ? sorted[sorted.length - 1] : null;
     const isActiveToday = activeSet.has(today);
 
@@ -192,13 +246,14 @@ export async function fetchTeamStats(
       else moodTrend = "flat";
     }
 
-    // Had a streak last week that's now gone?
+    // Had a streak last week that's now gone? Freezes count as saved
+    // days here too, matching the athlete's definition of streak.
     let hadPriorStreak = false;
     if (streak === 0) {
       const weekAgoSet = new Set<string>();
       for (let i = 3; i < 14; i++) {
-        if (activeSet.has(isoDate(addDays(new Date(), -i))))
-          weekAgoSet.add(isoDate(addDays(new Date(), -i)));
+        const d = isoDate(addDays(new Date(), -i));
+        if (activeSet.has(d) || frozenSet.has(d)) weekAgoSet.add(d);
       }
       if (streakFromDatesRaw(weekAgoSet) >= 3) hadPriorStreak = true;
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useStore } from "../lib/store";
+import { isUnlocked } from "../lib/unlocks";
 import {
   BADGES,
   computeLevel,
@@ -107,6 +108,11 @@ export default function ExportReportPage() {
 
   const p = state.profile;
   const info = computeLevel(state.xp, p.sport);
+
+  // Level gate — Export Report unlocks at Lvl 6.
+  if (!isUnlocked("tool.export", info.level)) {
+    return <Navigate to="/" replace />;
+  }
   const streak = computeStreak(state);
   const now = new Date();
   const generatedDate = now.toLocaleDateString(undefined, {
