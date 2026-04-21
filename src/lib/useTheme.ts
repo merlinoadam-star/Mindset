@@ -20,10 +20,14 @@ function applyTheme(theme: Theme) {
   }
 }
 
+// The Fearless brand lives on a dark stage (icon background, splash
+// screen, landing / auth page). Default new users to "dark" so the
+// in-app look matches rather than flipping to a pale light palette.
+// Anyone who has explicitly picked a theme before keeps their choice.
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>(() => {
     const stored = localStorage.getItem(THEME_KEY) as Theme | null;
-    return stored ?? "system";
+    return stored ?? "dark";
   });
 
   useEffect(() => {
@@ -50,5 +54,5 @@ export function useTheme() {
 /** Apply stored theme on page load (before React hydrates). */
 export function initTheme() {
   const stored = localStorage.getItem(THEME_KEY) as Theme | null;
-  applyTheme(stored ?? "system");
+  applyTheme(stored ?? "dark");
 }

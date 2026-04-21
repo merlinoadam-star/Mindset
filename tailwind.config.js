@@ -25,6 +25,23 @@ export default {
           900: "#78350f",
           950: "#451a03",
         },
+        // Flame — the red→orange→gold stops used in the app icon. Use
+        // these (or the `.bg-flame` / `.text-flame` utilities below) on
+        // primary CTAs and hero accents so the in-app look matches the
+        // logo and splash screen.
+        flame: {
+          50: "#fff7ed",
+          100: "#ffedd5",
+          200: "#fed7aa",
+          300: "#fdba74",
+          400: "#fb923c",
+          500: "#ea580c", // icon mid-flame
+          600: "#c2410c",
+          700: "#b91c1c", // icon base crimson
+          800: "#991b1b",
+          900: "#7c2d12", // icon root
+          950: "#450a0a",
+        },
         surface: {
           DEFAULT: "#f8fafc",
           card: "#ffffff",
@@ -41,6 +58,7 @@ export default {
         "glow-brand": "0 0 20px rgba(245, 158, 11, 0.18)",
         "glow-amber": "0 0 20px rgba(245, 158, 11, 0.15)",
         "glow-green": "0 0 20px rgba(34, 197, 94, 0.12)",
+        "glow-flame": "0 0 24px rgba(234, 88, 12, 0.35)",
       },
       borderRadius: {
         "2xl": "1rem",
