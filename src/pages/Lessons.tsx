@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
-import { LESSONS, type MentalLesson } from "../lib/lessons";
+import { lessonsForSport, type MentalLesson } from "../lib/lessons";
 import { showReward } from "../components/RewardToast";
 import SpeakButton from "../components/SpeakButton";
 import { ArrowLeft, BookOpen, ChevronRight, Check } from "lucide-react";
@@ -12,6 +12,7 @@ export default function LessonsPage() {
 
   if (!state.profile) return null;
 
+  const lessons = lessonsForSport(state.profile.sport);
   const completedIds = new Set(
     state.mentalSessions.filter((s) => s.kind === "lesson").map((s) => s.refId)
   );
@@ -35,7 +36,7 @@ export default function LessonsPage() {
     focus: [],
     identity: [],
   };
-  LESSONS.forEach((l) => byCategory[l.category].push(l));
+  lessons.forEach((l) => byCategory[l.category].push(l));
 
   return (
     <div className="space-y-4 animate-slide-up">
@@ -53,7 +54,7 @@ export default function LessonsPage() {
           <h1 className="page-title">Mental Skills</h1>
         </div>
         <p className="page-subtitle">
-          {completedIds.size} of {LESSONS.length} lessons completed
+          {completedIds.size} of {lessons.length} lessons completed
         </p>
       </header>
 
