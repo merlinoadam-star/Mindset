@@ -17,7 +17,8 @@ function profileToRow(
   accountId: string,
   profile: Profile,
   xp: number,
-  voicePersonaId: string
+  voicePersonaId: string,
+  usedFreezeDates: string[]
 ) {
   return {
     id: accountId,
@@ -46,6 +47,9 @@ function profileToRow(
     volleyball_stats: profile.volleyballStats ?? null,
     xp,
     voice_persona_id: voicePersonaId,
+    // Synced so the coach-roster streak can apply the same freeze
+    // logic the athlete app uses locally. See streak_freezes.sql.
+    used_freeze_dates: usedFreezeDates,
     updated_at: new Date().toISOString(),
   };
 }
@@ -54,10 +58,17 @@ export async function upsertAthleteProfile(
   accountId: string,
   profile: Profile,
   xp: number,
-  voicePersonaId: string
+  voicePersonaId: string,
+  usedFreezeDates: string[]
 ): Promise<{ error?: string }> {
   if (!supabase) return {};
-  const row = profileToRow(accountId, profile, xp, voicePersonaId);
+  const row = profileToRow(
+    accountId,
+    profile,
+    xp,
+    voicePersonaId,
+    usedFreezeDates
+  );
   const { error } = await supabase
     .from("athletes")
     .upsert(row, { onConflict: "id" });
@@ -99,6 +110,7 @@ export interface DbAthleteRow {
   volleyball_stats: Record<string, unknown> | null;
   xp: number;
   voice_persona_id: string | null;
+  used_freeze_dates: string[] | null;
   created_at: string;
   updated_at: string;
 }

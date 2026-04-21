@@ -98,12 +98,16 @@ export function currentWeekMondayISO(): string {
   return isoDate(d);
 }
 
-/** Days with at least one logged activity across any tracking surface. */
+/** Days with at least one logged activity across any tracking surface.
+ *  Must stay in lockstep with teamStats.ts:fetchTeamStats on the coach
+ *  side — if these two diverge the athlete's local streak and the
+ *  coach-roster streak will disagree. */
 export function activeDatesSet(state: AppState): Set<string> {
   const dates = new Set<string>();
   state.habitCompletions.forEach((c) => dates.add(c.date));
   state.practices.forEach((p) => dates.add(p.date));
   state.checkins.forEach((c) => dates.add(c.date));
+  state.matches.forEach((m) => dates.add(m.date));
   if (state.recoveryCheckins) {
     state.recoveryCheckins.forEach((r) => dates.add(r.date));
   }

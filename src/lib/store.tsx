@@ -328,8 +328,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           let profile = prev.profile;
           let xp = prev.xp;
           let voicePersonaId = prev.voicePersonaId;
+          // Union of local and cloud freeze dates — a freeze spent on
+          // any device should apply on all of them.
+          let usedFreezeDates = prev.usedFreezeDates ?? [];
           if (profileRow) {
             const cloudProfile = rowToProfile(profileRow);
+            const cloudFreezes = profileRow.used_freeze_dates ?? [];
+            usedFreezeDates = Array.from(
+              new Set([...(prev.usedFreezeDates ?? []), ...cloudFreezes])
+            );
             // Preserve local tournaments/awards if cloud profile doesn't have them
             // yet (they sync via their own tables).
             profile = {
@@ -426,6 +433,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             profile,
             xp,
             voicePersonaId,
+            usedFreezeDates,
             matches,
             practices,
             habitCompletions,
@@ -495,7 +503,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         account.id,
         state.profile!,
         state.xp,
-        state.voicePersonaId ?? "natural"
+        state.voicePersonaId ?? "natural",
+        state.usedFreezeDates ?? []
       );
     }, 800);
     return () => window.clearTimeout(id);
@@ -505,6 +514,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     state.profile,
     state.xp,
     state.voicePersonaId,
+    state.usedFreezeDates,
   ]);
 
   // Phase 2B.4 — Auto-sync match log to Supabase when signed in.
