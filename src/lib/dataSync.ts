@@ -283,6 +283,39 @@ const awardToRow = (athleteId: string, a: AwardEntry) => ({
 
 export const syncPractices = (athleteId: string, list: PracticeEntry[]) =>
   syncTable("practices", athleteId, list, practiceToRow);
+/**
+ * Collapse habit completions so at most one entry exists per
+ * (habitId, date). Keeps the most recent by `completedAt`, falling
+ * back to the last occurrence if timestamps are missing/equal. Also
+ * collapses rows that share an `id` — a double-tap race or an older
+ * migration glitch can leave the local state with two entries that
+ * happen to share a uuid, and every sync of that pair will hit
+ * habit_completions_pkey and fail.
+ */
+function dedupeHabitCompletions(list: HabitCompletion[]): HabitCompletion[] {
+  const byKey = new Map<string, HabitCompletion>();
+  for (const h of list) {
+    const key = `${h.habitId}|${h.date}`;
+    const prev = byKey.get(key);
+    if (!prev || (h.completedAt ?? "") >= (prev.completedAt ?? "")) {
+      byKey.set(key, h);
+    }
+  }
+  const byId = new Map<string, HabitCompletion>();
+  for (const h of byKey.values()) {
+    if (!h.id) continue;
+    const prev = byId.get(h.id);
+    if (!prev || (h.completedAt ?? "") >= (prev.completedAt ?? "")) {
+      byId.set(h.id, h);
+    }
+  }
+  // Keep entries without an id so they're preserved locally; they
+  // just won't be eligible for cloud sync (syncTable filters those
+  // out by isUuid check anyway).
+  const noId = list.filter((h) => !h.id);
+  return [...byId.values(), ...noId];
+}
+
 export const syncHabitCompletions = (
   athleteId: string,
   list: HabitCompletion[]
@@ -290,7 +323,7 @@ export const syncHabitCompletions = (
   syncTable(
     "habit_completions",
     athleteId,
-    list,
+    dedupeHabitCompletions(list),
     habitToRow,
     "athlete_id,habit_id,date"
   );
