@@ -1,5 +1,8 @@
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
+import { computeLevel } from "../lib/gamification";
+import { getUnlock, isUnlocked } from "../lib/unlocks";
+import { LockOverlay } from "../components/LockChip";
 import {
   ArrowLeft,
   Brain,
@@ -82,6 +85,7 @@ const GAMES: GameDef[] = [
 export default function GamesPage() {
   const { state } = useStore();
   if (!state.profile) return null;
+  const { level } = computeLevel(state.xp, state.profile.sport);
 
   return (
     <div className="space-y-4 animate-slide-up">
@@ -135,20 +139,20 @@ export default function GamesPage() {
         {GAMES.map((g) => {
           const best = state.gameBestScores?.[g.id];
           const rounds = roundsForGame(state, g.id);
-          return (
-            <Link
-              key={g.id}
-              to={g.to}
-              className="block card-interactive text-left flex items-center gap-3"
-            >
+          const unlockId = `game.${g.id}`;
+          const unlocked = isUnlocked(unlockId, level);
+          const requiredLevel = getUnlock(unlockId)?.levelRequired ?? 1;
+
+          const body = (
+            <>
               <div
                 className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${g.gradient} text-white flex items-center justify-center shadow-sm`}
               >
                 {g.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-slate-900">{g.title}</div>
-                <div className="text-xs text-slate-500 mt-0.5 truncate">
+                <div className="font-bold text-slate-900 dark:text-white">{g.title}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                   {g.subtitle}
                 </div>
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -168,6 +172,29 @@ export default function GamesPage() {
                 </div>
               </div>
               <ChevronRight size={18} className="text-slate-300 flex-shrink-0" />
+            </>
+          );
+
+          if (!unlocked) {
+            return (
+              <div
+                key={g.id}
+                className="relative card text-left flex items-center gap-3 grayscale opacity-70 cursor-not-allowed"
+                aria-disabled="true"
+              >
+                {body}
+                <LockOverlay level={requiredLevel} />
+              </div>
+            );
+          }
+
+          return (
+            <Link
+              key={g.id}
+              to={g.to}
+              className="block card-interactive text-left flex items-center gap-3"
+            >
+              {body}
             </Link>
           );
         })}

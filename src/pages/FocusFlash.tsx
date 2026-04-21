@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useStore } from "../lib/store";
 import { showReward } from "../components/RewardToast";
+import { computeLevel } from "../lib/gamification";
+import { isUnlocked } from "../lib/unlocks";
 import { ArrowLeft, Grid3x3, Play, Trophy } from "lucide-react";
 import type { Sport } from "../types";
 
@@ -143,6 +145,16 @@ export default function FocusFlashPage() {
     }
     if (phase !== "result") hasAwarded.current = false;
   }, [phase, level, completeGameRound]);
+
+  // Level gate — belt-and-braces. The Games hub already renders a
+  // locked card for gated games, but deep-linking /games/flash should
+  // also bounce.
+  const playerLevel = state.profile
+    ? computeLevel(state.xp, state.profile.sport).level
+    : 1;
+  if (!isUnlocked("game.flash", playerLevel)) {
+    return <Navigate to="/games" replace />;
+  }
 
   // ----- Render -----
   if (phase === "intro") {
