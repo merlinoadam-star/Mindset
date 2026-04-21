@@ -72,12 +72,17 @@ async function syncTable<T extends WithId>(
           error
         );
         let failures = 0;
+        // Capture the most recent row-level error text so it can
+        // surface in the UI badge. Without this we only see our own
+        // "N/M rows failed" summary and have to guess at the cause.
+        let lastRowError = error.message ?? "batch upsert failed";
         for (const row of rows) {
           const { error: rowErr } = await supabase
             .from(tableName)
             .upsert(row, { onConflict });
           if (rowErr) {
             failures++;
+            lastRowError = rowErr.message ?? lastRowError;
             console.error(`${tableName} row upsert failed`, {
               row,
               error: rowErr,
@@ -89,7 +94,7 @@ async function syncTable<T extends WithId>(
         if (failures === rows.length) {
           reportSyncStatus("error", {
             table: tableName,
-            details: error.message ?? "batch upsert failed",
+            details: lastRowError,
           });
           return;
         }
@@ -98,7 +103,7 @@ async function syncTable<T extends WithId>(
         if (failures > 0) {
           reportSyncStatus("error", {
             table: tableName,
-            details: `${failures}/${rows.length} rows failed`,
+            details: `${failures}/${rows.length} rows failed · ${lastRowError}`,
           });
         } else {
           reportSyncStatus("ok", { table: tableName });
