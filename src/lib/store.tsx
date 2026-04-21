@@ -362,12 +362,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           const practices = dataRows
             ? mergeById(dataRows.practices.map(rowToPractice), prev.practices)
             : prev.practices;
-          const habitCompletions = dataRows
+          // Merge cloud + local, then collapse any same-day duplicates
+          // so the athlete's local doesn't carry the state that was
+          // causing `habit_completions_pkey` collisions on sync. Keeps
+          // the most recent (by completedAt) entry per (habitId, date).
+          const mergedHabits = dataRows
             ? mergeById(
                 dataRows.habits.map(rowToHabitCompletion),
                 prev.habitCompletions
               )
             : prev.habitCompletions;
+          const habitCompletionsByKey = new Map<
+            string,
+            (typeof mergedHabits)[number]
+          >();
+          for (const h of mergedHabits) {
+            const key = `${h.habitId}|${h.date}`;
+            const existing = habitCompletionsByKey.get(key);
+            if (
+              !existing ||
+              (h.completedAt ?? "") >= (existing.completedAt ?? "")
+            ) {
+              habitCompletionsByKey.set(key, h);
+            }
+          }
+          const habitCompletions = [...habitCompletionsByKey.values()];
           const opponents = dataRows
             ? mergeById(dataRows.opponents.map(rowToOpponent), prev.opponents)
             : prev.opponents;
