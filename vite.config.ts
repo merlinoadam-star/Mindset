@@ -36,8 +36,5 @@ export default defineConfig({
   ],
   build: {
     chunkSizeWarningLimit: 300,
-    // Temporarily enabled for diagnostic sourcemaps — remove once the
-    // history.replaceState flood bug is fixed.
-    sourcemap: true,
   },
 })
