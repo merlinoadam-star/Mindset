@@ -88,6 +88,9 @@ export async function fetchTeamStats(
 ): Promise<Map<string, AthleteStat>> {
   const out = new Map<string, AthleteStat>();
   if (!supabase || athleteIds.length === 0) return out;
+  // Hoist the narrowed reference so TS keeps it non-null inside the
+  // `.map` closure below (flow-narrowing doesn't cross callbacks).
+  const db = supabase;
 
   const since = isoDate(addDays(new Date(), -60));
   const sevenAgo = isoDate(addDays(new Date(), -6));
@@ -97,7 +100,7 @@ export async function fetchTeamStats(
   // the athlete side — see src/lib/activitySources.ts. Adding a new
   // source there automatically wires it into the roster.
   const activityQueries = ACTIVITY_SOURCES.map(({ table }) =>
-    supabase
+    db
       .from(table)
       .select("athlete_id, date")
       .in("athlete_id", athleteIds)
@@ -105,11 +108,11 @@ export async function fetchTeamStats(
   );
 
   const [xpRes, moodRes, ...activityResults] = await Promise.all([
-    supabase
+    db
       .from("athletes")
       .select("id, xp, used_freeze_dates")
       .in("id", athleteIds),
-    supabase
+    db
       .from("mental_checkins")
       .select("athlete_id, date, mood")
       .in("athlete_id", athleteIds)
