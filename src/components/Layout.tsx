@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { Home, CheckSquare, Dumbbell, Brain, Award } from "lucide-react";
+import SyncErrorBadge from "./SyncErrorBadge";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
@@ -15,6 +16,8 @@ export default function Layout() {
       <main className="max-w-xl mx-auto px-4 pt-4">
         <Outlet />
       </main>
+
+      <SyncErrorBadge />
 
       <nav className="fixed bottom-0 left-0 right-0 z-50">
         <div className="max-w-xl mx-auto px-3 pb-2">

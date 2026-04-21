@@ -14,7 +14,13 @@
 /* eslint-disable no-restricted-globals */
 /* global self */
 
-const VERSION = "v2";
+// `__BUILD_ID__` is substituted at build time by the sw-version-injector
+// plugin in vite.config.ts (see the `closeBundle` hook). A unique value
+// per deploy means the browser detects the SW as updated, activates the
+// new version, and clears the previous cache entries — so users aren't
+// stuck on stale JS when we ship a sync-affecting fix. In dev the token
+// stays literal, which is fine because Vite's HMR handles freshness.
+const VERSION = "__BUILD_ID__";
 const STATIC_CACHE = `mindset-static-${VERSION}`;
 const PAGE_CACHE = `mindset-pages-${VERSION}`;
 
