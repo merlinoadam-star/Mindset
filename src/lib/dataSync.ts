@@ -49,8 +49,33 @@ async function syncTable<T extends WithId>(
         .from(tableName)
         .upsert(rows, { onConflict: "id" });
       if (error) {
-        console.error(`${tableName} upsert failed`, error);
-        return;
+        // Postgres aborts the entire batch on the first bad row (e.g.
+        // a check constraint or unique violation). Without a fallback,
+        // one stale row can poison every future sync and the table
+        // stays empty even for the legit rows in the batch — exactly
+        // how the mental_sessions 'scenarios' check-constraint bug
+        // silently broke coach reporting. Retry row-by-row so good
+        // rows still land and the bad ones are pinpointed in logs.
+        console.error(
+          `${tableName} batch upsert failed; retrying row-by-row`,
+          error
+        );
+        let failures = 0;
+        for (const row of rows) {
+          const { error: rowErr } = await supabase
+            .from(tableName)
+            .upsert(row, { onConflict: "id" });
+          if (rowErr) {
+            failures++;
+            console.error(`${tableName} row upsert failed`, {
+              row,
+              error: rowErr,
+            });
+          }
+        }
+        // If literally nothing made it through, skip the delete pass —
+        // we don't want to wipe cloud rows that may be the only copy.
+        if (failures === rows.length) return;
       }
     }
 
