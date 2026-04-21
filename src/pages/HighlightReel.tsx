@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { computeLevel } from "../lib/gamification";
 import { isUnlocked } from "../lib/unlocks";
 import {
   ArrowRight,
