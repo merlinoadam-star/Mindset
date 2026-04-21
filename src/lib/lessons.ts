@@ -163,7 +163,7 @@ export const LESSONS: MentalLesson[] = [
   },
   {
     id: "identity",
-    title: "Who You Are on the Mat",
+    title: "Who You Are When You Compete",
     subtitle: "Identity drives behavior",
     emoji: "👤",
     durationMin: 4,
@@ -172,7 +172,7 @@ export const LESSONS: MentalLesson[] = [
     sections: [
       {
         heading: "Behavior follows identity",
-        body: "If you think 'I'm trying to be a good wrestler,' you'll show up when it's easy. If you think 'I AM a wrestler — this is who I am,' you'll show up even when it's hard. Small shift in words. Huge shift in behavior.",
+        body: "If you think 'I'm trying to be a good athlete,' you'll show up when it's easy. If you think 'I AM an athlete — this is who I am,' you'll show up even when it's hard. Small shift in words. Huge shift in behavior.",
       },
       {
         heading: "The athlete you're becoming",
@@ -184,7 +184,7 @@ export const LESSONS: MentalLesson[] = [
       },
       {
         heading: "No one-day identities",
-        body: "You can't build identity in a single day. But if you show up as the athlete you're becoming every day for 90 days, you become that person. The mat tells the truth about who you are — and who you're becoming.",
+        body: "You can't build identity in a single day. But if you show up as the athlete you're becoming every day for 90 days, you become that person. Game day tells the truth about who you are — and who you're becoming.",
       },
     ],
     reflectionPrompt:
