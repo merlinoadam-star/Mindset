@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from "./lib/authContext";
 import Layout from "./components/Layout";
 import CoachLayout from "./components/CoachLayout";
 import RewardToast from "./components/RewardToast";
+import LevelUpWatcher from "./components/LevelUpWatcher";
 import ErrorBoundary from "./components/ErrorBoundary";
 import FeedbackFAB from "./components/FeedbackFAB";
 import OfflineBanner from "./components/OfflineBanner";
@@ -204,6 +205,7 @@ export default function App() {
           <OfflineBanner />
           <AppShell />
           <RewardToast />
+          <LevelUpWatcher />
           <Confetti />
           <EasterEggs />
           <FeedbackFAB />

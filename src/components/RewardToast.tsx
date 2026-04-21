@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getBadge } from "../lib/gamification";
+import { getUnlock, UNLOCK_PREFIX } from "../lib/unlocks";
 import { hapticSuccess, hapticLight } from "../lib/haptics";
 import { fireConfetti } from "./Confetti";
 
@@ -59,6 +60,10 @@ export default function RewardToast() {
                   // Special prefix for non-badge messages (combos, etc.)
                   if (id.startsWith("__combo__")) {
                     return `🔥 ${id.slice(9)}`;
+                  }
+                  if (id.startsWith(UNLOCK_PREFIX)) {
+                    const u = getUnlock(id.slice(UNLOCK_PREFIX.length));
+                    return u ? `🔓 ${u.emoji} ${u.label} unlocked!` : "";
                   }
                   const b = getBadge(id);
                   return b ? `${b.emoji} ${b.name}` : "";
