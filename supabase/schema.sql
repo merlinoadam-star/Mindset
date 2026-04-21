@@ -47,6 +47,11 @@ create table if not exists public.athletes (
   volleyball_stats jsonb,
   xp int not null default 0,
   voice_persona_id text default 'natural',
+  -- Cached streak written by the athlete app; coach roster reads this
+  -- instead of recomputing from raw activity rows. See cached_streak.sql
+  -- for the rationale and the reconciliation rules.
+  current_streak int not null default 0,
+  streak_updated_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

@@ -91,6 +91,13 @@ and only needs to run once per database.
   Required for the Decision Drill game to sync — without it,
   Postgres rejects the whole upsert batch with a check-constraint
   violation and *every* mental-session row for that athlete fails.
+- **`cached_streak.sql`** — adds `athletes.current_streak int` +
+  `athletes.streak_updated_at timestamptz`. The athlete app writes
+  what its own `computeStreak` returns and the coach roster reads
+  that directly (falling back to the raw-rows recompute when the
+  cached value is stale >24h). Eliminates the "one missing activity
+  row silently breaks the coach's view of the streak" class of bug.
+  Required by `src/lib/teamStats.ts` and `src/lib/athleteSync.ts`.
 
 ## When to write a new migration vs. edit `schema.sql`
 

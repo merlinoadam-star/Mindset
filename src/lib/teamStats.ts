@@ -110,7 +110,7 @@ export async function fetchTeamStats(
   const [xpRes, moodRes, ...activityResults] = await Promise.all([
     db
       .from("athletes")
-      .select("id, xp, used_freeze_dates")
+      .select("id, xp, used_freeze_dates, current_streak, streak_updated_at")
       .in("id", athleteIds),
     db
       .from("mental_checkins")
@@ -175,12 +175,35 @@ export async function fetchTeamStats(
     }
   }
 
+  // Cached streak is considered "fresh" if the athlete's app reported
+  // it within the last 24h. Older than that, we fall back to the raw-
+  // rows recompute so the coach doesn't show a frozen value for an
+  // athlete who stopped opening the app.
+  const STREAK_CACHE_FRESH_MS = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
   for (const id of athleteIds) {
     const activeSet = dates.get(id) ?? new Set<string>();
     const frozenSet = frozenByAthlete.get(id) ?? new Set<string>();
     const sorted = [...activeSet].sort();
-    const xp = (xpRes.data ?? []).find((a) => a.id === id)?.xp ?? 0;
-    const streak = streakFromDates(activeSet, frozenSet);
+    const athleteRow = (xpRes.data ?? []).find((a) => a.id === id);
+    const xp = athleteRow?.xp ?? 0;
+
+    // Prefer the athlete-app-computed streak (no silent gaps from a
+    // missing activity row). Fall back to the raw recompute if we
+    // don't have a cached value, or if it's stale.
+    const cachedStreak = (athleteRow as { current_streak?: number | null } | undefined)
+      ?.current_streak;
+    const streakUpdatedAt = (athleteRow as { streak_updated_at?: string | null } | undefined)
+      ?.streak_updated_at;
+    const cacheFresh =
+      typeof cachedStreak === "number" &&
+      streakUpdatedAt &&
+      now - new Date(streakUpdatedAt).getTime() < STREAK_CACHE_FRESH_MS;
+    const streak = cacheFresh
+      ? (cachedStreak as number)
+      : streakFromDates(activeSet, frozenSet);
+
     const lastActive = sorted.length > 0 ? sorted[sorted.length - 1] : null;
     const isActiveToday = activeSet.has(today);
 
