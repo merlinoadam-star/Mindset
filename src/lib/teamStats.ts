@@ -85,35 +85,63 @@ export async function fetchTeamStats(
   const sevenAgo = isoDate(addDays(new Date(), -6));
   const fourteenAgo = isoDate(addDays(new Date(), -13));
 
-  const [xpRes, habitsRes, practicesRes, checkinsRes, matchesRes, moodRes] =
-    await Promise.all([
-      supabase.from("athletes").select("id, xp").in("id", athleteIds),
-      supabase
-        .from("habit_completions")
-        .select("athlete_id, date")
-        .in("athlete_id", athleteIds)
-        .gte("date", since),
-      supabase
-        .from("practices")
-        .select("athlete_id, date")
-        .in("athlete_id", athleteIds)
-        .gte("date", since),
-      supabase
-        .from("mental_checkins")
-        .select("athlete_id, date")
-        .in("athlete_id", athleteIds)
-        .gte("date", since),
-      supabase
-        .from("matches")
-        .select("athlete_id, date")
-        .in("athlete_id", athleteIds)
-        .gte("date", since),
-      supabase
-        .from("mental_checkins")
-        .select("athlete_id, date, mood")
-        .in("athlete_id", athleteIds)
-        .gte("date", fourteenAgo),
-    ]);
+  const [
+    xpRes,
+    habitsRes,
+    practicesRes,
+    checkinsRes,
+    matchesRes,
+    mentalSessionsRes,
+    recoveryRes,
+    nutritionRes,
+    moodRes,
+  ] = await Promise.all([
+    supabase.from("athletes").select("id, xp").in("id", athleteIds),
+    supabase
+      .from("habit_completions")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("practices")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("mental_checkins")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("matches")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    // Mindset lessons / breathing / scenarios / visualizations all
+    // count toward the athlete's streak (see activeDatesSet in
+    // gamification.ts), so the coach view has to count them too or
+    // a mindset-only day shows as "inactive" and breaks the streak.
+    supabase
+      .from("mental_sessions")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("recovery_checkins")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("nutrition_logs")
+      .select("athlete_id, date")
+      .in("athlete_id", athleteIds)
+      .gte("date", since),
+    supabase
+      .from("mental_checkins")
+      .select("athlete_id, date, mood")
+      .in("athlete_id", athleteIds)
+      .gte("date", fourteenAgo),
+  ]);
 
   const today = isoDate(new Date());
 
@@ -130,6 +158,9 @@ export async function fetchTeamStats(
   bump(practicesRes.data);
   bump(checkinsRes.data);
   bump(matchesRes.data);
+  bump(mentalSessionsRes.data);
+  bump(recoveryRes.data);
+  bump(nutritionRes.data);
 
   // Bucket habits in last 7 days per athlete
   const habits7 = new Map<string, number>();
