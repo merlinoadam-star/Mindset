@@ -107,6 +107,13 @@ import {
 
 interface StoreContextValue {
   state: AppState;
+  /** True once the initial cloud pull into local state has finished
+   *  for the current athlete session. Always false for coach/parent
+   *  accounts (they don't have a per-athlete cloud hydrate step).
+   *  AppShell waits on this before rendering the athlete tree so the
+   *  /auth sub-router can't start bouncing before state.profile is
+   *  populated from the cloud. */
+  cloudHydrated: boolean;
   setProfile: (profile: Profile) => void;
   updateProfile: (updates: Partial<Profile>) => void;
   toggleHabit: (habitId: string) => { awardedXp: number; newlyUnlocked: string[] };
@@ -2091,6 +2098,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const value: StoreContextValue = {
     state,
+    cloudHydrated,
     setProfile,
     updateProfile,
     toggleHabit,
