@@ -64,7 +64,7 @@ function PageLoader() {
 }
 
 function AppShell() {
-  const { state } = useStore();
+  const { state, cloudHydrated } = useStore();
   const { session, account, loading: authLoading } = useAuth();
 
   // Password-reset deep link — users land here from the email link with
@@ -92,7 +92,15 @@ function AppShell() {
   // signed-in coach briefly falls into the athlete branch below (because
   // `account` is still null), whose /auth sub-router bounces them between
   // `/` and `/auth` until Safari/Chrome throttles history.replaceState.
-  if (authLoading || (session && !account)) {
+  //
+  // For athletes there's a third window — account has loaded but the
+  // cloud hydration hasn't populated state.profile yet. During that
+  // gap we'd render the athlete "no profile" branch (Onboarding or
+  // /auth sub-router), and the sub-router's catch-all would trip the
+  // same replaceState flood. Waiting on cloudHydrated closes it.
+  const awaitingAthleteHydration =
+    session && account?.role === "athlete" && !cloudHydrated;
+  if (authLoading || (session && !account) || awaitingAthleteHydration) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-slate-400 text-sm">Loading...</div>
