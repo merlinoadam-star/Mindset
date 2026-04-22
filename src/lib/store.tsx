@@ -297,13 +297,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const currentUserId = session?.user?.id ?? null;
     const prev = prevSessionUserIdRef.current;
-    // undefined = never observed before (initial mount). Skip — we
-    // don't want to wipe an onboarding-first user's local profile
-    // while auth is still loading.
-    if (prev !== undefined && prev !== currentUserId) {
-      // Either logout (prev truthy, current null) or account switch
-      // (both truthy but different). Clear everything; hydration will
-      // repopulate from the new session's cloud.
+    // Only clear on transitions AWAY from a real user id:
+    //   - userA → null   (logout or session expiry)
+    //   - userA → userB  (account switch)
+    //
+    // Explicitly DO NOT clear on null → userA. That transition is the
+    // first sign-in, and wiping state.profile there drops the athlete
+    // into the /auth sub-router while cloud hydration is still in
+    // flight — which triggers the history.replaceState flood the
+    // ErrorBoundary catches on login. Hydration handles populating
+    // state for the first-sign-in case on its own.
+    if (
+      prev !== undefined &&
+      prev !== null &&
+      prev !== currentUserId
+    ) {
       clearState();
       setState(emptyState);
       setCloudHydrated(false);
