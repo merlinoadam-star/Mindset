@@ -259,7 +259,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       usedFreezeDates: result.usedFreezeDates,
     };
   });
-  const { account } = useAuth();
+  const { account, session } = useAuth();
 
   // Tracks whether we've pulled the athlete's cloud data into local state
   // for this sign-in session. All sync-UP effects wait on this so we don't
@@ -275,6 +275,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Today's date — recomputed periodically so unchanged tab sessions still
   // detect a day rollover (e.g. phone left open overnight).
   const [today, setToday] = useState<string>(() => todayISO());
+
+  // Session-transition guard. Without this, two kinds of silent
+  // data-leak were possible:
+  //
+  //   (a) Kid logs out → local state (profile + habits + XP) stays on
+  //       the device, so the next time the app opens the dashboard
+  //       renders their old name and yesterday's numbers. They look
+  //       logged in but nothing syncs, and any new taps disappear
+  //       into localStorage never to reach the cloud.
+  //   (b) Device is shared / account is switched → the new user's
+  //       hydration merges their cloud data on top of the previous
+  //       user's local state, so their streak/activity counts show
+  //       the other user's work mixed in.
+  //
+  // Watching the authenticated user id and wiping local state on
+  // every transition (truthy → null, or user A → user B) closes both.
+  // Fresh hydration runs for the new session and the dashboard reflects
+  // exactly what's in the cloud for whoever is signed in right now.
+  const prevSessionUserIdRef = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    const currentUserId = session?.user?.id ?? null;
+    const prev = prevSessionUserIdRef.current;
+    // undefined = never observed before (initial mount). Skip — we
+    // don't want to wipe an onboarding-first user's local profile
+    // while auth is still loading.
+    if (prev !== undefined && prev !== currentUserId) {
+      // Either logout (prev truthy, current null) or account switch
+      // (both truthy but different). Clear everything; hydration will
+      // repopulate from the new session's cloud.
+      clearState();
+      setState(emptyState);
+      setCloudHydrated(false);
+      hydratedAccountIdRef.current = null;
+    }
+    prevSessionUserIdRef.current = currentUserId;
+  }, [session]);
 
   // Stable ref the video callbacks use to read the current athlete id
   // without re-creating themselves every render.
